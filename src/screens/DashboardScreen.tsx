@@ -48,30 +48,26 @@ const DashboardScreen = () => {
 
         {/* FECHA (EXTRA BLOQUE PERSONALIZADO) */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateRow}>
-        {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
-            <View
-            key={index}
-            style={[
-                styles.dateItem,
-                index === 2 && styles.dateItemActive // día seleccionado
-            ]}
-            >
-            <Text style={styles.dateText}>{item}</Text>
-            </View>
-        ))}
-        </ScrollView>
+  {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
+    <View
+      key={index}
+      style={[
+        styles.dateItem,
+        { marginRight: 12 },
+        index === 2 && styles.dateItemActive
+      ]}
+    >
+      <Text style={[
+        styles.dateText,
+        index === 2 && { color: '#fff' }
+      ]}>
+        {item}
+      </Text>
+    </View>
+  ))}
+</ScrollView>
 
-      {/* CALENDARIO FECHAS */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.calendarRow}>
-        {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
-          <View
-            key={index}
-            style={[styles.calendarItem, index === 2 && styles.calendarItemActive]}
-          >
-            <Text style={styles.calendarDate}>{item}</Text>
-          </View>
-        ))}
-      </ScrollView>
+
 
       {/* AGENDA DEL DÍA */}
       <View style={styles.agendaContainer}>
@@ -97,7 +93,7 @@ const DashboardScreen = () => {
       </View>
 
       {/* TABS */}
-      <View style={{ marginTop: 16 }}>
+      <View style={styles.tabsContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -275,6 +271,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginTop: 12,
   },
+  tabsContainer: {
+    marginTop: 16,
+  },
   tabs: {
     flexDirection: 'row',
     gap: 16,
@@ -385,23 +384,22 @@ const styles = StyleSheet.create({
   },
   dateRow: {
     marginBottom: 12,
-    flexDirection: 'row',
-    gap: 12,
+    marginTop: 12,
   },
   dateItem: {
     backgroundColor: '#F3F4F6',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
   },
   dateItemActive: {
     backgroundColor: '#10B981',
   },
   dateText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#1A1A1A',
-  },
+  },  
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
