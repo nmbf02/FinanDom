@@ -1,3 +1,5 @@
+// src/screens/DashboardScreen.tsx
+
 import React from 'react';
 import {
   View,
@@ -30,33 +32,43 @@ const DashboardScreen = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Image source={avatar} style={styles.avatar} />
-        <View>
-          <Text style={styles.welcomeText}>Hi, WelcomeBack</Text>
-          <Text style={styles.userName}>Nathaly Berroa</Text>
+        <View style={styles.userInfo}>
+            <Image source={avatar} style={styles.avatar} />
+            <View style={{ marginLeft: 10 }}>
+            <Text style={styles.welcomeText}>Hi, Welcome Back!</Text>
+            <Text style={styles.userName}>Nathaly Berroa</Text>
+            </View>
         </View>
+
         <View style={styles.rightIcons}>
           <Image source={bell} style={styles.icon} />
           <Image source={setting} style={styles.icon} />
         </View>
       </View>
 
+        {/* FECHA (EXTRA BLOQUE PERSONALIZADO) */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateRow}>
+        {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
+            <View
+            key={index}
+            style={[
+                styles.dateItem,
+                index === 2 && styles.dateItemActive // día seleccionado
+            ]}
+            >
+            <Text style={styles.dateText}>{item}</Text>
+            </View>
+        ))}
+        </ScrollView>
+
       {/* CALENDARIO FECHAS */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.calendarRow}>
-        {[
-          { day: 'MON', date: '9' },
-          { day: 'TUE', date: '10' },
-          { day: 'WED', date: '11' },
-          { day: 'THU', date: '12' },
-          { day: 'FRI', date: '13' },
-          { day: 'SAT', date: '14' },
-        ].map((item, index) => (
+        {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
           <View
             key={index}
             style={[styles.calendarItem, index === 2 && styles.calendarItemActive]}
           >
-            <Text style={styles.calendarDate}>{item.date}</Text>
-            <Text style={styles.calendarDay}>{item.day}</Text>
+            <Text style={styles.calendarDate}>{item}</Text>
           </View>
         ))}
       </ScrollView>
@@ -150,11 +162,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     paddingHorizontal: 16,
     paddingTop: 64,
+    paddingBottom: 70,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   avatar: {
@@ -189,7 +202,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderRadius: 10,
     backgroundColor: '#F0F0F0',
-    width: 50,
+    width: 70,
   },
   calendarItemActive: {
     backgroundColor: '#10B981',
@@ -356,11 +369,42 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#fff',
     borderRadius: 20,
-    marginTop: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   navIcon: {
     width: 28,
     height: 28,
     tintColor: '#10B981',
   },
+  dateRow: {
+    marginBottom: 12,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dateItem: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  dateItemActive: {
+    backgroundColor: '#10B981',
+  },
+  dateText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
 });
