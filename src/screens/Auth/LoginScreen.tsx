@@ -6,9 +6,13 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import Icon from 'react-native-vector-icons/Ionicons';
+
+const checkmarkIcon = require('../../assets/icons/checkmark.png');
+const eyeIcon = require('../../assets/icons/eye.png');
+const eyeOffIcon = require('../../assets/icons/eye-off.png');
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('nathalyberroaf@gmail.com');
@@ -30,7 +34,9 @@ const LoginScreen = () => {
           placeholder="Correo electrónico"
           keyboardType="email-address"
         />
-        {email.length > 3 && <Icon name="checkmark" size={20} color="#1CC88A" />}
+        {email.length > 3 && (
+          <Image source={checkmarkIcon} style={styles.icon} />
+        )}
       </View>
 
       <Text style={styles.passwordLabel}>Contraseña</Text>
@@ -43,22 +49,27 @@ const LoginScreen = () => {
           placeholder="Contraseña"
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Icon
-            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            size={20}
-            color="#999"
+          <Image
+            source={showPassword ? eyeOffIcon : eyeIcon}
+            style={styles.icon}
           />
         </TouchableOpacity>
       </View>
 
       <View style={styles.rowOptions}>
-        <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={styles.checkboxContainer}>
-          <CheckBox value={rememberMe} onValueChange={setRememberMe} />
-          <Text style={styles.rememberText}>Remember me</Text>
-        </TouchableOpacity>
+        <View style={styles.checkboxContainer}>
+            <CheckBox
+            value={rememberMe}
+            onValueChange={setRememberMe}
+            tintColors={{ true: '#1CC88A', false: '#ccc' }}
+            />
+            <Text style={styles.rememberText}>Remember me</Text>
+        </View>
+
         <TouchableOpacity>
-          <Text style={styles.forgotText}>Forgot Password?</Text>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
+
       </View>
 
       <TouchableOpacity style={styles.loginButton}>
@@ -111,6 +122,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     fontSize: 16,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1CC88A',
   },
   rowOptions: {
     flexDirection: 'row',
