@@ -1,5 +1,3 @@
-// src/screens/DashboardScreen.tsx
-
 import React from 'react';
 import {
   View,
@@ -7,11 +5,12 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 
-// 🧩 ICONOS (Rutas en la parte superior)
+// ICONOS
 const avatar = require('../assets/icons/avatar.png');
-const user = require('../assets/icons/avatar.png');
+const user = require('../assets/icons/user-setting.png');
 const bell = require('../assets/icons/bell.png');
 const setting = require('../assets/icons/setting.png');
 const wallet = require('../assets/icons/wallet.png');
@@ -31,125 +30,146 @@ const DashboardScreen = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <View style={styles.userInfo}>
-          <Image source={avatar} style={styles.avatar} />
-          <View>
-            <Text style={styles.welcomeText}>Hi, WelcomeBack</Text>
-            <Text style={styles.userName}>Nathaly Berroa</Text>
-          </View>
+        <Image source={avatar} style={styles.avatar} />
+        <View>
+          <Text style={styles.welcomeText}>Hi, WelcomeBack</Text>
+          <Text style={styles.userName}>Nathaly Berroa</Text>
         </View>
-        <Image source={bell} style={styles.icon} />
-        <Image source={setting} style={styles.icon} />
+        <View style={styles.rightIcons}>
+          <Image source={bell} style={styles.icon} />
+          <Image source={setting} style={styles.icon} />
+        </View>
       </View>
 
-      {/* FECHA */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateRow}>
-        {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
+      {/* CALENDARIO FECHAS */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.calendarRow}>
+        {[
+          { day: 'MON', date: '9' },
+          { day: 'TUE', date: '10' },
+          { day: 'WED', date: '11' },
+          { day: 'THU', date: '12' },
+          { day: 'FRI', date: '13' },
+          { day: 'SAT', date: '14' },
+        ].map((item, index) => (
           <View
             key={index}
-            style={[
-              styles.dateItem,
-              index === 2 && styles.dateItemActive // día seleccionado
-            ]}
+            style={[styles.calendarItem, index === 2 && styles.calendarItemActive]}
           >
-            <Text style={styles.dateText}>{item}</Text>
+            <Text style={styles.calendarDate}>{item.date}</Text>
+            <Text style={styles.calendarDay}>{item.day}</Text>
           </View>
         ))}
       </ScrollView>
 
-      {/* CITA (Opcional) */}
-      <View style={styles.appointmentCard}>
-        <Text style={styles.appointmentTitle}>Dr. Olivia Turner, M.D.</Text>
-        <Text style={styles.appointmentDesc}>
-          Treatment and prevention of skin and photodermatitis.
-        </Text>
+      {/* AGENDA DEL DÍA */}
+      <View style={styles.agendaContainer}>
+        <Text style={styles.agendaDayLabel}>11 Wednesday - Today</Text>
+        {['9 AM', '10 AM', '11 AM', '12 PM'].map((hour, i) => (
+          <View key={i} style={styles.agendaItem}>
+            <Text style={styles.agendaTime}>{hour}</Text>
+            {hour === '10 AM' ? (
+              <View style={styles.agendaDetails}>
+                <View style={styles.agendaHeader}>
+                  <Text style={styles.agendaTitle}>Dr. Olivia Turner, M.D.</Text>
+                  <Text style={styles.agendaCheck}>✔</Text>
+                </View>
+                <Text style={styles.agendaDesc}>
+                  Treatment and prevention of skin and photodermatitis.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.agendaLine} />
+            )}
+          </View>
+        ))}
       </View>
 
       {/* TABS */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabs}
-      >
-        <Tab icon={users} label="CLIENTES" active />
-        <Tab icon={loan} label="PRÉSTAMOS" />
-        <Tab icon={payment} label="CUOTAS" />
-        <Tab icon={overdue} label="MORAS" />
-      </ScrollView>
+      <View style={{ marginTop: 16 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabs}
+        >
+          <Tab icon={users} label="CLIENTES" active />
+          <Tab icon={loan} label="PRÉSTAMOS" />
+          <Tab icon={payment} label="CUOTAS" />
+          <Tab icon={overdue} label="MORAS" />
+        </ScrollView>
+      </View>
 
       {/* MÉTRICAS */}
       <View style={styles.statsContainer}>
-        <Stat icon={wallet} title="Total Prestado" amount="RD$ 450,000.00" />
-        <Stat icon={barChart} title="Total Recuperado" amount="RD$ 150,000.00" />
-        <Stat icon={dollarCross} title="Total en Mora" amount="RD$ 45,000.00" badge="5" />
-        <Stat icon={pieChart} title="Cantidad de Préstamos Activos" amount="10" />
+        <StatCard icon={wallet} title="Total Prestado" amount="RD$ 450,000.00" />
+        <StatCard icon={barChart} title="Total Recuperado" amount="RD$ 150,000.00" />
+        <StatCard icon={dollarCross} title="Total en Mora" amount="RD$ 45,000.00" badge="5" />
+        <StatCard icon={pieChart} title="Cantidad de Préstamos Activos" amount="10" />
       </View>
 
-      {/* NAVEGACIÓN INFERIOR */}
+      {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        <Image source={home} style={styles.navIcon} />
-        <Image source={chat} style={styles.navIcon} />
-        <Image source={calendar} style={styles.navIcon} />
-        <Image source={user} style={styles.navIcon} />
+        <TouchableOpacity><Image source={home} style={styles.navIcon} /></TouchableOpacity>
+        <TouchableOpacity><Image source={chat} style={styles.navIcon} /></TouchableOpacity>
+        <TouchableOpacity><Image source={calendar} style={styles.navIcon} /></TouchableOpacity>
+        <TouchableOpacity><Image source={user} style={styles.navIcon} /></TouchableOpacity>
       </View>
     </View>
   );
 };
 
-// COMPONENTES REUTILIZABLES
-type TabProps = { icon: any; label: string; active?: boolean };
-const Tab: React.FC<TabProps> = ({ icon, label, active = false }) => (
+const Tab = ({ icon, label, active }: any) => (
   <View style={[styles.tab, active && styles.tabActive]}>
     <Image source={icon} style={styles.tabIcon} />
     <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
   </View>
 );
 
-type StatProps = { icon: any; title: string; amount: string; badge?: string | number | null };
-const Stat: React.FC<StatProps> = ({ icon, title, amount, badge = null }) => (
-  <View style={styles.statBox}>
-    <View style={styles.statHeader}>
+const StatCard = ({ icon, title, amount, badge }: any) => (
+  <View style={styles.statCard}>
+    <View style={styles.statIconContainer}>
       <Image source={icon} style={styles.statIcon} />
-      {badge ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
-        </View>
-      ) : null}
     </View>
-    <Text style={styles.statTitle}>{title}</Text>
-    <Text style={styles.statAmount}>{amount}</Text>
+    <View style={styles.statTextContainer}>
+      <Text style={styles.statTitle}>{title}</Text>
+      <Text style={styles.statAmount}>{amount}</Text>
+    </View>
+    {badge && (
+      <View style={styles.statBadge}>
+        <Text style={styles.statBadgeIcon}>★</Text>
+        <Text style={styles.statBadgeText}>{badge}</Text>
+      </View>
+    )}
   </View>
 );
 
 export default DashboardScreen;
 
-// ESTILOS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
-    paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingTop: 64,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 16,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    marginRight: 10,
   },
   icon: {
     width: 24,
     height: 24,
+    marginLeft: 12,
+  },
+  rightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   welcomeText: {
     fontSize: 14,
@@ -160,47 +180,101 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
-  dateRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
+  calendarRow: {
+    marginVertical: 16,
   },
-  dateItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: '#EEE',
+  calendarItem: {
+    alignItems: 'center',
+    padding: 10,
     marginRight: 10,
+    borderRadius: 10,
+    backgroundColor: '#F0F0F0',
+    width: 50,
   },
-  dateItemActive: {
-    backgroundColor: '#1CC88A',
+  calendarItemActive: {
+    backgroundColor: '#10B981',
   },
-  dateText: {
-    fontSize: 14,
-    color: '#444',
-  },
-  appointmentCard: {
-    backgroundColor: '#F6F6F6',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  appointmentTitle: {
-    fontWeight: 'bold',
+  calendarDate: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#1A1A1A',
+  },
+  calendarDay: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  agendaContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  agendaDayLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#10B981',
+    marginBottom: 12,
+  },
+  agendaItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  agendaTime: {
+    width: 50,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  agendaDetails: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 10,
+    padding: 12,
+  },
+  agendaHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
-  appointmentDesc: {
+  agendaTitle: {
     fontSize: 14,
-    color: '#555',
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  agendaCheck: {
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: 'bold',
+  },
+  agendaDesc: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  agendaLine: {
+    flex: 1,
+    height: 1,
+    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    marginTop: 12,
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 20,
+    gap: 16,
   },
   tab: {
     alignItems: 'center',
-    marginRight: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+  },
+  tabActive: {
+    backgroundColor: '#ECFDF5',
   },
   tabIcon: {
     width: 24,
@@ -209,60 +283,84 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 12,
-    color: '#777',
+    color: '#6B7280',
   },
-  tabActive: {},
   tabTextActive: {
-    color: '#1CC88A',
+    color: '#10B981',
     fontWeight: 'bold',
   },
   statsContainer: {
-    gap: 15,
+    marginTop: 16,
   },
-  statBox: {
-    backgroundColor: '#F9F9F9',
-    padding: 16,
-    borderRadius: 10,
-  },
-  statHeader: {
+  statCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    position: 'relative',
+  },
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
   },
   statIcon: {
     width: 24,
     height: 24,
+    resizeMode: 'contain',
   },
-  badge: {
-    backgroundColor: '#1CC88A',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    fontSize: 12,
-    color: '#FFF',
-    fontWeight: 'bold',
+  statTextContainer: {
+    flex: 1,
   },
   statTitle: {
     fontSize: 14,
-    marginTop: 8,
-    color: '#666',
+    fontWeight: '600',
+    color: '#10B981',
   },
   statAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1F2937',
+    marginTop: 2,
+  },
+  statBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 20,
+    backgroundColor: '#ECFDF5',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  statBadgeIcon: {
+    color: '#10B981',
+    marginRight: 4,
+    fontSize: 14,
+  },
+  statBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10B981',
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 16,
-    marginTop: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginTop: 10,
   },
   navIcon: {
     width: 28,
     height: 28,
-    tintColor: '#1CC88A',
+    tintColor: '#10B981',
   },
 });
