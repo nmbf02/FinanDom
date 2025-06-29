@@ -34,9 +34,9 @@ const DashboardScreen = () => {
       <View style={styles.header}>
         <View style={styles.userInfo}>
             <Image source={avatar} style={styles.avatar} />
-            <View style={{ marginLeft: 10 }}>
-            <Text style={styles.welcomeText}>Hi, Welcome Back!</Text>
-            <Text style={styles.userName}>Nathaly Berroa</Text>
+            <View style={styles.userInfoText}>
+              <Text style={styles.welcomeText}>Hi, Welcome Back!</Text>
+              <Text style={styles.userName}>Nathaly Berroa</Text>
             </View>
         </View>
 
@@ -406,5 +406,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+  userInfoText: {
+    marginLeft: 10,
+  },
 });
