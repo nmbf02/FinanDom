@@ -29,14 +29,15 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FFF' }}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container}>
         {/* ← Botón retroceso */}
         <TouchableOpacity
           style={styles.backIcon}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Login')}
+
         >
           <Image source={BackIcon} style={styles.iconBack} />
         </TouchableOpacity>
