@@ -11,10 +11,10 @@ import {
   Image,
 } from 'react-native';
 
-const BackIcon = require('../../assets/icons/back.png');
-const eyeIcon = require('../../assets/icons/eye.png');
-const eyeOffIcon = require('../../assets/icons/eye-off.png');
-const CheckIcon = require('../../assets/icons/checkmark.png');
+const BackIcon = require('../assets/icons/back.png');
+const eyeIcon = require('../assets/icons/eye.png');
+const eyeOffIcon = require('../assets/icons/eye-off.png');
+const CheckIcon = require('../assets/icons/checkmark.png');
 
 const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');

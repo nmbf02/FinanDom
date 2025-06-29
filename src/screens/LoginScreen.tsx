@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 
-const checkmarkIcon = require('../../assets/icons/checkmark.png');
-const eyeIcon = require('../../assets/icons/eye.png');
-const eyeOffIcon = require('../../assets/icons/eye-off.png');
+const checkmarkIcon = require('../assets/icons/checkmark.png');
+const eyeIcon = require('../assets/icons/eye.png');
+const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('nathalyberroaf@gmail.com');
@@ -71,7 +71,7 @@ const LoginScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Dashboard')}>
         <Text style={styles.loginButtonText}>LOGIN</Text>
       </TouchableOpacity>
 

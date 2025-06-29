@@ -10,7 +10,7 @@ import {
   Image,
 } from 'react-native';
 
-const BackIcon = require('../../assets/icons/back.png');
+const BackIcon = require('../assets/icons/back.png');
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
