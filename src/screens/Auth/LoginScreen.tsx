@@ -14,7 +14,7 @@ const checkmarkIcon = require('../../assets/icons/checkmark.png');
 const eyeIcon = require('../../assets/icons/eye.png');
 const eyeOffIcon = require('../../assets/icons/eye-off.png');
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('nathalyberroaf@gmail.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +78,7 @@ const LoginScreen = () => {
 
       <View style={styles.registerContainer}>
         <Text style={styles.registerText}>¿No tienes cuenta?</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.registerLink}> Registrate</Text>
         </TouchableOpacity>
       </View>
@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     color: '#555',
+    fontSize: 14,
   },
   registerLink: {
     color: '#1CC88A',
