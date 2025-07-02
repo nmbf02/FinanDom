@@ -29,8 +29,13 @@ const RegisterScreen = ({ navigation }: any) => {
   const isEmailValid = email.includes('@');
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password || !confirmPassword || !role) {
       Alert.alert('❌ Campos incompletos', 'Por favor, completa todos los campos');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('❌ Error', 'Las contraseñas no coinciden');
       return;
     }
   
