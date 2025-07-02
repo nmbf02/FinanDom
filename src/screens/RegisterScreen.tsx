@@ -11,7 +11,6 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { registerUser } from '../api/auth';
 
 const BackIcon = require('../assets/icons/back.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -25,30 +24,40 @@ const RegisterScreen = ({ navigation }: any) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState('prestamista');
 
   const isEmailValid = email.includes('@');
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword || !role) {
-      Alert.alert('❌ Campos incompletos', 'Por favor completa todos los campos');
+    if (!name || !email || !password || !role) {
+      Alert.alert('❌ Campos incompletos', 'Por favor, completa todos los campos');
       return;
     }
-
-    if (password !== confirmPassword) {
-      Alert.alert('❌ Error', 'Las contraseñas no coinciden');
-      return;
-    }
-
+  
     try {
-      const res = await registerUser(name, email, password, role);
-      Alert.alert('✅ Registro exitoso', `Bienvenida/o ${res.user.name}`, [
-        { text: 'Ir al login', onPress: () => navigation.navigate('Login') },
-      ]);
-    } catch (error: any) {
-      Alert.alert('❌ Error', error.message || 'No se pudo registrar');
+      const response = await fetch('http://10.0.2.2:4000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Alert.alert('✅ Éxito', 'Cuenta creada exitosamente', [
+          { text: 'OK', onPress: () => navigation.navigate('Dashboard') }
+        ]);
+      } else {
+        Alert.alert('❌ Error', data.message || 'No se pudo crear la cuenta');
+      }
+    } catch (error) {
+      console.error('Error de registro:', error);
+      Alert.alert('❌ Error', 'Error al conectar con el servidor');
     }
   };
+  
 
   return (
     <KeyboardAvoidingView
