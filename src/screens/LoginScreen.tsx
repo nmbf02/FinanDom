@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 
@@ -15,10 +16,40 @@ const eyeIcon = require('../assets/icons/eye.png');
 const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const LoginScreen = ({ navigation }: any) => {
-  const [email, setEmail] = useState('nathalyberroaf@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Campos requeridos', 'Por favor completa todos los campos');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://10.0.2.2:4000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('✅ Login exitoso:', data);
+        // Aquí puedes guardar el token o datos en AsyncStorage
+        navigation.navigate('Dashboard');
+      } else {
+        Alert.alert('Error', data.message || 'Credenciales incorrectas');
+      }
+    } catch (err) {
+      console.error('❌ Error de conexión:', err);
+      Alert.alert('Error', 'No se pudo conectar con el servidor');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -33,6 +64,7 @@ const LoginScreen = ({ navigation }: any) => {
           onChangeText={setEmail}
           placeholder="Correo electrónico"
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         {email.length > 3 && (
           <Image source={checkmarkIcon} style={styles.icon} />
@@ -58,12 +90,12 @@ const LoginScreen = ({ navigation }: any) => {
 
       <View style={styles.rowOptions}>
         <View style={styles.checkboxContainer}>
-            <CheckBox
+          <CheckBox
             value={rememberMe}
             onValueChange={setRememberMe}
             tintColors={{ true: '#1CC88A', false: '#ccc' }}
-            />
-            <Text style={styles.rememberText}>Remember me</Text>
+          />
+          <Text style={styles.rememberText}>Remember me</Text>
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
@@ -71,14 +103,14 @@ const LoginScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Dashboard')}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>LOGIN</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
         <Text style={styles.registerText}>¿No tienes cuenta?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}> Registrate</Text>
+          <Text style={styles.registerLink}> Regístrate</Text>
         </TouchableOpacity>
       </View>
     </View>
