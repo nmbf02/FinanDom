@@ -24,7 +24,7 @@ const RegisterScreen = ({ navigation }: any) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [role, setRole] = useState('prestamista');
+  const [role, setRole] = useState('Prestamista');
 
   const isEmailValid = email.includes('@');
 
@@ -123,6 +123,7 @@ const RegisterScreen = ({ navigation }: any) => {
             placeholder="Rol (prestamista)"
             value={role}
             onChangeText={setRole}
+            editable={false}
           />
 
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
