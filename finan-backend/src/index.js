@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
 // Ruta de prueba
