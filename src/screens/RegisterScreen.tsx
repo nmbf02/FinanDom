@@ -24,7 +24,7 @@ const RegisterScreen = ({ navigation }: any) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [role, setRole] = useState('prestamista');
+  const [role, setRole] = useState('Prestamista');
 
   const isEmailValid = email.includes('@');
 
@@ -40,7 +40,7 @@ const RegisterScreen = ({ navigation }: any) => {
     }
   
     try {
-      const response = await fetch('http://10.0.2.2:3000/api/auth/register', {
+      const response = await fetch('http://10.0.2.2:4000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
