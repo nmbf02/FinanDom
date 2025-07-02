@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Alert,
 } from 'react-native';
+import { registerUser } from '../api/auth';
 
 const BackIcon = require('../assets/icons/back.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -27,18 +29,34 @@ const RegisterScreen = ({ navigation }: any) => {
 
   const isEmailValid = email.includes('@');
 
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword || !role) {
+      Alert.alert('❌ Campos incompletos', 'Por favor completa todos los campos');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('❌ Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    try {
+      const res = await registerUser(name, email, password, role);
+      Alert.alert('✅ Registro exitoso', `Bienvenida/o ${res.user.name}`, [
+        { text: 'Ir al login', onPress: () => navigation.navigate('Login') },
+      ]);
+    } catch (error: any) {
+      Alert.alert('❌ Error', error.message || 'No se pudo registrar');
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        {/* ← Botón retroceso */}
-        <TouchableOpacity
-          style={styles.backIcon}
-          onPress={() => navigation.navigate('Login')}
-
-        >
+        <TouchableOpacity style={styles.backIcon} onPress={() => navigation.navigate('Login')}>
           <Image source={BackIcon} style={styles.iconBack} />
         </TouchableOpacity>
 
@@ -60,10 +78,9 @@ const RegisterScreen = ({ navigation }: any) => {
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
+              autoCapitalize="none"
             />
-            {isEmailValid && (
-              <Image source={CheckIcon} style={styles.smallIcon} />
-            )}
+            {isEmailValid && <Image source={CheckIcon} style={styles.smallIcon} />}
           </View>
 
           <View style={styles.inputRow}>
@@ -75,10 +92,7 @@ const RegisterScreen = ({ navigation }: any) => {
               onChangeText={setPassword}
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Image
-                source={showPassword ? eyeOffIcon : eyeIcon}
-                style={styles.smallIcon}
-              />
+              <Image source={showPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
             </TouchableOpacity>
           </View>
 
@@ -90,24 +104,19 @@ const RegisterScreen = ({ navigation }: any) => {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
-            <TouchableOpacity
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Image
-                source={showConfirmPassword ? eyeOffIcon : eyeIcon}
-                style={styles.smallIcon}
-              />
+            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+              <Image source={showConfirmPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
             </TouchableOpacity>
           </View>
 
           <TextInput
             style={styles.input}
-            placeholder="Rol (Prestamista o Prestatario)"
+            placeholder="Rol (prestamista)"
             value={role}
             onChangeText={setRole}
           />
 
-          <TouchableOpacity style={styles.registerButton}>
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
             <Text style={styles.registerButtonText}>CREAR CUENTA</Text>
           </TouchableOpacity>
         </View>
