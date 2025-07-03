@@ -14,6 +14,13 @@ const frequencies = [
   { label: 'Mensual', value: 'mensual', days: 30 },
 ];
 
+function formatDateLocal(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const CreateLoanScreen = ({ navigation }: any) => {
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState('');
@@ -130,8 +137,8 @@ const CreateLoanScreen = ({ navigation }: any) => {
           amount: parseFloat(amount),
           interest_rate: parseFloat(interestRate),
           num_installments: parseInt(numInstallments, 10),
-          start_date: startDate.toISOString().split('T')[0],
-          due_date: dueDate.toISOString().split('T')[0],
+          start_date: formatDateLocal(startDate),
+          due_date: formatDateLocal(dueDate),
           frequency,
           late_days: parseInt(lateDays, 10),
           late_percent: parseFloat(latePercent),
@@ -193,7 +200,7 @@ const CreateLoanScreen = ({ navigation }: any) => {
       />
 
       <TouchableOpacity style={styles.input} onPress={() => setShowStartPicker(true)}>
-        <Text style={{ color: '#555' }}>{`Fecha de inicio: ${startDate.toISOString().split('T')[0]}`}</Text>
+        <Text style={{ color: '#555' }}>{`Fecha de inicio: ${formatDateLocal(startDate)}`}</Text>
       </TouchableOpacity>
 
       {showStartPicker && (
