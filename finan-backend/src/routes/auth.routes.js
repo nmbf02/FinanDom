@@ -199,4 +199,14 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Obtener todos los clientes
+router.get('/clients', (req, res) => {
+  db.all('SELECT id, name FROM clients', [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error al obtener clientes.' });
+    }
+    res.json(rows);
+  });
+});
+
 module.exports = router;
