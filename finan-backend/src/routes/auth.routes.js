@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 const jwt = require('jsonwebtoken');
+const { sendPasswordResetEmail } = require('../config/email');
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_secreta_finanDom';
 
 router.post('/register', (req, res) => {
@@ -86,6 +87,114 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Error en login:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Ruta para solicitar recuperación de contraseña
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email es requerido' });
+  }
+
+  try {
+    // Verificar si el usuario existe
+    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+      if (err) {
+        console.error('Error verificando usuario:', err);
+        return res.status(500).json({ message: 'Error interno del servidor' });
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+
+      // Generar código de 6 dígitos
+      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Calcular tiempo de expiración (15 minutos)
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+      // Guardar código en la base de datos
+      const insertQuery = `
+        INSERT INTO password_resets (email, code, expires_at)
+        VALUES (?, ?, ?)
+      `;
+      
+      db.run(insertQuery, [email, resetCode, expiresAt], async function (insertErr) {
+        if (insertErr) {
+          console.error('Error guardando código:', insertErr);
+          return res.status(500).json({ message: 'Error interno del servidor' });
+        }
+
+        // Enviar email con el código
+        const emailSent = await sendPasswordResetEmail(email, resetCode);
+        
+        if (emailSent) {
+          res.json({ message: 'Código de recuperación enviado a tu email' });
+        } else {
+          res.status(500).json({ message: 'Error enviando email de recuperación' });
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error en forgot-password:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Ruta para verificar código y cambiar contraseña
+router.post('/reset-password', async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: 'Todos los campos son requeridos' });
+  }
+
+  try {
+    // Buscar código válido
+    const checkQuery = `
+      SELECT * FROM password_resets 
+      WHERE email = ? AND code = ? AND used = FALSE AND expires_at > datetime('now')
+      ORDER BY created_at DESC LIMIT 1
+    `;
+    
+    db.get(checkQuery, [email, code], async (err, resetRecord) => {
+      if (err) {
+        console.error('Error verificando código:', err);
+        return res.status(500).json({ message: 'Error interno del servidor' });
+      }
+
+      if (!resetRecord) {
+        return res.status(400).json({ message: 'Código inválido o expirado' });
+      }
+
+      // Hashear nueva contraseña
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Actualizar contraseña del usuario
+      const updateUserQuery = 'UPDATE users SET password_hash = ? WHERE email = ?';
+      db.run(updateUserQuery, [hashedPassword, email], function (updateErr) {
+        if (updateErr) {
+          console.error('Error actualizando contraseña:', updateErr);
+          return res.status(500).json({ message: 'Error interno del servidor' });
+        }
+
+        // Marcar código como usado
+        const markUsedQuery = 'UPDATE password_resets SET used = TRUE WHERE id = ?';
+        db.run(markUsedQuery, [resetRecord.id], function (markErr) {
+          if (markErr) {
+            console.error('Error marcando código como usado:', markErr);
+          }
+
+          res.json({ message: 'Contraseña actualizada exitosamente' });
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error en reset-password:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });

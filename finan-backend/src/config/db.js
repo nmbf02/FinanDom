@@ -103,6 +103,17 @@ const db = new sqlite3.Database(dbPath, (err) => {
         FOREIGN KEY (client_id) REFERENCES clients(id),
         FOREIGN KEY (loan_id) REFERENCES loans(id)
       )`);
+
+      db.run(`CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        code TEXT NOT NULL,
+        expires_at DATETIME NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`);
+
+      db.run(`CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets(email)`);
     });
   }
 });
