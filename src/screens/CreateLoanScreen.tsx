@@ -5,8 +5,14 @@ import { API_BASE_URL } from '../api/config';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { pick, keepLocalCopy, types } from '@react-native-documents/picker';
 import { Picker } from '@react-native-picker/picker';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const BackIcon = require('../assets/icons/back.png');
+
+const home = require('../assets/icons/home.png');
+const chat = require('../assets/icons/chat.png');
+const calendar = require('../assets/icons/calendar.png');
+const user = require('../assets/icons/user-setting.png');
 
 const frequencies = [
   { label: 'Semanal', value: 'semanal', days: 7 },
@@ -21,7 +27,17 @@ function formatDateLocal(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-const CreateLoanScreen = ({ navigation }: any) => {
+type RootStackParamList = {
+  Splash: undefined;
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  Dashboard: undefined;
+  CreateLoan: undefined;
+};
+
+const CreateLoanScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState('');
   const [amount, setAmount] = useState('');
@@ -40,7 +56,10 @@ const CreateLoanScreen = ({ navigation }: any) => {
     fetch(`${API_BASE_URL}/api/clients`)
       .then(res => res.json())
       .then(data => setClients(data))
-      .catch(() => setClients([]));
+      .catch((error) => {
+        console.error('Error fetching clients:', error);
+        setClients([]);
+      });
   }, []);
 
   const handlePickPdf = async () => {
@@ -132,6 +151,9 @@ const CreateLoanScreen = ({ navigation }: any) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/loans`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           client_id: clientId,
           amount: parseFloat(amount),
@@ -160,12 +182,15 @@ const CreateLoanScreen = ({ navigation }: any) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity style={styles.backIcon} onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={BackIcon} style={styles.iconBack} />
-        </TouchableOpacity>
-
-      <Text style={styles.title}>Crear Préstamo</Text>
+    <View style={styles.mainContainer}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.title}>Crear Préstamo</Text>
 
       <Picker
         selectedValue={clientId}
@@ -275,11 +300,40 @@ const CreateLoanScreen = ({ navigation }: any) => {
       <TouchableOpacity style={styles.button} onPress={handleCreateLoan}>
         <Text style={styles.buttonText}>GENERAR CONTRATO</Text>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+
+      {/* BOTTOM NAV */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+          <Image source={home} style={styles.navIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Image source={chat} style={styles.navIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Image source={calendar} style={styles.navIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Image source={user} style={styles.navIcon} />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#FFF',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 64,
+    paddingBottom: 100, // Aumentado para dar espacio al navbar
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFF',
@@ -287,17 +341,7 @@ const styles = StyleSheet.create({
     paddingTop: 64,
     paddingBottom: 70,
   },
-  backIcon: {
-    position: 'absolute',
-    top: 30,
-    left: 20,
-    zIndex: 10,
-  },
-  iconBack: {
-    width: 24,
-    height: 24,
-    tintColor: '#555',
-  },
+
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -388,6 +432,26 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 14,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  navIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#10B981',
   },
 });
 

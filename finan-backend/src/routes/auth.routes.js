@@ -201,12 +201,73 @@ router.post('/reset-password', async (req, res) => {
 
 // Obtener todos los clientes
 router.get('/clients', (req, res) => {
-  db.all('SELECT id, name FROM clients', [], (err, rows) => {
+  req.app.get('db').all('SELECT id, name FROM clients', [], (err, rows) => {
     if (err) {
+      console.error('Error fetching clients:', err);
       return res.status(500).json({ message: 'Error al obtener clientes.' });
     }
-    res.json(rows);
+    res.json(rows || []);
   });
+});
+
+// Crear un préstamo
+router.post('/loans', (req, res) => {
+  const {
+    client_id,
+    amount,
+    interest_rate,
+    num_installments,
+    start_date,
+    due_date,
+    frequency,
+    late_days,
+    late_percent,
+    contract_pdf_url
+  } = req.body;
+
+  if (!client_id || !amount || !interest_rate || !num_installments || !start_date || !due_date || !frequency) {
+    return res.status(400).json({ message: 'Faltan campos obligatorios.' });
+  }
+
+  const insertQuery = `
+    INSERT INTO loans (client_id, user_id, amount, interest_rate, total_with_interest, start_date, due_date, status, contract_pdf_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  // Calcular total con interés
+  const total_with_interest = parseFloat(amount) + (parseFloat(amount) * parseFloat(interest_rate) / 100);
+
+  // user_id: por ahora null o 1 (ajustar según autenticación real)
+  const user_id = 1;
+
+  // status por defecto 'activo'
+  const status = 'activo';
+
+  // Guardar préstamo
+  req.app.get('db').run(
+    insertQuery,
+    [client_id, user_id, amount, interest_rate, total_with_interest, start_date, due_date, status, contract_pdf_url],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ message: 'Error al crear el préstamo.' });
+      }
+      return res.status(201).json({
+        message: 'Préstamo creado exitosamente.',
+        loan: {
+          id: this.lastID,
+          client_id,
+          user_id,
+          amount,
+          interest_rate,
+          total_with_interest,
+          start_date,
+          due_date,
+          status,
+          contract_pdf_url
+        }
+      });
+    }
+  );
 });
 
 module.exports = router;
