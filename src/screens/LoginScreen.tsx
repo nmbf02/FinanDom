@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../api/config';
 
 const checkmarkIcon = require('../assets/icons/checkmark.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -66,7 +67,7 @@ const LoginScreen = ({ navigation }: any) => {
     }
 
     try {
-      const response = await fetch('http://10.0.2.2:4000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

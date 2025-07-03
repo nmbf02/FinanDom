@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { API_BASE_URL } from '../api/config';
 
 const BackIcon = require('../assets/icons/back.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -40,7 +41,7 @@ const RegisterScreen = ({ navigation }: any) => {
     }
   
     try {
-      const response = await fetch('http://10.0.2.2:4000/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { API_BASE_URL } from '../api/config';
 
 const BackIcon = require('../assets/icons/back.png');
 const CheckIcon = require('../assets/icons/checkmark.png');
@@ -37,7 +38,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://10.0.2.2:4000/api/auth/forgot-password', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://10.0.2.2:4000/api/auth/reset-password', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
