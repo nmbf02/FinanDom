@@ -9,6 +9,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // ICONOS
 const avatar = require('../assets/icons/avatar.png');
@@ -27,7 +29,18 @@ const loan = require('../assets/icons/hand-coin.png');
 const payment = require('../assets/icons/installment.png');
 const overdue = require('../assets/icons/warning-dollar.png');
 
+type RootStackParamList = {
+  Splash: undefined;
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  Dashboard: undefined;
+  CreateLoan: undefined;
+};
+
 const DashboardScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -100,7 +113,9 @@ const DashboardScreen = () => {
           contentContainerStyle={styles.tabs}
         >
           <Tab icon={users} label="CLIENTES" active />
-          <Tab icon={loan} label="PRÉSTAMOS" />
+          <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
+            <Tab icon={loan} label="PRÉSTAMOS" />
+          </TouchableOpacity>
           <Tab icon={payment} label="CUOTAS" />
           <Tab icon={overdue} label="MORAS" />
         </ScrollView>

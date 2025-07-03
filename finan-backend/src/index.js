@@ -11,6 +11,10 @@ app.use(express.json());
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
+const uploadRoutes = require('./routes/upload.routes');
+app.use('/api/upload', uploadRoutes);
+app.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
+
 // Ruta de prueba
 app.get('/hello', (req, res) => {
   res.json({ message: 'Servidor funcionando correctamente 🚀' });
