@@ -1,5 +1,5 @@
 // src/screens/Auth/LoginScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const checkmarkIcon = require('../assets/icons/checkmark.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -20,6 +21,43 @@ const LoginScreen = ({ navigation }: any) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  // Cargar credenciales guardadas al iniciar
+  useEffect(() => {
+    loadSavedCredentials();
+  }, []);
+
+  const loadSavedCredentials = async () => {
+    try {
+      const savedEmail = await AsyncStorage.getItem('rememberedEmail');
+      const savedPassword = await AsyncStorage.getItem('rememberedPassword');
+      const savedRememberMe = await AsyncStorage.getItem('rememberMe');
+      
+      if (savedEmail && savedPassword && savedRememberMe === 'true') {
+        setEmail(savedEmail);
+        setPassword(savedPassword);
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.error('Error cargando credenciales:', error);
+    }
+  };
+
+  const saveCredentials = async () => {
+    try {
+      if (rememberMe) {
+        await AsyncStorage.setItem('rememberedEmail', email);
+        await AsyncStorage.setItem('rememberedPassword', password);
+        await AsyncStorage.setItem('rememberMe', 'true');
+      } else {
+        await AsyncStorage.removeItem('rememberedEmail');
+        await AsyncStorage.removeItem('rememberedPassword');
+        await AsyncStorage.removeItem('rememberMe');
+      }
+    } catch (error) {
+      console.error('Error guardando credenciales:', error);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -40,6 +78,8 @@ const LoginScreen = ({ navigation }: any) => {
 
       if (response.ok) {
         console.log('✅ Login exitoso:', data);
+        // Guardar credenciales si "Remember me" está activado
+        await saveCredentials();
         // Aquí puedes guardar el token o datos en AsyncStorage
         navigation.navigate('Dashboard');
       } else {
@@ -90,11 +130,19 @@ const LoginScreen = ({ navigation }: any) => {
 
       <View style={styles.rowOptions}>
         <View style={styles.checkboxContainer}>
-          <CheckBox
-            value={rememberMe}
-            onValueChange={setRememberMe}
-            tintColors={{ true: '#1CC88A', false: '#ccc' }}
-          />
+                  <CheckBox
+          value={rememberMe}
+          onValueChange={(value) => {
+            setRememberMe(value);
+            if (!value) {
+              // Limpiar credenciales si se desmarca
+              AsyncStorage.removeItem('rememberedEmail');
+              AsyncStorage.removeItem('rememberedPassword');
+              AsyncStorage.removeItem('rememberMe');
+            }
+          }}
+          tintColors={{ true: '#1CC88A', false: '#ccc' }}
+        />
           <Text style={styles.rememberText}>Remember me</Text>
         </View>
 
