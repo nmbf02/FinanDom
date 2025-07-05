@@ -199,14 +199,49 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Obtener todos los tipos de documentos
+router.get('/document-types', (req, res) => {
+  req.app.get('db').all('SELECT id, name, description, is_active FROM document_types WHERE is_active = 1 ORDER BY name', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching document types:', err);
+      return res.status(500).json({ message: 'Error al obtener tipos de documentos.' });
+    }
+    res.json(rows || []);
+  });
+});
+
 // Obtener todos los clientes
 router.get('/clients', (req, res) => {
-  req.app.get('db').all('SELECT id, name, identification, phone, email, address, is_active FROM clients', [], (err, rows) => {
+  const query = `
+    SELECT 
+      c.id, 
+      c.name, 
+      c.identification, 
+      c.document_type_id,
+      dt.name as document_type_name,
+      c.phone, 
+      c.email, 
+      c.address, 
+      c.photo_url, 
+      c.is_active,
+      c.is_favorite
+    FROM clients c
+    LEFT JOIN document_types dt ON c.document_type_id = dt.id
+  `;
+  
+  req.app.get('db').all(query, [], (err, rows) => {
     if (err) {
       console.error('Error fetching clients:', err);
       return res.status(500).json({ message: 'Error al obtener clientes.' });
     }
-    res.json(rows || []);
+    
+    // Convertir valores numéricos a booleanos para is_favorite
+    const clientsWithBooleans = (rows || []).map(client => ({
+      ...client,
+      is_favorite: Boolean(client.is_favorite)
+    }));
+    
+    res.json(clientsWithBooleans);
   });
 });
 
@@ -230,15 +265,15 @@ router.get('/clients/:id', (req, res) => {
 
 // Crear un nuevo cliente
 router.post('/clients', (req, res) => {
-  const { name, identification, email, phone, address, documents, is_active } = req.body;
+  const { name, identification, document_type_id, email, phone, address, photo_url, documents, is_active, is_favorite } = req.body;
 
   if (!name || !identification || !email || !phone || !address) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
   }
 
   const insertQuery = `
-    INSERT INTO clients (user_id, name, identification, email, phone, address, documents, is_active)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO clients (user_id, name, identification, document_type_id, email, phone, address, photo_url, documents, is_active, is_favorite)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   // user_id: por ahora 1 (ajustar según autenticación real)
@@ -247,7 +282,7 @@ router.post('/clients', (req, res) => {
 
   req.app.get('db').run(
     insertQuery,
-    [user_id, name, identification, email, phone, address, documentsJson, is_active ?? 1],
+    [user_id, name, identification, document_type_id || 1, email, phone, address, photo_url, documentsJson, is_active ?? 1, is_favorite ?? 0],
     function (err) {
       if (err) {
         console.error('Error creating client:', err);
@@ -260,11 +295,14 @@ router.post('/clients', (req, res) => {
           user_id,
           name,
           identification,
+          document_type_id: document_type_id || 1,
           email,
           phone,
           address,
+          photo_url,
           documents,
-          is_active: is_active ?? 1
+          is_active: is_active ?? 1,
+          is_favorite: Boolean(is_favorite ?? 0)
         }
       });
     }
@@ -274,7 +312,7 @@ router.post('/clients', (req, res) => {
 // Actualizar un cliente
 router.put('/clients/:id', (req, res) => {
   const { id } = req.params;
-  const { name, identification, email, phone, address, documents, is_active } = req.body;
+  const { name, identification, document_type_id, email, phone, address, photo_url, documents, is_active, is_favorite } = req.body;
 
   if (!name || !identification || !email || !phone || !address) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
@@ -282,7 +320,7 @@ router.put('/clients/:id', (req, res) => {
 
   const updateQuery = `
     UPDATE clients 
-    SET name = ?, identification = ?, email = ?, phone = ?, address = ?, documents = ?, is_active = ?
+    SET name = ?, identification = ?, document_type_id = ?, email = ?, phone = ?, address = ?, photo_url = ?, documents = ?, is_active = ?, is_favorite = ?
     WHERE id = ?
   `;
 
@@ -290,7 +328,7 @@ router.put('/clients/:id', (req, res) => {
 
   req.app.get('db').run(
     updateQuery,
-    [name, identification, email, phone, address, documentsJson, is_active ?? 1, id],
+    [name, identification, document_type_id || 1, email, phone, address, photo_url, documentsJson, is_active ?? 1, is_favorite ?? 0, id],
     function (err) {
       if (err) {
         console.error('Error updating client:', err);
@@ -307,15 +345,88 @@ router.put('/clients/:id', (req, res) => {
           id: parseInt(id),
           name,
           identification,
+          document_type_id: document_type_id || 1,
           email,
           phone,
           address,
+          photo_url,
           documents,
-          is_active: is_active ?? 1
+          is_active: is_active ?? 1,
+          is_favorite: Boolean(is_favorite ?? 0)
         }
       });
     }
   );
+});
+
+// Cancelar un cliente (marcar como inactivo)
+router.delete('/clients/:id', (req, res) => {
+  const { id } = req.params;
+
+  // Primero verificar si el cliente tiene préstamos activos
+  const checkLoansQuery = `
+    SELECT COUNT(*) as active_loans 
+    FROM loans 
+    WHERE client_id = ? AND status = 'activo'
+  `;
+
+  req.app.get('db').get(checkLoansQuery, [id], (err, result) => {
+    if (err) {
+      console.error('Error checking loans:', err);
+      return res.status(500).json({ message: 'Error al verificar préstamos del cliente.' });
+    }
+
+    if (result.active_loans > 0) {
+      return res.status(400).json({ 
+        message: 'No se puede cancelar el cliente porque tiene préstamos activos.',
+        active_loans: result.active_loans
+      });
+    }
+
+    // Si no tiene préstamos activos, marcar como inactivo
+    const updateQuery = `UPDATE clients SET is_active = 0 WHERE id = ?`;
+
+    req.app.get('db').run(updateQuery, [id], function (err) {
+      if (err) {
+        console.error('Error canceling client:', err);
+        return res.status(500).json({ message: 'Error al cancelar el cliente.' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ message: 'Cliente no encontrado.' });
+      }
+      
+      return res.json({
+        message: 'Cliente cancelado exitosamente.',
+        client_id: parseInt(id)
+      });
+    });
+  });
+});
+
+// Marcar/desmarcar cliente como favorito
+router.patch('/clients/:id/favorite', (req, res) => {
+  const { id } = req.params;
+  const { is_favorite } = req.body;
+
+  const updateQuery = `UPDATE clients SET is_favorite = ? WHERE id = ?`;
+
+  req.app.get('db').run(updateQuery, [is_favorite ? 1 : 0, id], function (err) {
+    if (err) {
+      console.error('Error updating favorite status:', err);
+      return res.status(500).json({ message: 'Error al actualizar estado de favorito.' });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ message: 'Cliente no encontrado.' });
+    }
+    
+    return res.json({
+      message: is_favorite ? 'Cliente marcado como favorito.' : 'Cliente removido de favoritos.',
+      client_id: parseInt(id),
+      is_favorite: is_favorite
+    });
+  });
 });
 
 // Crear un préstamo

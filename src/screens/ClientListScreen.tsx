@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert } from 'react-native';
 import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,10 +29,14 @@ interface Client {
   id: number;
   name: string;
   identification: string;
+  document_type_id?: number;
+  document_type_name?: string;
   phone: string;
   email: string;
   address: string;
+  photo_url?: string;
   is_active?: number;
+  is_favorite?: boolean;
   avatar?: string;
   active_loans?: number;
 }
@@ -41,7 +45,11 @@ const ClientListScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'activo' | 'inactivo'>('activo');
+  const [filters, setFilters] = useState({
+    activo: true,
+    inactivo: false,
+    favoritos: false
+  });
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
 
   useEffect(() => {
@@ -51,11 +59,22 @@ const ClientListScreen = () => {
   useEffect(() => {
     const filterClients = () => {
       let filtered = Array.isArray(clients) ? clients : [];
-      if (filter === 'activo') {
-        filtered = filtered.filter(c => c.is_active !== 0);
-      } else {
-        filtered = filtered.filter(c => c.is_active === 0);
+      
+      // Aplicar filtros de estado
+      const statusFilters: number[] = [];
+      if (filters.activo) statusFilters.push(1);
+      if (filters.inactivo) statusFilters.push(0);
+      
+      if (statusFilters.length > 0) {
+        filtered = filtered.filter(c => statusFilters.includes(c.is_active || 0));
       }
+      
+      // Aplicar filtro de favoritos
+      if (filters.favoritos) {
+        filtered = filtered.filter(c => c.is_favorite === true);
+      }
+      
+      // Aplicar búsqueda
       if (search.trim()) {
         const s = search.trim().toLowerCase();
         filtered = filtered.filter(c =>
@@ -64,10 +83,11 @@ const ClientListScreen = () => {
           c.phone.toLowerCase().includes(s)
         );
       }
+      
       setFilteredClients(filtered);
     };
     filterClients();
-  }, [clients, search, filter]);
+  }, [clients, search, filters]);
 
   const fetchClients = async () => {
     try {
@@ -83,12 +103,101 @@ const ClientListScreen = () => {
     }
   };
 
+  const handleCancelClient = async (client: Client) => {
+    // Mostrar confirmación
+    Alert.alert(
+      'Cancelar Cliente',
+      `¿Estás seguro de que quieres cancelar a ${client.name}?`,
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Sí, Cancelar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/api/clients/${client.id}`, {
+                method: 'DELETE',
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                Alert.alert('Éxito', 'Cliente cancelado correctamente.');
+                // Recargar la lista de clientes
+                fetchClients();
+              } else {
+                if (response.status === 400 && data.active_loans > 0) {
+                  Alert.alert(
+                    'No se puede cancelar',
+                    `No se puede cancelar el cliente porque tiene ${data.active_loans} préstamo(s) activo(s). Debe liquidar todos los préstamos antes de cancelar al cliente.`
+                  );
+                } else {
+                  Alert.alert('Error', data.message || 'No se pudo cancelar el cliente.');
+                }
+              }
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo conectar con el servidor.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleToggleFavorite = async (client: Client) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clients/${client.id}/favorite`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          is_favorite: !client.is_favorite
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Actualizar el cliente localmente sin recargar toda la lista
+        setClients(prevClients => 
+          prevClients.map(c => 
+            c.id === client.id 
+              ? { ...c, is_favorite: data.is_favorite }
+              : c
+          )
+        );
+      } else {
+        Alert.alert('Error', data.message || 'No se pudo actualizar el favorito.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+    }
+  };
+
   const renderClient = ({ item }: { item: Client }) => (
     <View style={styles.clientCard}>
-      <Image source={item.avatar ? { uri: item.avatar } : avatarDefault} style={styles.avatar} />
+      <View style={styles.avatarContainer}>
+        <Image 
+          source={item.photo_url ? { uri: item.photo_url } : avatarDefault} 
+          style={styles.avatar} 
+        />
+        <View style={[
+          styles.statusIndicator, 
+          { backgroundColor: item.is_active ? '#10B981' : '#EF4444' }
+        ]} />
+      </View>
       <View style={styles.clientInfo}>
         <Text style={styles.clientName}>{item.name}</Text>
-        <Text style={styles.clientDoc}>{item.identification || 'Sin documento'}</Text>
+        <View style={styles.documentInfo}>
+          <Text style={styles.documentType}>
+            {item.document_type_name || 'Cédula'}
+          </Text>
+          <Text style={styles.clientDoc}>{item.identification || 'Sin documento'}</Text>
+        </View>
         <Text style={styles.clientPhone}>{item.phone || 'Sin teléfono'}</Text>
         <View style={styles.loansRow}>
           <Text style={styles.activeLoans}>Préstamos activos</Text>
@@ -100,11 +209,26 @@ const ClientListScreen = () => {
         <TouchableOpacity onPress={() => navigation.navigate('Client', { clientId: item.id })}>
           <Image source={editIcon} style={styles.actionIcon} />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={cancelIcon} style={styles.actionIcon} />
+        <TouchableOpacity 
+          onPress={() => handleCancelClient(item)}
+          disabled={(item.active_loans || 0) > 0}
+        >
+          <Image 
+            source={cancelIcon} 
+            style={[
+              styles.actionIcon, 
+              (item.active_loans || 0) > 0 && styles.actionIconDisabled
+            ]} 
+          />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={likeIcon} style={styles.actionIcon} />
+        <TouchableOpacity onPress={() => handleToggleFavorite(item)}>
+          <Image 
+            source={likeIcon} 
+            style={[
+              styles.actionIcon, 
+              item.is_favorite === true && styles.actionIconFavorite
+            ]} 
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -112,12 +236,12 @@ const ClientListScreen = () => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* Header con menú hamburguesa y título */}
+      {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
+        <Text style={styles.title}>Lista de Clientes</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Lista de Clientes</Text>
       </View>
 
       {/* Buscador */}
@@ -133,16 +257,25 @@ const ClientListScreen = () => {
       {/* Filtros */}
       <View style={styles.filterRow}>
         <TouchableOpacity
-          style={[styles.filterBtn, filter === 'activo' && styles.filterBtnActive]}
-          onPress={() => setFilter('activo')}
+          style={[styles.filterBtn, filters.activo && styles.filterBtnActive]}
+          onPress={() => setFilters(prev => ({ ...prev, activo: !prev.activo }))}
         >
-          <Text style={[styles.filterText, filter === 'activo' && styles.filterTextActive]}>Activos</Text>
+          <Text style={[styles.filterText, filters.activo && styles.filterTextActive]}>Activos</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterBtn, filter === 'inactivo' && styles.filterBtnInactive]}
-          onPress={() => setFilter('inactivo')}
+          style={[styles.filterBtn, filters.inactivo && styles.filterBtnInactive]}
+          onPress={() => setFilters(prev => ({ ...prev, inactivo: !prev.inactivo }))}
         >
-          <Text style={[styles.filterText, filter === 'inactivo' && styles.filterTextInactive]}>Inactivos</Text>
+          <Text style={[styles.filterText, filters.inactivo && styles.filterTextInactive]}>Inactivos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterBtn, filters.favoritos && styles.filterBtnFavorites]}
+          onPress={() => setFilters(prev => ({ ...prev, favoritos: !prev.favoritos }))}
+        >
+          <Image 
+            source={likeIcon} 
+            style={[styles.filterIcon, filters.favoritos && styles.filterIconActive]} 
+          />
         </TouchableOpacity>
       </View>
 
@@ -318,6 +451,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     tintColor: '#1CC88A',
   },
+  actionIconDisabled: {
+    tintColor: '#9CA3AF',
+    opacity: 0.5,
+  },
+  actionIconFavorite: {
+    tintColor: '#EF4444',
+  },
+  filterBtnFavorites: {
+    backgroundColor: '#FEE2E2',
+  },
+  filterIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#6B7280',
+  },
+  filterIconActive: {
+    tintColor: '#EF4444',
+  },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -337,6 +488,34 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: '#10B981',
+  },
+  documentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  documentType: {
+    fontSize: 12,
+    color: '#6B7280',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 14,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
 });
 
