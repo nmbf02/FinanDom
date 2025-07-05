@@ -201,7 +201,7 @@ router.post('/reset-password', async (req, res) => {
 
 // Obtener todos los clientes
 router.get('/clients', (req, res) => {
-  req.app.get('db').all('SELECT id, name FROM clients', [], (err, rows) => {
+  req.app.get('db').all('SELECT id, name, identification, phone, email, address, is_active FROM clients', [], (err, rows) => {
     if (err) {
       console.error('Error fetching clients:', err);
       return res.status(500).json({ message: 'Error al obtener clientes.' });
@@ -230,15 +230,15 @@ router.get('/clients/:id', (req, res) => {
 
 // Crear un nuevo cliente
 router.post('/clients', (req, res) => {
-  const { name, identification, email, phone, address, documents } = req.body;
+  const { name, identification, email, phone, address, documents, is_active } = req.body;
 
   if (!name || !identification || !email || !phone || !address) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
   }
 
   const insertQuery = `
-    INSERT INTO clients (user_id, name, identification, email, phone, address, documents)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO clients (user_id, name, identification, email, phone, address, documents, is_active)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   // user_id: por ahora 1 (ajustar según autenticación real)
@@ -247,7 +247,7 @@ router.post('/clients', (req, res) => {
 
   req.app.get('db').run(
     insertQuery,
-    [user_id, name, identification, email, phone, address, documentsJson],
+    [user_id, name, identification, email, phone, address, documentsJson, is_active ?? 1],
     function (err) {
       if (err) {
         console.error('Error creating client:', err);
@@ -263,7 +263,8 @@ router.post('/clients', (req, res) => {
           email,
           phone,
           address,
-          documents
+          documents,
+          is_active: is_active ?? 1
         }
       });
     }
@@ -273,7 +274,7 @@ router.post('/clients', (req, res) => {
 // Actualizar un cliente
 router.put('/clients/:id', (req, res) => {
   const { id } = req.params;
-  const { name, identification, email, phone, address, documents } = req.body;
+  const { name, identification, email, phone, address, documents, is_active } = req.body;
 
   if (!name || !identification || !email || !phone || !address) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
@@ -281,7 +282,7 @@ router.put('/clients/:id', (req, res) => {
 
   const updateQuery = `
     UPDATE clients 
-    SET name = ?, identification = ?, email = ?, phone = ?, address = ?, documents = ?
+    SET name = ?, identification = ?, email = ?, phone = ?, address = ?, documents = ?, is_active = ?
     WHERE id = ?
   `;
 
@@ -289,7 +290,7 @@ router.put('/clients/:id', (req, res) => {
 
   req.app.get('db').run(
     updateQuery,
-    [name, identification, email, phone, address, documentsJson, id],
+    [name, identification, email, phone, address, documentsJson, is_active ?? 1, id],
     function (err) {
       if (err) {
         console.error('Error updating client:', err);
@@ -309,7 +310,8 @@ router.put('/clients/:id', (req, res) => {
           email,
           phone,
           address,
-          documents
+          documents,
+          is_active: is_active ?? 1
         }
       });
     }

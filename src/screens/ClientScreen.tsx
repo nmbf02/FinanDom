@@ -10,6 +10,7 @@ const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
 const calendar = require('../assets/icons/calendar.png');
 const user = require('../assets/icons/user-setting.png');
+const menuIcon = require('../assets/icons/menu.png');
 
 type RootStackParamList = {
   Splash: undefined;
@@ -19,6 +20,7 @@ type RootStackParamList = {
   Dashboard: undefined;
   CreateLoan: undefined;
   Client: { clientId?: number };
+  ClientList: undefined;
 };
 
 interface Client {
@@ -29,6 +31,7 @@ interface Client {
   phone: string;
   address: string;
   documents?: string[];
+  is_active?: number;
 }
 
 const ClientScreen = () => {
@@ -42,7 +45,8 @@ const ClientScreen = () => {
     email: '',
     phone: '',
     address: '',
-    documents: []
+    documents: [],
+    is_active: 1
   });
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -200,6 +204,13 @@ const ClientScreen = () => {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Header con título y menú hamburguesa */}
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Clientes</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ClientList')}>
+          <Image source={menuIcon} style={styles.menuIcon} />
+        </TouchableOpacity>
+      </View>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -207,7 +218,6 @@ const ClientScreen = () => {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Clientes</Text>
         <Text style={styles.subtitle}>
           {clientId ? 'Editar' : 'Crear'} - Clientes
         </Text>
@@ -319,17 +329,23 @@ const styles = StyleSheet.create({
     paddingTop: 64,
     paddingBottom: 100,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 64,
+  },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'left',
     color: '#1F2937',
+    textAlign: 'left',
   },
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
-    marginBottom: 24,
+    marginBottom: 16,
     textAlign: 'left',
   },
   input: {
@@ -425,6 +441,12 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: '#10B981',
+  },
+  menuIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#10B981',
+    marginLeft: 0,
   },
 });
 

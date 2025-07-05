@@ -28,9 +28,30 @@ const db = new sqlite3.Database(dbPath, (err) => {
         email TEXT,
         address TEXT,
         documents TEXT,
+        is_active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )`);
+
+      // Agregar columna is_active si no existe
+      db.get("PRAGMA table_info(clients)", (err, rows) => {
+        if (!err) {
+          db.all("PRAGMA table_info(clients)", (err, columns) => {
+            if (!err) {
+              const hasIsActive = columns.some(col => col.name === 'is_active');
+              if (!hasIsActive) {
+                db.run("ALTER TABLE clients ADD COLUMN is_active INTEGER DEFAULT 1", (err) => {
+                  if (err) {
+                    console.error('Error adding is_active column:', err);
+                  } else {
+                    console.log('✅ Added is_active column to clients table');
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
 
       db.run(`CREATE TABLE IF NOT EXISTS loans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
