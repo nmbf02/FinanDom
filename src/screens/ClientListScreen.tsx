@@ -185,20 +185,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 64,
-    marginBottom: 0,
   },
   menuIcon: {
     width: 28,
     height: 28,
-    marginRight: 12,
-    tintColor: '#6B7280',
+    tintColor: '#10B981',
+    marginLeft: 0,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
     color: '#1F2937',
     textAlign: 'left',
-    marginBottom: 20,
   },
   searchBox: {
     backgroundColor: '#fff',
