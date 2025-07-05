@@ -318,6 +318,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 64,
+    marginBottom: 20,
   },
   menuIcon: {
     width: 28,
@@ -330,6 +331,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
     textAlign: 'left',
+    marginBottom: 20,
   },
   searchBox: {
     backgroundColor: '#fff',
