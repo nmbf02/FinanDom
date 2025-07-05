@@ -210,6 +210,112 @@ router.get('/clients', (req, res) => {
   });
 });
 
+// Obtener un cliente específico
+router.get('/clients/:id', (req, res) => {
+  const { id } = req.params;
+  
+  req.app.get('db').get('SELECT * FROM clients WHERE id = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Error fetching client:', err);
+      return res.status(500).json({ message: 'Error al obtener el cliente.' });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ message: 'Cliente no encontrado.' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// Crear un nuevo cliente
+router.post('/clients', (req, res) => {
+  const { name, identification, email, phone, address, documents } = req.body;
+
+  if (!name || !identification || !email || !phone || !address) {
+    return res.status(400).json({ message: 'Faltan campos obligatorios.' });
+  }
+
+  const insertQuery = `
+    INSERT INTO clients (user_id, name, identification, email, phone, address, documents)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  // user_id: por ahora 1 (ajustar según autenticación real)
+  const user_id = 1;
+  const documentsJson = documents ? JSON.stringify(documents) : null;
+
+  req.app.get('db').run(
+    insertQuery,
+    [user_id, name, identification, email, phone, address, documentsJson],
+    function (err) {
+      if (err) {
+        console.error('Error creating client:', err);
+        return res.status(500).json({ message: 'Error al crear el cliente.' });
+      }
+      return res.status(201).json({
+        message: 'Cliente creado exitosamente.',
+        client: {
+          id: this.lastID,
+          user_id,
+          name,
+          identification,
+          email,
+          phone,
+          address,
+          documents
+        }
+      });
+    }
+  );
+});
+
+// Actualizar un cliente
+router.put('/clients/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, identification, email, phone, address, documents } = req.body;
+
+  if (!name || !identification || !email || !phone || !address) {
+    return res.status(400).json({ message: 'Faltan campos obligatorios.' });
+  }
+
+  const updateQuery = `
+    UPDATE clients 
+    SET name = ?, identification = ?, email = ?, phone = ?, address = ?, documents = ?
+    WHERE id = ?
+  `;
+
+  const documentsJson = documents ? JSON.stringify(documents) : null;
+
+  req.app.get('db').run(
+    updateQuery,
+    [name, identification, email, phone, address, documentsJson, id],
+    function (err) {
+      if (err) {
+        console.error('Error updating client:', err);
+        return res.status(500).json({ message: 'Error al actualizar el cliente.' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ message: 'Cliente no encontrado.' });
+      }
+      
+      return res.json({
+        message: 'Cliente actualizado exitosamente.',
+        client: {
+          id: parseInt(id),
+          name,
+          identification,
+          email,
+          phone,
+          address,
+          documents
+        }
+      });
+    }
+  );
+});
+
 // Crear un préstamo
 router.post('/loans', (req, res) => {
   const {

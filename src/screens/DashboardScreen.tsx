@@ -36,6 +36,7 @@ type RootStackParamList = {
   ForgotPassword: undefined;
   Dashboard: undefined;
   CreateLoan: undefined;
+  Client: { clientId?: number };
 };
 
 const DashboardScreen = () => {
@@ -66,13 +67,13 @@ const DashboardScreen = () => {
       key={index}
       style={[
         styles.dateItem,
-        { marginRight: 12 },
+
         index === 2 && styles.dateItemActive
       ]}
     >
       <Text style={[
         styles.dateText,
-        index === 2 && { color: '#fff' }
+        index === 2 && styles.dateTextActive
       ]}>
         {item}
       </Text>
@@ -112,7 +113,9 @@ const DashboardScreen = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabs}
         >
-          <Tab icon={users} label="CLIENTES" active />
+          <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
+            <Tab icon={users} label="CLIENTES" active />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
             <Tab icon={loan} label="PRÉSTAMOS" />
           </TouchableOpacity>
@@ -414,6 +417,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1A1A1A',
+  },
+  dateTextActive: {
+    color: '#fff',
   },  
   userInfo: {
     flexDirection: 'row',

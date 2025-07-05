@@ -9,6 +9,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import CreateLoanScreen from '../screens/CreateLoanScreen';
+import ClientScreen from '../screens/ClientScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="CreateLoan" component={CreateLoanScreen} />
+        <Stack.Screen name="Client" component={ClientScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

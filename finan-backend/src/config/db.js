@@ -27,9 +27,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
         phone TEXT,
         email TEXT,
         address TEXT,
+        documents TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )`);
+
+      // Agregar columna documents si no existe
+      db.run(`ALTER TABLE clients ADD COLUMN documents TEXT`);
 
       db.run(`CREATE TABLE IF NOT EXISTS loans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
