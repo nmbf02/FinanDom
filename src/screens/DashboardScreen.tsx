@@ -54,8 +54,8 @@ const DashboardScreen = () => {
     try {
       const userData = await AsyncStorage.getItem('userData');
       if (userData) {
-        const user = JSON.parse(userData);
-        setUserName(user.name || 'Usuario');
+        const userDataParsed = JSON.parse(userData);
+        setUserName(userDataParsed.name || 'Usuario');
       }
     } catch (error) {
       console.error('Error loading user data:', error);

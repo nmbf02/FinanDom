@@ -32,9 +32,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
         FOREIGN KEY (user_id) REFERENCES users(id)
       )`);
 
-      // Agregar columna documents si no existe
-      db.run(`ALTER TABLE clients ADD COLUMN documents TEXT`);
-
       db.run(`CREATE TABLE IF NOT EXISTS loans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         client_id INTEGER NOT NULL,
