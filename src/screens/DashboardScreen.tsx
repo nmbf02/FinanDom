@@ -1,6 +1,6 @@
 // src/screens/DashboardScreen.tsx
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ICONOS
 const avatar = require('../assets/icons/avatar.png');
@@ -41,6 +42,38 @@ type RootStackParamList = {
 
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [userName, setUserName] = useState('Usuario');
+  const [greeting, setGreeting] = useState('Buenos días');
+
+  useEffect(() => {
+    loadUserData();
+    updateGreeting();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setUserName(user.name || 'Usuario');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const updateGreeting = () => {
+    const hour = new Date().getHours();
+    let greetingText = 'Buenos días';
+    
+    if (hour >= 12 && hour < 18) {
+      greetingText = 'Buenas tardes';
+    } else if (hour >= 18 || hour < 6) {
+      greetingText = 'Buenas noches';
+    }
+    
+    setGreeting(greetingText);
+  };
 
   return (
     <View style={styles.container}>
@@ -49,8 +82,8 @@ const DashboardScreen = () => {
         <View style={styles.userInfo}>
             <Image source={avatar} style={styles.avatar} />
             <View style={styles.userInfoText}>
-              <Text style={styles.welcomeText}>Hi, Welcome Back!</Text>
-              <Text style={styles.userName}>Nathaly Berroa</Text>
+              <Text style={styles.welcomeText}>{greeting}!</Text>
+              <Text style={styles.userName}>{userName}</Text>
             </View>
         </View>
 

@@ -81,7 +81,8 @@ const LoginScreen = ({ navigation }: any) => {
         console.log('✅ Login exitoso:', data);
         // Guardar credenciales si "Remember me" está activado
         await saveCredentials();
-        // Aquí puedes guardar el token o datos en AsyncStorage
+        // Guardar datos del usuario
+        await AsyncStorage.setItem('userData', JSON.stringify(data.user));
         navigation.navigate('Dashboard');
       } else {
         Alert.alert('Error', data.message || 'Credenciales incorrectas');
