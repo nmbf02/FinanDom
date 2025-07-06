@@ -489,4 +489,91 @@ router.post('/loans', (req, res) => {
   );
 });
 
+// Endpoint para métricas globales del dashboard
+router.get('/dashboard-metrics', (req, res) => {
+  const db = req.app.get('db');
+  const metrics = {};
+
+  // Total Prestado
+  db.get('SELECT SUM(amount) as total_prestado FROM loans', [], (err, row) => {
+    metrics.total_prestado = row?.total_prestado || 0;
+    // Total Recuperado
+    db.get('SELECT SUM(amount_paid) as total_recuperado FROM payments', [], (err, row2) => {
+      metrics.total_recuperado = row2?.total_recuperado || 0;
+      // Total en Mora (cuotas vencidas y no pagadas)
+      db.get(`SELECT SUM(amount_due) as total_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err, row3) => {
+        metrics.total_mora = row3?.total_mora || 0;
+        // Cantidad de préstamos activos
+        db.get(`SELECT COUNT(*) as prestamos_activos FROM loans WHERE status = 'activo'`, [], (err, row4) => {
+          metrics.prestamos_activos = row4?.prestamos_activos || 0;
+          // Cantidad de préstamos en mora (al menos una cuota vencida)
+          db.get(`SELECT COUNT(DISTINCT loan_id) as prestamos_en_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err, row5) => {
+            metrics.prestamos_en_mora = row5?.prestamos_en_mora || 0;
+            // Cantidad de clientes activos
+            db.get(`SELECT COUNT(*) as clientes_activos FROM clients WHERE is_active = 1`, [], (err, row6) => {
+              metrics.clientes_activos = row6?.clientes_activos || 0;
+              res.json(metrics);
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+// Endpoint para agenda dinámica de pagos
+router.get('/agenda', (req, res) => {
+  const db = req.app.get('db');
+  let { start_date, end_date, view } = req.query;
+
+  // Calcular rango de fechas según el view
+  const today = new Date();
+  const pad = (n) => n.toString().padStart(2, '0');
+  const format = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  if (!start_date && !end_date) {
+    if (view === 'dia') {
+      start_date = end_date = format(today);
+    } else if (view === 'mes') {
+      start_date = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-01`;
+      end_date = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-31`;
+    } else if (view === 'ano' || view === 'año') {
+      start_date = `${today.getFullYear()}-01-01`;
+      end_date = `${today.getFullYear()}-12-31`;
+    } else { // semana por defecto
+      const day = today.getDay();
+      const diffToMonday = (day === 0 ? -6 : 1) - day;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diffToMonday);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      start_date = format(monday);
+      end_date = format(sunday);
+    }
+  } else if (start_date && !end_date) {
+    end_date = start_date;
+  } else if (!start_date && end_date) {
+    start_date = end_date;
+  }
+
+  // Consulta de cuotas a pagar en el rango
+  const query = `
+    SELECT i.id as installment_id, i.loan_id, i.due_date, i.amount_due, i.status,
+           c.id as client_id, c.name as client_name
+    FROM installments i
+    JOIN loans l ON i.loan_id = l.id
+    JOIN clients c ON l.client_id = c.id
+    WHERE i.due_date BETWEEN ? AND ?
+    ORDER BY i.due_date ASC
+  `;
+
+  db.all(query, [start_date, end_date], (err, rows) => {
+    if (err) {
+      console.error('Error fetching agenda:', err);
+      return res.status(500).json({ message: 'Error al obtener la agenda.' });
+    }
+    res.json(rows || []);
+  });
+});
+
 module.exports = router;

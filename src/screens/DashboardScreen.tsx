@@ -12,6 +12,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../api/config';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ICONOS
 const avatar = require('../assets/icons/avatar.png');
@@ -40,15 +42,43 @@ type RootStackParamList = {
   Client: { clientId?: number };
 };
 
+type AgendaItem = {
+  installment_id: number;
+  due_date: string;
+  client_name: string;
+  status: string;
+  amount_due: number;
+  loan_id: number;
+};
+
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [userName, setUserName] = useState('Usuario');
   const [greeting, setGreeting] = useState('Buenos días');
+  const [metrics, setMetrics] = useState({
+    total_prestado: 0,
+    total_recuperado: 0,
+    total_mora: 0,
+    prestamos_activos: 0,
+    prestamos_en_mora: 0,
+    clientes_activos: 0,
+  });
+  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
+  const [agendaView, setAgendaView] = useState('semana');
+  const [agendaDate, setAgendaDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState<false | 'start' | 'end' | true>(false);
+  const [customRange, setCustomRange] = useState<{start: Date|null, end: Date|null}>({start: null, end: null});
 
   useEffect(() => {
     loadUserData();
     updateGreeting();
+    fetchMetrics();
   }, []);
+
+  useEffect(() => {
+    fetchAgenda();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agendaView, agendaDate, customRange]);
 
   const loadUserData = async () => {
     try {
@@ -75,6 +105,53 @@ const DashboardScreen = () => {
     setGreeting(greetingText);
   };
 
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard-metrics`);
+      const data = await response.json();
+      setMetrics(data);
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+      setMetrics({
+        total_prestado: 0,
+        total_recuperado: 0,
+        total_mora: 0,
+        prestamos_activos: 0,
+        prestamos_en_mora: 0,
+        clientes_activos: 0,
+      });
+    }
+  };
+
+  const fetchAgenda = async () => {
+    let params = '';
+    if (agendaView === 'dia') {
+      params = `?view=dia&start_date=${formatDate(agendaDate)}`;
+    } else if (agendaView === 'semana') {
+      params = `?view=semana&start_date=${formatDate(agendaDate)}`;
+    } else if (agendaView === 'mes') {
+      params = `?view=mes&start_date=${formatDate(agendaDate)}`;
+    } else if (agendaView === 'ano' || agendaView === 'año') {
+      params = `?view=ano&start_date=${formatDate(agendaDate)}`;
+    } else if (agendaView === 'personalizado' && customRange.start && customRange.end) {
+      params = `?start_date=${formatDate(customRange.start)}&end_date=${formatDate(customRange.end)}`;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/agenda${params}`);
+      const data = await response.json();
+      setAgenda(data);
+    } catch {
+      setAgenda([]);
+    }
+  };
+
+  function formatDate(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -93,77 +170,121 @@ const DashboardScreen = () => {
         </View>
       </View>
 
-        {/* FECHA (EXTRA BLOQUE PERSONALIZADO) */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateRow}>
-  {['9 MON', '10 TUE', '11 WED', '12 THU', '13 FRI', '14 SAT'].map((item, index) => (
-    <View
-      key={index}
-      style={[
-        styles.dateItem,
-
-        index === 2 && styles.dateItemActive
-      ]}
-    >
-      <Text style={[
-        styles.dateText,
-        index === 2 && styles.dateTextActive
-      ]}>
-        {item}
-      </Text>
-    </View>
-  ))}
-</ScrollView>
-
-
-
-      {/* AGENDA DEL DÍA */}
-      <View style={styles.agendaContainer}>
-        <Text style={styles.agendaDayLabel}>11 Wednesday - Today</Text>
-        {['9 AM', '10 AM', '11 AM', '12 PM'].map((hour, i) => (
-          <View key={i} style={styles.agendaItem}>
-            <Text style={styles.agendaTime}>{hour}</Text>
-            {hour === '10 AM' ? (
-              <View style={styles.agendaDetails}>
-                <View style={styles.agendaHeader}>
-                  <Text style={styles.agendaTitle}>Dr. Olivia Turner, M.D.</Text>
-                  <Text style={styles.agendaCheck}>✔</Text>
-                </View>
-                <Text style={styles.agendaDesc}>
-                  Treatment and prevention of skin and photodermatitis.
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
+        {/* Selector de rango para la agenda */}
+        <View style={styles.rangeSelectorContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rangeSelector}>
+            {['dia', 'semana', 'mes', 'ano', 'personalizado'].map((v) => (
+              <TouchableOpacity
+                key={v}
+                style={[
+                  styles.rangeButton,
+                  agendaView === v && styles.rangeButtonActive
+                ]}
+                onPress={() => setAgendaView(v)}
+              >
+                <Text style={[
+                  styles.rangeButtonText,
+                  agendaView === v && styles.rangeButtonTextActive
+                ]}>
+                  {v === 'dia' ? 'Día' : v === 'semana' ? 'Semana' : v === 'mes' ? 'Mes' : v === 'ano' ? 'Año' : 'Personalizado'}
                 </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          
+          {/* Fecha seleccionada */}
+          <View style={styles.dateSelectorContainer}>
+            {(agendaView === 'dia' || agendaView === 'semana' || agendaView === 'mes' || agendaView === 'ano') && (
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+                <Text style={styles.dateButtonText}>📅 {formatDate(agendaDate)}</Text>
+              </TouchableOpacity>
+            )}
+            {agendaView === 'personalizado' && (
+              <View style={styles.customRangeContainer}>
+                <TouchableOpacity onPress={() => setShowDatePicker('start')} style={styles.dateButton}>
+                  <Text style={styles.dateButtonText}>Inicio: {customRange.start ? formatDate(customRange.start) : 'Elegir'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowDatePicker('end')} style={styles.dateButton}>
+                  <Text style={styles.dateButtonText}>Fin: {customRange.end ? formatDate(customRange.end) : 'Elegir'}</Text>
+                </TouchableOpacity>
               </View>
-            ) : (
-              <View style={styles.agendaLine} />
             )}
           </View>
-        ))}
-      </View>
+        </View>
 
-      {/* TABS */}
-      <View style={styles.tabsContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabs}
-        >
-          <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
-            <Tab icon={users} label="CLIENTES" active />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
-            <Tab icon={loan} label="PRÉSTAMOS" />
-          </TouchableOpacity>
-          <Tab icon={payment} label="CUOTAS" />
-          <Tab icon={overdue} label="MORAS" />
-        </ScrollView>
-      </View>
+        {/* DateTimePicker */}
+        {showDatePicker !== false && (
+          <DateTimePicker
+            value={agendaView === 'personalizado' && showDatePicker === 'end' && customRange.end ? customRange.end : agendaDate}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) {
+                if (agendaView === 'personalizado' && showDatePicker === 'start') {
+                  setCustomRange((prev) => ({ ...prev, start: selectedDate }));
+                } else if (agendaView === 'personalizado' && showDatePicker === 'end') {
+                  setCustomRange((prev) => ({ ...prev, end: selectedDate }));
+                } else {
+                  setAgendaDate(selectedDate);
+                }
+              }
+            }}
+          />
+        )}
 
-      {/* MÉTRICAS */}
-      <View style={styles.statsContainer}>
-        <StatCard icon={wallet} title="Total Prestado" amount="RD$ 450,000.00" />
-        <StatCard icon={barChart} title="Total Recuperado" amount="RD$ 150,000.00" />
-        <StatCard icon={dollarCross} title="Total en Mora" amount="RD$ 45,000.00" badge="5" />
-        <StatCard icon={pieChart} title="Cantidad de Préstamos Activos" amount="10" />
-      </View>
+        {/* AGENDA DEL DÍA */}
+        <View style={styles.agendaContainer}>
+          <Text style={styles.agendaDayLabel}>
+            {agendaView === 'dia' ? 'Pagos del día' : agendaView === 'semana' ? 'Pagos de la semana' : agendaView === 'mes' ? 'Pagos del mes' : agendaView === 'ano' ? 'Pagos del año' : 'Pagos personalizados'}
+          </Text>
+          {agenda.length === 0 ? (
+            <Text style={styles.emptyAgendaText}>No hay pagos programados en este rango.</Text>
+          ) : (
+            agenda.map((item: AgendaItem) => (
+              <View key={item.installment_id} style={styles.agendaItem}>
+                <Text style={styles.agendaTime}>{item.due_date}</Text>
+                <View style={styles.agendaDetails}>
+                  <View style={styles.agendaHeader}>
+                    <Text style={styles.agendaTitle}>{item.client_name}</Text>
+                    <Text style={styles.agendaCheck}>{item.status === 'pendiente' ? '⏳' : item.status === 'vencida' ? '⚠️' : '✔️'}</Text>
+                  </View>
+                  <Text style={styles.agendaDesc}>Monto: RD$ {Number(item.amount_due).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                  <Text style={styles.agendaDesc}>Préstamo #{item.loan_id}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* TABS */}
+        <View style={styles.tabsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabs}
+          >
+            <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
+              <Tab icon={users} label="CLIENTES" active />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
+              <Tab icon={loan} label="PRÉSTAMOS" />
+            </TouchableOpacity>
+            <Tab icon={payment} label="CUOTAS" />
+            <Tab icon={overdue} label="MORAS" />
+          </ScrollView>
+        </View>
+
+        {/* MÉTRICAS */}
+        <View style={styles.statsContainer}>
+          <StatCard icon={wallet} title="Total Prestado" amount={`RD$ ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={barChart} title="Total Recuperado" amount={`RD$ ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={dollarCross} title="Total en Mora" amount={`RD$ ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
+          <StatCard icon={pieChart} title="Cantidad de Préstamos Activos" amount={metrics.prestamos_activos.toString()} />
+          <StatCard icon={users} title="Clientes Activos" amount={metrics.clientes_activos.toString()} />
+        </View>
+      </ScrollView>
 
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
@@ -460,5 +581,62 @@ const styles = StyleSheet.create({
   },
   userInfoText: {
     marginLeft: 10,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  rangeSelectorContainer: {
+    marginBottom: 16,
+  },
+  rangeSelector: {
+    marginBottom: 8,
+  },
+  rangeButton: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  rangeButtonActive: {
+    backgroundColor: '#10B981',
+  },
+  rangeButtonText: {
+    color: '#374151',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  rangeButtonTextActive: {
+    color: '#fff',
+  },
+  dateSelectorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  dateButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#10B981',
+  },
+  dateButtonText: {
+    color: '#10B981',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  customRangeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  emptyAgendaText: {
+    color: '#6B7280',
+    textAlign: 'center',
+    marginVertical: 12,
   },
 });
