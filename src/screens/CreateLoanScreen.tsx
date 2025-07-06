@@ -150,20 +150,14 @@ const CreateLoanScreen = () => {
         // Mora por Arrastre: 5 días de gracia, luego 2% sobre total acumulado
         const lateFeeRate = moraPercent || 0.02;
         
-        // Simular el escenario: 2 cuotas vencidas con mora por arrastre
-        let cuota1 = cuota; // Primera cuota vencida
-        let cuota2 = cuota; // Segunda cuota vencida
+        // Para la mora por arrastre, calculamos el escenario real:
+        // - Cada cuota individual con mora: cuota + (cuota * 2%)
+        // - Pero el total acumulado se calcula diferente
+        const moraIndividual = cuota * lateFeeRate;
+        montoAtraso = +(cuota + moraIndividual).toFixed(2);
         
-        // Después de 5 días de gracia, se aplica mora a la primera cuota
-        const moraCuota1 = cuota1 * lateFeeRate;
-        const totalConMora1 = cuota1 + moraCuota1;
-        
-        // Cuando vence la segunda cuota, se suma al total anterior y se aplica nueva mora
-        const totalAcumulado = totalConMora1 + cuota2;
-        const moraTotal = totalAcumulado * lateFeeRate;
-        montoAtraso = +(totalAcumulado + moraTotal).toFixed(2);
-        
-        // Ejemplo: Cuota1(2,300) + Mora1(46) + Cuota2(2,300) + MoraTotal(92.92) = 4,738.92
+        // Nota: El cálculo del total acumulado se hace en la lógica de negocio real
+        // Aquí solo mostramos el monto individual con mora
       } else {
         // Cálculo por defecto
         montoAtraso = +(cuota * (1 + moraPercent)).toFixed(2);
@@ -376,11 +370,61 @@ const CreateLoanScreen = () => {
               </Text>
             )}
             {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && (
-              <Text style={styles.moraInfoText}>
-                Ejemplo: Cuota1(RD$2,300) + Mora1(RD$46) + Cuota2(RD$2,300) + MoraTotal(RD$92.92) = RD$4,738.92
-              </Text>
+              <View>
+                <Text style={styles.moraInfoText}>
+                  Ejemplo de mora por arrastre:
+                </Text>
+                <Text style={styles.moraInfoText}>
+                  • Cuota 1 con mora: RD$2,300 + RD$46 = RD$2,346
+                </Text>
+                <Text style={styles.moraInfoText}>
+                  • Cuota 2 con mora: RD$2,300 + RD$46 = RD$2,346
+                </Text>
+                <Text style={styles.moraInfoText}>
+                  • Total acumulado: RD$4,646 + 2% = RD$4,738.92
+                </Text>
+              </View>
             )}
           </View>
+
+          {/* Tabla de cálculo acumulado para mora por arrastre */}
+          {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && installments.length > 0 && (
+            <View style={styles.carryOverTableContainer}>
+              <Text style={styles.carryOverTableTitle}>Cálculo de Mora por Arrastre (Acumulado)</Text>
+              <View style={styles.carryOverTableHeader}>
+                <Text style={styles.carryOverTableCell}>Cuota</Text>
+                <Text style={styles.carryOverTableCell}>Monto Base</Text>
+                <Text style={styles.carryOverTableCell}>Mora Individual</Text>
+                <Text style={styles.carryOverTableCell}>Total Acumulado</Text>
+              </View>
+              {(() => {
+                const lateFeeRate = parseFloat(latePercent || '2') / 100;
+                let deudaConMoraAcumulada = 0;
+                
+                return installments.map((row, idx) => {
+                  const montoBase = row.monto;
+                  const moraIndividual = montoBase * lateFeeRate;
+                  const cuotaConMora = montoBase + moraIndividual;
+                  
+                  // Acumular deuda con mora individual
+                  deudaConMoraAcumulada += cuotaConMora;
+                  
+                  // Calcular total acumulado según el modelo de arrastre:
+                  // Deuda con mora acumulada + mora adicional sobre el total
+                  const totalAcumulado = deudaConMoraAcumulada + (deudaConMoraAcumulada * lateFeeRate);
+                  
+                  return (
+                    <View key={`carry-${idx}`} style={[styles.carryOverTableRow, idx % 2 === 0 && { backgroundColor: '#f9f9f9' }]}>
+                      <Text style={styles.carryOverTableCell}>{row.cuota}</Text>
+                      <Text style={styles.carryOverTableCell}>RD$ {montoBase.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                      <Text style={styles.carryOverTableCell}>RD$ {moraIndividual.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                      <Text style={styles.carryOverTableCell}>RD$ {totalAcumulado.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                    </View>
+                  );
+                });
+              })()}
+            </View>
+          )}
 
           {/* Resumen del préstamo */}
           <View style={styles.loanSummaryContainer}>
@@ -629,6 +673,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#10B981',
+  },
+  carryOverTableContainer: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: '#fdf2f2',
+  },
+  carryOverTableTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 12,
+    backgroundColor: '#e74c3c',
+    color: '#fff',
+  },
+  carryOverTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#fecaca',
+    paddingVertical: 10,
+  },
+  carryOverTableRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+  },
+  carryOverTableCell: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 
