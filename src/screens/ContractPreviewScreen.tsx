@@ -15,7 +15,12 @@ const ContractPreviewScreen = () => {
     clientIdentification,
     startDate,
     frequency,
-    interestRate
+    interestRate,
+    client_id,
+    late_fee_type_id,
+    late_days,
+    late_percent,
+    contract_pdf_url,
   } = (route.params || {}) as {
     amount?: number | string;
     numInstallments?: number | string;
@@ -25,21 +30,32 @@ const ContractPreviewScreen = () => {
     startDate?: string;
     frequency?: string;
     interestRate?: number | string;
+    client_id?: string;
+    late_fee_type_id?: string;
+    late_days?: string;
+    late_percent?: string;
+    contract_pdf_url?: string;
   };
 
   // Contrato dinámico (puedes personalizarlo más)
   const contractText = `CONTRATO DE PRÉSTAMO\n\nEntre: ${clientName || 'Nombre del Cliente'}, portador de la cédula ${clientIdentification || '---'} ("La Prestataria").\n\nLa suma de RD$${parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })} será pagada en ${numInstallments} cuotas de RD$${((parseFloat(String(totalWithInterest || 0)) / Number(numInstallments || 1)) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })} cada una, con un interés de ${interestRate}% sobre el capital.\n\nEl pago inicia el ${startDate || '---'} con frecuencia ${frequency || '---'}.\n\nEl monto total a pagar será RD$${parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}.\n\n(Agrega aquí más cláusulas y condiciones legales según tu modelo)`;
 
-  const handleSign = () => {
-    (navigation as any).navigate('SignContract', {
+  const handleAccept = () => {
+    (navigation as any).navigate('LoanDetails', {
       amount,
-      numInstallments,
-      totalWithInterest,
+      num_installments: numInstallments,
       clientName,
       clientIdentification,
-      startDate,
+      client_id,
+      start_date: startDate,
+      due_date: startDate, // O el valor real si lo tienes
       frequency,
-      interestRate,
+      interest_rate: interestRate,
+      late_fee_type_id,
+      late_days,
+      late_percent,
+      contract_pdf_url,
+      // Puedes agregar más campos si los necesitas
     });
   };
 
@@ -56,7 +72,7 @@ const ContractPreviewScreen = () => {
       <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 32 }}>
         <Text style={styles.contractText}>{contractText}</Text>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.signButton} onPress={handleSign}>
+          <TouchableOpacity style={styles.signButton} onPress={handleAccept}>
             <Text style={styles.signButtonText}>Firmar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>

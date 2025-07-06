@@ -456,8 +456,18 @@ router.post('/loans', (req, res) => {
     contract_pdf_url
   } = req.body;
 
-  if (!client_id || !amount || !interest_rate || !num_installments || !start_date || !due_date || !frequency) {
-    return res.status(400).json({ message: 'Faltan campos obligatorios.' });
+  // Validar campos obligatorios y devolver cuáles faltan
+  const missingFields = [];
+  if (!client_id) missingFields.push('client_id');
+  if (!amount) missingFields.push('amount');
+  if (!interest_rate) missingFields.push('interest_rate');
+  if (!num_installments) missingFields.push('num_installments');
+  if (!start_date) missingFields.push('start_date');
+  if (!due_date) missingFields.push('due_date');
+  if (!frequency) missingFields.push('frequency');
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({ message: 'Faltan campos obligatorios: ' + missingFields.join(', ') });
   }
 
   const insertQuery = `
@@ -480,7 +490,8 @@ router.post('/loans', (req, res) => {
     [client_id, user_id, amount, interest_rate, total_with_interest, num_installments, start_date, due_date, frequency, late_fee_type_id || 1, late_days || 5, late_percent || 2.00, status, contract_pdf_url],
     function (err) {
       if (err) {
-        return res.status(500).json({ message: 'Error al crear el préstamo.' });
+        console.error('Error SQL al crear el préstamo:', err);
+        return res.status(500).json({ message: 'Error al crear el préstamo.', error: err.message });
       }
       return res.status(201).json({
         message: 'Préstamo creado exitosamente.',

@@ -115,19 +115,19 @@ const LoanDetailsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Navbar inferior */}
+      {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
           <Image source={home} style={styles.navIcon} />
         </TouchableOpacity>
         <TouchableOpacity>
           <Image source={chat} style={styles.navIcon} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={calendar} style={styles.navIcon} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={user} style={styles.navIcon} />
         </TouchableOpacity>
       </View>
     </View>

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -8,38 +8,43 @@ const BackIcon = require('../assets/icons/back.png');
 const SignContractScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { amount, numInstallments, totalWithInterest, clientName, clientIdentification, startDate, frequency, interestRate } = (route.params || {}) as {
+  const { amount, numInstallments, /* totalWithInterest, */ clientName, clientIdentification, startDate, frequency, interestRate, client_id, late_fee_type_id, late_days, late_percent, contract_pdf_url } = (route.params || {}) as {
     amount?: number | string;
     numInstallments?: number | string;
-    totalWithInterest?: number | string;
+    // totalWithInterest?: number | string;
     clientName?: string;
     clientIdentification?: string;
     startDate?: string;
     frequency?: string;
     interestRate?: number | string;
+    client_id?: string;
+    late_fee_type_id?: string;
+    late_days?: number | string;
+    late_percent?: number | string;
+    contract_pdf_url?: string;
   };
   const signatureRef = useRef<any>(null);
-  const [signature, setSignature] = useState<string | null>(null);
+  const [_signature, setSignature] = useState<string | null>(null);
 
   const handleSignature = (signatureData: string) => {
     setSignature(signatureData);
   };
 
   const handleAccept = () => {
-    if (!signature) {
-      Alert.alert('Debes firmar el contrato antes de continuar.');
-      return;
-    }
-    // Navegar a LoanDetailsScreen con todos los datos relevantes
-    (navigation as any).navigate('LoanDetailsScreen', {
+    (navigation as any).navigate('LoanDetails', {
       amount,
       numInstallments,
-      totalWithInterest,
       clientName,
       clientIdentification,
+      client_id,
       startDate,
       frequency,
       interestRate,
+      late_fee_type_id,
+      late_days,
+      late_percent,
+      contract_pdf_url,
+      // Puedes agregar más campos si los necesitas
     });
   };
 

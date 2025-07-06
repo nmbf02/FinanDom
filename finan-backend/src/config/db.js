@@ -83,6 +83,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
         FOREIGN KEY (late_fee_type_id) REFERENCES late_fee_types(id)
       )`);
 
+      // Lista de columnas a verificar y agregar si no existen
+      const loanColumnsToAdd = [
+        { name: 'num_installments', type: 'INTEGER NOT NULL DEFAULT 1' },
+        { name: 'frequency', type: "TEXT NOT NULL DEFAULT 'mensual'" },
+        { name: 'late_fee_type_id', type: 'INTEGER DEFAULT 1' },
+        { name: 'late_days', type: 'INTEGER DEFAULT 5' },
+        { name: 'late_percent', type: 'DECIMAL(5,2) DEFAULT 2.00' },
+        { name: 'contract_pdf_url', type: 'TEXT' }
+      ];
+
       db.run(`CREATE TABLE IF NOT EXISTS installments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         loan_id INTEGER NOT NULL,

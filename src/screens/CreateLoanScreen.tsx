@@ -45,6 +45,21 @@ type RootStackParamList = {
     frequency: string;
     interestRate: string;
   };
+  LoanDetails: {
+    client_id: string;
+    amount: string;
+    interest_rate: string;
+    num_installments: string;
+    start_date: string;
+    due_date: string;
+    frequency: string;
+    late_fee_type_id: string;
+    late_days: string;
+    late_percent: string;
+    contract_pdf_url: string;
+    clientName: string;
+    clientIdentification: string;
+  };
 };
 
 type LateFeeType = {
@@ -179,22 +194,49 @@ const CreateLoanScreen = () => {
     setInstallments(rows);
   };
 
-  const handleGoToContractPreview = () => {
+  const handleGoToContractPreview = async () => {
     if (!clientId || !amount || !interestRate || !numInstallments || !startDate || !frequency) {
       Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios.');
       return;
     }
     const selectedClient = clients.find((c: any) => c.id == clientId);
-    (navigation as any).navigate('ContractPreviewScreen', {
+    // Construir el objeto del préstamo
+    const loanData = {
+      client_id: selectedClient?.id,
       amount,
-      numInstallments,
-      totalWithInterest: (parseFloat(amount) * (1 + parseFloat(interestRate) / 100)).toString(),
+      interest_rate: interestRate,
+      num_installments: numInstallments,
+      start_date: formatDateLocal(startDate),
+      due_date: formatDateLocal(startDate), // Puedes ajustar la lógica de vencimiento
+      frequency,
+      late_fee_type_id: 1,
+      late_days: 5,
+      late_percent: 2.0,
+      contract_pdf_url: '',
       clientName: selectedClient?.name || '',
       clientIdentification: selectedClient?.identification || '',
-      startDate: formatDateLocal(startDate),
-      frequency,
-      interestRate,
-    });
+    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/loans`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loanData),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('Backend error:', errorText);
+        Alert.alert('Error', errorText);
+        return;
+      }
+      const data = await response.json();
+      (navigation as any).navigate('ContractPreviewScreen', {
+        ...data.loan,
+        clientName: selectedClient?.name || '',
+        clientIdentification: selectedClient?.identification || '',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el préstamo.');
+    }
   };
 
   return (

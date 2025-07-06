@@ -9,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
@@ -79,6 +79,12 @@ const DashboardScreen = () => {
     fetchAgenda();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agendaView, agendaDate, customRange]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMetrics();
+    }, [])
+  );
 
   const loadUserData = async () => {
     try {
