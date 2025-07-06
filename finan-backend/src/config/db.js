@@ -26,31 +26,21 @@ const db = new sqlite3.Database(dbPath, (err) => {
         description TEXT,
         is_active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`, (err) => {
-        if (err) {
-          console.error('Error creating document_types table:', err);
-        } else {
-          // Insertar tipos de documentos por defecto
-          const defaultTypes = [
-            { name: 'Cédula', description: 'Cédula de identidad' },
-            { name: 'Pasaporte', description: 'Pasaporte internacional' },
-            { name: 'Otro', description: 'Otro tipo de documento' },
-            { name: 'No aplica', description: 'Sin documento de identidad' }
-          ];
+      )`);
 
-          defaultTypes.forEach(type => {
-            db.run(
-              'INSERT OR IGNORE INTO document_types (name, description) VALUES (?, ?)',
-              [type.name, type.description],
-              (err) => {
-                if (err) {
-                  console.error('Error inserting document type:', err);
-                }
-              }
-            );
-          });
-          console.log('✅ Document types initialized');
-        }
+      // Insertar tipos de documentos por defecto
+      const defaultTypes = [
+        { id: 1, name: 'Cédula', description: 'Cédula de identidad' },
+        { id: 2, name: 'Pasaporte', description: 'Pasaporte internacional' },
+        { id: 3, name: 'Otro', description: 'Otro tipo de documento' },
+        { id: 4, name: 'No aplica', description: 'Sin documento de identidad' }
+      ];
+
+      defaultTypes.forEach(type => {
+        db.run(
+          'INSERT OR IGNORE INTO document_types (id, name, description) VALUES (?, ?, ?)',
+          [type.id, type.name, type.description]
+        );
       });
 
       db.run(`CREATE TABLE IF NOT EXISTS clients (
