@@ -69,38 +69,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (document_type_id) REFERENCES document_types(id)
-      )`, (err) => {
-        if (err) {
-          console.error('Error creating clients table:', err);
-        } else {
-          // Agregar columna document_type_id si no existe
-          db.run("ALTER TABLE clients ADD COLUMN document_type_id INTEGER DEFAULT 1", (err) => {
-            if (err && err.message && !err.message.includes('duplicate column name')) {
-              console.error('Error adding document_type_id column:', err);
-            } else if (!err) {
-              console.log('✅ Added document_type_id column to clients table');
-            }
-          });
-          
-          // Agregar columna photo_url si no existe
-          db.run("ALTER TABLE clients ADD COLUMN photo_url TEXT", (err) => {
-            if (err && err.message && !err.message.includes('duplicate column name')) {
-              console.error('Error adding photo_url column:', err);
-            } else if (!err) {
-              console.log('✅ Added photo_url column to clients table');
-            }
-          });
-          
-          // Agregar columna is_favorite si no existe
-          db.run("ALTER TABLE clients ADD COLUMN is_favorite INTEGER DEFAULT 0", (err) => {
-            if (err && err.message && !err.message.includes('duplicate column name')) {
-              console.error('Error adding is_favorite column:', err);
-            } else if (!err) {
-              console.log('✅ Added is_favorite column to clients table');
-            }
-          });
-        }
-      });
+      )`);
 
       db.run(`CREATE TABLE IF NOT EXISTS loans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
