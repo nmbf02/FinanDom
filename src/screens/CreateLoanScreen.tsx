@@ -40,7 +40,7 @@ type LateFeeType = {
   id: number;
   name: string;
   description: string;
-  calculation_type: string;
+  calculation_type: 'fixed_interval' | 'carry_over';
   interval_days: number;
   percentage_rate: number;
   is_active: number;
@@ -146,16 +146,24 @@ const CreateLoanScreen = () => {
         const lateFeeAmount = cuota * lateFeeRate;
         montoAtraso = +(cuota + lateFeeAmount).toFixed(2);
         // Ejemplo: 4,620 + (4,620 × porcentaje_usuario) = 4,620 + mora = total
-      } else if (selectedLateFeeType?.calculation_type === 'accumulative_installments') {
-        // Mora Acumulativa por Cuotas: efecto bola de nieve
-        let accumulatedAmount = cuota;
-        // Simular 3 cuotas vencidas para mostrar el efecto acumulativo
-        for (let j = 0; j < 3; j++) {
-          const lateFeeRate = moraPercent || 0.02; // Usar el porcentaje ingresado por el usuario
-          const lateFeeAmount = accumulatedAmount * lateFeeRate;
-          accumulatedAmount = +(accumulatedAmount + lateFeeAmount).toFixed(2);
-        }
-        montoAtraso = accumulatedAmount;
+      } else if (selectedLateFeeType?.calculation_type === 'carry_over') {
+        // Mora por Arrastre: 5 días de gracia, luego 2% sobre total acumulado
+        const lateFeeRate = moraPercent || 0.02;
+        
+        // Simular el escenario: 2 cuotas vencidas con mora por arrastre
+        let cuota1 = cuota; // Primera cuota vencida
+        let cuota2 = cuota; // Segunda cuota vencida
+        
+        // Después de 5 días de gracia, se aplica mora a la primera cuota
+        const moraCuota1 = cuota1 * lateFeeRate;
+        const totalConMora1 = cuota1 + moraCuota1;
+        
+        // Cuando vence la segunda cuota, se suma al total anterior y se aplica nueva mora
+        const totalAcumulado = totalConMora1 + cuota2;
+        const moraTotal = totalAcumulado * lateFeeRate;
+        montoAtraso = +(totalAcumulado + moraTotal).toFixed(2);
+        
+        // Ejemplo: Cuota1(2,300) + Mora1(46) + Cuota2(2,300) + MoraTotal(92.92) = 4,738.92
       } else {
         // Cálculo por defecto
         montoAtraso = +(cuota * (1 + moraPercent)).toFixed(2);
@@ -367,11 +375,36 @@ const CreateLoanScreen = () => {
                 Ejemplo: RD$4,620 + (RD$4,620 × {(parseFloat(latePercent || '0') / 100).toFixed(3)}) = RD$4,620 + RD${(4620 * parseFloat(latePercent || '0') / 100).toFixed(2)} = RD${(4620 * (1 + parseFloat(latePercent || '0') / 100)).toFixed(2)}
               </Text>
             )}
-            {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'accumulative_installments' && (
+            {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && (
               <Text style={styles.moraInfoText}>
-                Ejemplo: Efecto bola de nieve con {parseFloat(latePercent || '0').toFixed(1)}% sobre cuotas vencidas
+                Ejemplo: Cuota1(RD$2,300) + Mora1(RD$46) + Cuota2(RD$2,300) + MoraTotal(RD$92.92) = RD$4,738.92
               </Text>
             )}
+          </View>
+
+          {/* Resumen del préstamo */}
+          <View style={styles.loanSummaryContainer}>
+            <Text style={styles.loanSummaryTitle}>Resumen del Préstamo</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Monto prestado:</Text>
+              <Text style={styles.summaryValue}>RD$ {parseFloat(amount || '0').toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Interés ({interestRate}%):</Text>
+              <Text style={styles.summaryValue}>RD$ {(parseFloat(amount || '0') * parseFloat(interestRate || '0') / 100).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+            </View>
+            <View style={[styles.summaryRow, styles.totalRow]}>
+              <Text style={styles.totalLabel}>Total a pagar:</Text>
+              <Text style={styles.totalValue}>RD$ {(parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Número de cuotas:</Text>
+              <Text style={styles.summaryValue}>{numInstallments}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Monto por cuota:</Text>
+              <Text style={styles.summaryValue}>RD$ {((parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)) / parseInt(numInstallments || '1')).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+            </View>
           </View>
         </View>
       )}
@@ -549,6 +582,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginBottom: 4,
+  },
+  loanSummaryContainer: {
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderTopWidth: 2,
+    borderTopColor: '#10B981',
+    marginTop: 16,
+    borderRadius: 8,
+  },
+  loanSummaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1a1a1a',
+    textAlign: 'center',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingVertical: 4,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1f2937',
+  },
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#d1d5db',
+    paddingTop: 8,
+    marginTop: 8,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  totalValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#10B981',
   },
 });
 

@@ -175,10 +175,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
         },
         { 
           id: 2, 
-          name: 'Mora Acumulativa por Cuotas', 
-          description: 'Se aplica sobre cada cuota vencida con efecto bola de nieve',
-          calculation_type: 'accumulative_installments',
-          interval_days: 1,
+          name: 'Mora por Arrastre', 
+          description: '5 días de gracia, luego 2% sobre el total acumulado de deuda + mora anterior',
+          calculation_type: 'carry_over',
+          interval_days: 5,
           percentage_rate: 2.00
         }
       ];
