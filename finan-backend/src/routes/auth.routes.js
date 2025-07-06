@@ -496,21 +496,45 @@ router.get('/dashboard-metrics', (req, res) => {
 
   // Total Prestado
   db.get('SELECT SUM(amount) as total_prestado FROM loans', [], (err, row) => {
+    if (err) {
+      console.error('Error fetching total_prestado:', err);
+      return res.status(500).json({ message: 'Error al obtener métricas.' });
+    }
     metrics.total_prestado = row?.total_prestado || 0;
     // Total Recuperado
-    db.get('SELECT SUM(amount_paid) as total_recuperado FROM payments', [], (err, row2) => {
+    db.get('SELECT SUM(amount_paid) as total_recuperado FROM payments', [], (err2, row2) => {
+      if (err2) {
+        console.error('Error fetching total_recuperado:', err2);
+        return res.status(500).json({ message: 'Error al obtener métricas.' });
+      }
       metrics.total_recuperado = row2?.total_recuperado || 0;
       // Total en Mora (cuotas vencidas y no pagadas)
-      db.get(`SELECT SUM(amount_due) as total_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err, row3) => {
+      db.get(`SELECT SUM(amount_due) as total_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err3, row3) => {
+        if (err3) {
+          console.error('Error fetching total_mora:', err3);
+          return res.status(500).json({ message: 'Error al obtener métricas.' });
+        }
         metrics.total_mora = row3?.total_mora || 0;
         // Cantidad de préstamos activos
-        db.get(`SELECT COUNT(*) as prestamos_activos FROM loans WHERE status = 'activo'`, [], (err, row4) => {
+        db.get(`SELECT COUNT(*) as prestamos_activos FROM loans WHERE status = 'activo'`, [], (err4, row4) => {
+          if (err4) {
+            console.error('Error fetching prestamos_activos:', err4);
+            return res.status(500).json({ message: 'Error al obtener métricas.' });
+          }
           metrics.prestamos_activos = row4?.prestamos_activos || 0;
           // Cantidad de préstamos en mora (al menos una cuota vencida)
-          db.get(`SELECT COUNT(DISTINCT loan_id) as prestamos_en_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err, row5) => {
+          db.get(`SELECT COUNT(DISTINCT loan_id) as prestamos_en_mora FROM installments WHERE status = 'vencida' OR (status = 'pendiente' AND due_date < DATE('now'))`, [], (err5, row5) => {
+            if (err5) {
+              console.error('Error fetching prestamos_en_mora:', err5);
+              return res.status(500).json({ message: 'Error al obtener métricas.' });
+            }
             metrics.prestamos_en_mora = row5?.prestamos_en_mora || 0;
             // Cantidad de clientes activos
-            db.get(`SELECT COUNT(*) as clientes_activos FROM clients WHERE is_active = 1`, [], (err, row6) => {
+            db.get(`SELECT COUNT(*) as clientes_activos FROM clients WHERE is_active = 1`, [], (err6, row6) => {
+              if (err6) {
+                console.error('Error fetching clientes_activos:', err6);
+                return res.status(500).json({ message: 'Error al obtener métricas.' });
+              }
               metrics.clientes_activos = row6?.clientes_activos || 0;
               res.json(metrics);
             });
