@@ -19,7 +19,9 @@ const eyeOffIcon = require('../assets/icons/eye-off.png');
 const CheckIcon = require('../assets/icons/checkmark.png');
 
 const RegisterScreen = ({ navigation }: any) => {
+  const [userId, setUserId] = useState('');
   const [name, setName] = useState('');
+  const [identification, setIdentification] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,7 +32,7 @@ const RegisterScreen = ({ navigation }: any) => {
   const isEmailValid = email.includes('@');
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword || !role) {
+    if (!userId || !name || !identification || !email || !password || !confirmPassword || !role) {
       Alert.alert('❌ Campos incompletos', 'Por favor, completa todos los campos');
       return;
     }
@@ -46,7 +48,7 @@ const RegisterScreen = ({ navigation }: any) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ id: userId, name, identification, email, password, role }),
       });
   
       const data = await response.json();
@@ -78,6 +80,20 @@ const RegisterScreen = ({ navigation }: any) => {
         <View style={styles.content}>
           <Text style={styles.title}>Únete</Text>
           <Text style={styles.subtitle}>Se parte de una gran comunidad</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="ID de usuario"
+            value={userId}
+            onChangeText={text => setUserId(text.replace(/[^0-9]/g, ''))}
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Documento de identidad"
+            value={identification}
+            onChangeText={setIdentification}
+          />
 
           <TextInput
             style={styles.input}

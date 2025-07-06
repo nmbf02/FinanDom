@@ -11,6 +11,9 @@ import DashboardScreen from '../screens/DashboardScreen';
 import CreateLoanScreen from '../screens/CreateLoanScreen';
 import ClientScreen from '../screens/ClientScreen';
 import ClientListScreen from '../screens/ClientListScreen';
+import ContractPreviewScreen from '../screens/ContractPreviewScreen';
+import SignContractScreen from '../screens/SignContractScreen';
+import LoanDetailsScreen from '../screens/LoanDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +29,13 @@ const AppNavigator = () => {
         <Stack.Screen name="CreateLoan" component={CreateLoanScreen} />
         <Stack.Screen name="Client" component={ClientScreen} />
         <Stack.Screen name="ClientList" component={ClientListScreen} />
+        <Stack.Screen
+          name="ContractPreviewScreen"
+          component={ContractPreviewScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="SignContract" component={SignContractScreen} />
+        <Stack.Screen name="LoanDetails" component={LoanDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

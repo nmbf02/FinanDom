@@ -22,9 +22,12 @@
     "react": "19.1.0",
     "react-native": "0.80.0",
     "react-native-date-picker": "^5.0.13",
+    "react-native-file-viewer": "^2.1.5",
     "react-native-gesture-handler": "^2.26.0",
+    "react-native-html-to-pdf": "^0.12.0",
     "react-native-safe-area-context": "^5.5.0",
     "react-native-screens": "^4.11.1",
+    "react-native-signature-canvas": "^5.0.1",
     "react-native-vector-icons": "^10.2.0"
   },
   "devDependencies": {

@@ -35,6 +35,16 @@ type RootStackParamList = {
   ForgotPassword: undefined;
   Dashboard: undefined;
   CreateLoan: undefined;
+  ContractPreviewScreen: {
+    amount: string;
+    numInstallments: string;
+    totalWithInterest: string;
+    clientName: string;
+    clientIdentification: string;
+    startDate: string;
+    frequency: string;
+    interestRate: string;
+  };
 };
 
 type LateFeeType = {
@@ -49,14 +59,13 @@ type LateFeeType = {
 
 const CreateLoanScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [clients, setClients] = useState([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [lateFeeTypes, setLateFeeTypes] = useState<LateFeeType[]>([]);
   const [clientId, setClientId] = useState('');
   const [amount, setAmount] = useState('');
   const [interestRate, setInterestRate] = useState('');
   const [numInstallments, setNumInstallments] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [dueDate, setDueDate] = useState(new Date());
   const [frequency, setFrequency] = useState(frequencies[0].value);
   const [lateFeeTypeId, setLateFeeTypeId] = useState('1');
   const [pdf, setPdf] = useState<any>(null);
@@ -168,66 +177,24 @@ const CreateLoanScreen = () => {
     }
 
     setInstallments(rows);
-    setDueDate(date);
   };
 
-  const handleUploadPdf = async () => {
-    if (!pdf) return '';
-    const formData = new FormData();
-    formData.append('file', {
-      uri: pdf.uri,
-      name: pdf.name,
-      type: 'application/pdf',
-    } as any);
-    const response = await fetch(`${API_BASE_URL}/api/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await response.json();
-    return data.url;
-  };
-
-  const handleCreateLoan = async () => {
+  const handleGoToContractPreview = () => {
     if (!clientId || !amount || !interestRate || !numInstallments || !startDate || !frequency) {
       Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios.');
       return;
     }
-
-    let pdfUrl = '';
-    if (pdf) pdfUrl = await handleUploadPdf();
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/loans`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          amount: parseFloat(amount),
-          interest_rate: parseFloat(interestRate),
-          num_installments: parseInt(numInstallments, 10),
-          start_date: formatDateLocal(startDate),
-          due_date: formatDateLocal(dueDate),
-          frequency,
-          late_fee_type_id: parseInt(lateFeeTypeId, 10),
-          late_days: parseInt(lateDays, 10),
-          late_percent: parseFloat(latePercent),
-          contract_pdf_url: pdfUrl,
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert('Préstamo creado', 'El préstamo se creó correctamente.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert('Error', data.message || 'No se pudo crear el préstamo.');
-      }
-    } catch {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
-    }
+    const selectedClient = clients.find((c: any) => c.id == clientId);
+    (navigation as any).navigate('ContractPreviewScreen', {
+      amount,
+      numInstallments,
+      totalWithInterest: (parseFloat(amount) * (1 + parseFloat(interestRate) / 100)).toString(),
+      clientName: selectedClient?.name || '',
+      clientIdentification: selectedClient?.identification || '',
+      startDate: formatDateLocal(startDate),
+      frequency,
+      interestRate,
+    });
   };
 
   return (
@@ -461,7 +428,7 @@ const CreateLoanScreen = () => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.button} onPress={handleCreateLoan}>
+      <TouchableOpacity style={styles.button} onPress={handleGoToContractPreview}>
         <Text style={styles.buttonText}>GENERAR CONTRATO</Text>
       </TouchableOpacity>
       </ScrollView>
