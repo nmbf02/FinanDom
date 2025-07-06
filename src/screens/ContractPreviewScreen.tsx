@@ -31,7 +31,7 @@ const ContractPreviewScreen = () => {
   const contractText = `CONTRATO DE PRÉSTAMO\n\nEntre: ${clientName || 'Nombre del Cliente'}, portador de la cédula ${clientIdentification || '---'} ("La Prestataria").\n\nLa suma de RD$${parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })} será pagada en ${numInstallments} cuotas de RD$${((parseFloat(String(totalWithInterest || 0)) / Number(numInstallments || 1)) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })} cada una, con un interés de ${interestRate}% sobre el capital.\n\nEl pago inicia el ${startDate || '---'} con frecuencia ${frequency || '---'}.\n\nEl monto total a pagar será RD$${parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}.\n\n(Agrega aquí más cláusulas y condiciones legales según tu modelo)`;
 
   const handleSign = () => {
-    (navigation as any).navigate('SignContractScreen', {
+    (navigation as any).navigate('SignContract', {
       amount,
       numInstallments,
       totalWithInterest,

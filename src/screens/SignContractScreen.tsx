@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,10 +19,10 @@ const SignContractScreen = () => {
     interestRate?: number | string;
   };
   const signatureRef = useRef<any>(null);
-  const [signature, setSignature] = React.useState<string | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
 
-  const handleOK = (sig: string) => {
-    setSignature(sig);
+  const handleSignature = (signatureData: string) => {
+    setSignature(signatureData);
   };
 
   const handleAccept = () => {
@@ -57,7 +57,7 @@ const SignContractScreen = () => {
       <View style={styles.signatureContainer}>
         <Signature
           ref={signatureRef}
-          onOK={handleOK}
+          onOK={handleSignature}
           descriptionText="Firma Aquí"
           clearText="Limpiar"
           confirmText="Aceptar"
