@@ -13,6 +13,7 @@ const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
 const calendar = require('../assets/icons/calendar.png');
 const user = require('../assets/icons/user-setting.png');
+const menuIcon = require('../assets/icons/menu.png');
 
 const frequencies = [
   { label: 'Semanal', value: 'semanal', days: 7 },
@@ -231,6 +232,13 @@ const CreateLoanScreen = () => {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Header con título y menú hamburguesa */}
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Préstamos</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+          <Image source={menuIcon} style={styles.menuIcon} />
+        </TouchableOpacity>
+      </View>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -238,7 +246,7 @@ const CreateLoanScreen = () => {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Crear Préstamo</Text>
+        <Text style={styles.subtitle}>Crear - Préstamo</Text>
 
       <Picker
         selectedValue={clientId}
@@ -498,11 +506,24 @@ const styles = StyleSheet.create({
     paddingBottom: 70,
   },
 
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 64,
+  },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    color: '#1F2937',
+    textAlign: 'left',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 16,
+    textAlign: 'left',
   },
   input: {
     borderWidth: 1,
@@ -608,6 +629,12 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: '#10B981',
+  },
+  menuIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#10B981',
+    marginLeft: 0,
   },
   moraInfoContainer: {
     padding: 16,
