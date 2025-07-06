@@ -210,6 +210,17 @@ router.get('/document-types', (req, res) => {
   });
 });
 
+// Obtener todos los tipos de mora
+router.get('/late-fee-types', (req, res) => {
+  req.app.get('db').all('SELECT id, name, description, calculation_type, interval_days, percentage_rate, is_active FROM late_fee_types WHERE is_active = 1 ORDER BY name', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching late fee types:', err);
+      return res.status(500).json({ message: 'Error al obtener tipos de mora.' });
+    }
+    res.json(rows || []);
+  });
+});
+
 // Obtener todos los clientes
 router.get('/clients', (req, res) => {
   const query = `
@@ -439,6 +450,7 @@ router.post('/loans', (req, res) => {
     start_date,
     due_date,
     frequency,
+    late_fee_type_id,
     late_days,
     late_percent,
     contract_pdf_url
@@ -449,8 +461,8 @@ router.post('/loans', (req, res) => {
   }
 
   const insertQuery = `
-    INSERT INTO loans (client_id, user_id, amount, interest_rate, total_with_interest, start_date, due_date, status, contract_pdf_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO loans (client_id, user_id, amount, interest_rate, total_with_interest, num_installments, start_date, due_date, frequency, late_fee_type_id, late_days, late_percent, status, contract_pdf_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   // Calcular total con interés
@@ -465,7 +477,7 @@ router.post('/loans', (req, res) => {
   // Guardar préstamo
   req.app.get('db').run(
     insertQuery,
-    [client_id, user_id, amount, interest_rate, total_with_interest, start_date, due_date, status, contract_pdf_url],
+    [client_id, user_id, amount, interest_rate, total_with_interest, num_installments, start_date, due_date, frequency, late_fee_type_id || 1, late_days || 5, late_percent || 2.00, status, contract_pdf_url],
     function (err) {
       if (err) {
         return res.status(500).json({ message: 'Error al crear el préstamo.' });
@@ -479,8 +491,13 @@ router.post('/loans', (req, res) => {
           amount,
           interest_rate,
           total_with_interest,
+          num_installments,
           start_date,
           due_date,
+          frequency,
+          late_fee_type_id: late_fee_type_id || 1,
+          late_days: late_days || 5,
+          late_percent: late_percent || 2.00,
           status,
           contract_pdf_url
         }
