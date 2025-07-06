@@ -269,10 +269,10 @@ const DashboardScreen = () => {
               <Tab icon={users} label="CLIENTES" active />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
-              <Tab icon={loan} label="PRÉSTAMOS" />
+              <Tab icon={loan} label="PRÉSTAMOS" active />
             </TouchableOpacity>
-            <Tab icon={payment} label="CUOTAS" />
-            <Tab icon={overdue} label="MORAS" />
+            <Tab icon={payment} label="CUOTAS" active />
+            <Tab icon={overdue} label="MORAS" active />
           </ScrollView>
         </View>
 
