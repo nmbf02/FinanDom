@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ActivityIndicator, Alert, Modal } from 'react-native';
 import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,6 +34,13 @@ const LoanListScreen = () => {
   const [filteredLoans, setFilteredLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filters, setFilters] = useState({
+    activos: true,
+    cancelados: false,
+    pagados: false,
+    atrasados: false
+  });
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   useEffect(() => {
     fetchLoans();
@@ -41,6 +48,19 @@ const LoanListScreen = () => {
 
   useEffect(() => {
     let filtered = Array.isArray(loans) ? loans : [];
+    
+    // Aplicar filtros de estado
+    const statusFilters: string[] = [];
+    if (filters.activos) statusFilters.push('activo');
+    if (filters.cancelados) statusFilters.push('cancelado');
+    if (filters.pagados) statusFilters.push('pagado');
+    if (filters.atrasados) statusFilters.push('atrasado');
+    
+    if (statusFilters.length > 0) {
+      filtered = filtered.filter(l => statusFilters.includes(l.status?.toLowerCase() || ''));
+    }
+    
+    // Aplicar búsqueda
     if (search.trim()) {
       const s = search.trim().toLowerCase();
       filtered = filtered.filter(l =>
@@ -50,8 +70,9 @@ const LoanListScreen = () => {
         (l.status || '').toLowerCase().includes(s)
       );
     }
+    
     setFilteredLoans(filtered);
-  }, [loans, search]);
+  }, [loans, search, filters]);
 
   const fetchLoans = async () => {
     setLoading(true);
@@ -126,6 +147,7 @@ const LoanListScreen = () => {
         <Text style={styles.loanLabel}>Monto: <Text style={styles.loanValue}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
         <Text style={styles.loanLabel}>Interés: <Text style={styles.loanValue}>{item.interest_rate}%</Text></Text>
         <Text style={styles.loanLabel}>Cuotas: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
+        <Text style={styles.loanLabel}>Total a pagar: <Text style={styles.loanValue}>RD$ {parseFloat(item.total_with_interest || item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
         <Text style={styles.loanLabel}>Estado: <Text style={styles.loanValue}>{item.status}</Text></Text>
       </View>
       <View style={styles.actions}>
@@ -158,6 +180,16 @@ const LoanListScreen = () => {
           onChangeText={setSearch}
         />
       </View>
+
+      {/* Botón de filtros */}
+      <View style={styles.filterButtonContainer}>
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => setShowFiltersModal(true)}
+        >
+          <Text style={styles.filterButtonText}>Filtros</Text>
+        </TouchableOpacity>
+      </View>
       {/* Lista de préstamos */}
       {loading ? (
         <ActivityIndicator size="large" color="#1CC88A" style={{ marginTop: 32 }} />
@@ -176,6 +208,55 @@ const LoanListScreen = () => {
           contentContainerStyle={{ paddingBottom: 32 }}
         />
       )}
+      {/* Modal de Filtros */}
+      <Modal
+        visible={showFiltersModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFiltersModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filtros</Text>
+            
+            <TouchableOpacity
+              style={[styles.modalFilterBtn, filters.activos && styles.modalFilterBtnActive]}
+              onPress={() => setFilters(prev => ({ ...prev, activos: !prev.activos }))}
+            >
+              <Text style={[styles.modalFilterText, filters.activos && styles.modalFilterTextActive]}>Activos</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalFilterBtn, filters.cancelados && styles.modalFilterBtnInactive]}
+              onPress={() => setFilters(prev => ({ ...prev, cancelados: !prev.cancelados }))}
+            >
+              <Text style={[styles.modalFilterText, filters.cancelados && styles.modalFilterTextInactive]}>Cancelados</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalFilterBtn, filters.pagados && styles.modalFilterBtnPaid]}
+              onPress={() => setFilters(prev => ({ ...prev, pagados: !prev.pagados }))}
+            >
+              <Text style={[styles.modalFilterText, filters.pagados && styles.modalFilterTextPaid]}>Pagados</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalFilterBtn, filters.atrasados && styles.modalFilterBtnLate]}
+              onPress={() => setFilters(prev => ({ ...prev, atrasados: !prev.atrasados }))}
+            >
+              <Text style={[styles.modalFilterText, filters.atrasados && styles.modalFilterTextLate]}>Atrasados</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={() => setShowFiltersModal(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
@@ -352,6 +433,148 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: '#10B981',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  filterBtnInactive: {
+    backgroundColor: '#EF4444',
+    borderColor: '#EF4444',
+  },
+  filterBtnPaid: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+  },
+  filterBtnLate: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+  },
+  filterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
+  },
+  filterTextInactive: {
+    color: '#FFFFFF',
+  },
+  filterTextPaid: {
+    color: '#FFFFFF',
+  },
+  filterTextLate: {
+    color: '#FFFFFF',
+  },
+  filterButtonContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  filterButton: {
+    backgroundColor: '#10B981',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  filterButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 24,
+    width: '80%',
+    maxWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#1F2937',
+  },
+  modalFilterBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  modalFilterBtnActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  modalFilterBtnInactive: {
+    backgroundColor: '#EF4444',
+    borderColor: '#EF4444',
+  },
+  modalFilterBtnPaid: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+  },
+  modalFilterBtnLate: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+  },
+  modalFilterText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  modalFilterTextActive: {
+    color: '#FFFFFF',
+  },
+  modalFilterTextInactive: {
+    color: '#FFFFFF',
+  },
+  modalFilterTextPaid: {
+    color: '#FFFFFF',
+  },
+  modalFilterTextLate: {
+    color: '#FFFFFF',
+  },
+  modalCloseButton: {
+    backgroundColor: '#6B7280',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 
