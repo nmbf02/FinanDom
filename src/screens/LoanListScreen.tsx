@@ -41,6 +41,7 @@ const LoanListScreen = () => {
       filtered = filtered.filter(l =>
         l.id?.toString().includes(s) ||
         l.client_id?.toString().includes(s) ||
+        (l.client_name || '').toLowerCase().includes(s) ||
         (l.status || '').toLowerCase().includes(s)
       );
     }
@@ -77,7 +78,7 @@ const LoanListScreen = () => {
     <TouchableOpacity style={styles.loanCard} onPress={() => navigation.navigate('LoanDetails', item)}>
       <View style={styles.loanInfo}>
         <Text style={styles.loanTitle}>Préstamo #{item.id}</Text>
-        <Text style={styles.loanLabel}>Cliente ID: <Text style={styles.loanValue}>{item.client_id}</Text></Text>
+        <Text style={styles.loanLabel}>Cliente: <Text style={styles.loanValue}>{item.client_name || `ID: ${item.client_id}`}</Text></Text>
         <Text style={styles.loanLabel}>Monto: <Text style={styles.loanValue}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
         <Text style={styles.loanLabel}>Interés: <Text style={styles.loanValue}>{item.interest_rate}%</Text></Text>
         <Text style={styles.loanLabel}>Cuotas: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
@@ -100,7 +101,7 @@ const LoanListScreen = () => {
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por ID, cliente o estado..."
+          placeholder="Buscar por ID, nombre del cliente o estado..."
           value={search}
           onChangeText={setSearch}
         />

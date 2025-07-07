@@ -39,6 +39,7 @@ type RootStackParamList = {
   ForgotPassword: undefined;
   Dashboard: undefined;
   CreateLoan: undefined;
+  LoanList: undefined;
   Client: { clientId?: number };
 };
 
@@ -277,7 +278,9 @@ const DashboardScreen = () => {
             <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
               <Tab icon={loan} label="PRÉSTAMOS" active />
             </TouchableOpacity>
-            <Tab icon={payment} label="CUOTAS" active />
+            <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
+              <Tab icon={payment} label="CUOTAS" active />
+            </TouchableOpacity>
             <Tab icon={overdue} label="MORAS" active />
           </ScrollView>
         </View>
