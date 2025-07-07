@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+// Iconos
+const menuIcon = require('../assets/icons/menu.png');
+const cancelIcon = require('../assets/icons/cancel.png');
+const avatarDefault = require('../assets/icons/avatar.png');
+
 
 type RootStackParamList = {
   Splash: undefined;
@@ -16,7 +22,6 @@ type RootStackParamList = {
   LoanList: undefined;
 };
 
-const menuIcon = require('../assets/icons/menu.png');
 const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
 const calendar = require('../assets/icons/calendar.png');
@@ -74,8 +79,47 @@ const LoanListScreen = () => {
     setLoading(false);
   };
 
+  const handleCancelLoan = async (loan: any) => {
+    Alert.alert(
+      'Cancelar Préstamo',
+      `¿Estás seguro de que quieres cancelar el préstamo #${loan.id}?`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Sí, Cancelar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/api/loans/${loan.id}`, {
+                method: 'DELETE',
+              });
+              if (response.ok) {
+                Alert.alert('Éxito', 'Préstamo cancelado correctamente.');
+                fetchLoans();
+              } else {
+                Alert.alert('Error', 'No se pudo cancelar el préstamo.');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo conectar con el servidor.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderLoan = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.loanCard} onPress={() => navigation.navigate('LoanDetails', item)}>
+    <View style={styles.loanCard}>
+      <View style={styles.avatarContainer}>
+        <Image 
+          source={avatarDefault} 
+          style={styles.avatar} 
+        />
+        <View style={[
+          styles.statusIndicator, 
+          { backgroundColor: item.status === 'activo' ? '#10B981' : '#EF4444' }
+        ]} />
+      </View>
       <View style={styles.loanInfo}>
         <Text style={styles.loanTitle}>Préstamo #{item.id}</Text>
         <Text style={styles.loanLabel}>Cliente: <Text style={styles.loanValue}>{item.client_name || `ID: ${item.client_id}`}</Text></Text>
@@ -84,7 +128,15 @@ const LoanListScreen = () => {
         <Text style={styles.loanLabel}>Cuotas: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
         <Text style={styles.loanLabel}>Estado: <Text style={styles.loanValue}>{item.status}</Text></Text>
       </View>
-    </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={() => handleCancelLoan(item)}>
+          <Image source={cancelIcon} style={styles.actionIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
+          <Text style={styles.plusIcon}>➕</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -195,17 +247,53 @@ const styles = StyleSheet.create({
   },
   loanCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   loanInfo: {
     flex: 1,
+  },
+  actions: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#6B7280',
+  },
+  plusIcon: {
+    fontSize: 20,
+    color: '#10B981',
+    fontWeight: 'bold',
   },
   loanTitle: {
     fontSize: 16,
