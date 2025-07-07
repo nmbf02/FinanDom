@@ -132,8 +132,8 @@ const LoginScreen = ({ navigation }: any) => {
 
       <View style={styles.rowOptions}>
         <View style={styles.checkboxContainer}>
-                  <CheckBox
-          value={rememberMe}
+          <CheckBox
+            value={rememberMe}
           onValueChange={(value) => {
             setRememberMe(value);
             if (!value) {
@@ -143,8 +143,8 @@ const LoginScreen = ({ navigation }: any) => {
               AsyncStorage.removeItem('rememberMe');
             }
           }}
-          tintColors={{ true: '#1CC88A', false: '#ccc' }}
-        />
+            tintColors={{ true: '#1CC88A', false: '#ccc' }}
+          />
           <Text style={styles.rememberText}>Remember me</Text>
         </View>
 

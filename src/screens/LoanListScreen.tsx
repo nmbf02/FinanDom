@@ -21,6 +21,7 @@ type RootStackParamList = {
   ContractPreviewScreen: any;
   LoanDetails: any;
   LoanList: undefined;
+  RecordPaymentScreen: { loan: any };
 };
 
 const home = require('../assets/icons/home.png');
@@ -155,7 +156,7 @@ const LoanListScreen = () => {
         <TouchableOpacity onPress={() => handleCancelLoan(item)}>
           <Image source={cancelIcon} style={styles.actionIcon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
+        <TouchableOpacity onPress={() => navigation.navigate('RecordPaymentScreen', { loan: item })}>
           <Text style={styles.plusIcon}>➕</Text>
         </TouchableOpacity>
       </View>
@@ -327,12 +328,11 @@ const styles = StyleSheet.create({
   filterIconButton: {
     padding: 8,
     borderRadius: 6,
-    backgroundColor: '#10B981',
   },
   filterIconImage: {
     width: 16,
     height: 16,
-    tintColor: '#FFFFFF',
+    tintColor: '#10B981',
   },
   loanCard: {
     backgroundColor: '#fff',

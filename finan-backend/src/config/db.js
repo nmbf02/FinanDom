@@ -199,6 +199,26 @@ const db = new sqlite3.Database(dbPath, (err) => {
           [type.id, type.name, type.description, type.calculation_type, type.interval_days, type.percentage_rate]
         );
       });
+
+      db.run(`CREATE TABLE IF NOT EXISTS payment_methods (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+      )`);
+
+      // Seed inicial de métodos de pago
+      const defaultPaymentMethods = [
+        'Efectivo',
+        'Cheque',
+        'Transferencia',
+        'Tarjeta',
+        'Otros',
+      ];
+      defaultPaymentMethods.forEach((method) => {
+        db.run(
+          'INSERT OR IGNORE INTO payment_methods (name) VALUES (?)',
+          [method]
+        );
+      });
     });
   }
 });

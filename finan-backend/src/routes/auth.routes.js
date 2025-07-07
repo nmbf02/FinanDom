@@ -648,4 +648,52 @@ router.get('/agenda', (req, res) => {
   });
 });
 
+// Métodos de pago
+router.get('/payment-methods', (req, res) => {
+  const db = req.app.get('db');
+  db.all('SELECT * FROM payment_methods', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching payment methods:', err);
+      return res.status(500).json({ message: 'Error al obtener métodos de pago.' });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Resumen de préstamo
+router.get('/loans/:id/summary', (req, res) => {
+  const db = req.app.get('db');
+  const loanId = req.params.id;
+
+  // Obtener datos del préstamo y cliente
+  const loanQuery = `
+    SELECT l.*, c.name as client_name
+    FROM loans l
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE l.id = ?
+  `;
+
+  db.get(loanQuery, [loanId], (err, loan) => {
+    if (err || !loan) {
+      return res.status(404).json({ message: 'Préstamo no encontrado.' });
+    }
+    // Cuotas pagadas
+    db.get('SELECT COUNT(*) as paid_installments FROM installments WHERE loan_id = ? AND status = "pagada"', [loanId], (err2, row2) => {
+      const paidInstallments = row2?.paid_installments || 0;
+      // Monto pagado
+      db.get('SELECT SUM(amount_paid) as paid_amount FROM payments WHERE loan_id = ?', [loanId], (err3, row3) => {
+        const paidAmount = row3?.paid_amount || 0;
+        const totalInstallments = loan.num_installments;
+        const remainingInstallments = totalInstallments - paidInstallments;
+        res.json({
+          ...loan,
+          paid_installments: paidInstallments,
+          paid_amount: paidAmount,
+          remaining_installments: remainingInstallments,
+        });
+      });
+    });
+  });
+});
+
 module.exports = router;

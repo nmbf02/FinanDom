@@ -2,6 +2,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import { View, Text, Picker } from 'react-native';
 
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -16,6 +17,8 @@ import SignContractScreen from '../screens/SignContractScreen';
 import LoanDetailsScreen from '../screens/LoanDetailsScreen';
 import LoanListScreen from '../screens/LoanListScreen';
 import InstallmentListScreen from '../screens/InstallmentListScreen';
+import RecordPaymentScreen from '../screens/RecordPaymentScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +43,8 @@ const AppNavigator = () => {
         <Stack.Screen name="LoanDetails" component={LoanDetailsScreen} />
         <Stack.Screen name="LoanList" component={LoanListScreen} />
         <Stack.Screen name="InstallmentList" component={InstallmentListScreen} />
+        <Stack.Screen name="RecordPaymentScreen" component={RecordPaymentScreen} />
+        <Stack.Screen name="PaymentSuccessScreen" component={PaymentSuccessScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
