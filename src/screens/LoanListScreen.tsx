@@ -8,6 +8,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 const menuIcon = require('../assets/icons/menu.png');
 const cancelIcon = require('../assets/icons/cancel.png');
 const avatarDefault = require('../assets/icons/avatar.png');
+const filterIcon = require('../assets/icons/filter.png');
 
 
 type RootStackParamList = {
@@ -171,7 +172,7 @@ const LoanListScreen = () => {
         </TouchableOpacity>
       </View>
       <Text style={styles.subtitle}>Cuotas</Text>
-      {/* Buscador */}
+      {/* Buscador con icono de filtros */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
@@ -179,15 +180,11 @@ const LoanListScreen = () => {
           value={search}
           onChangeText={setSearch}
         />
-      </View>
-
-      {/* Botón de filtros */}
-      <View style={styles.filterButtonContainer}>
         <TouchableOpacity 
-          style={styles.filterButton}
+          style={styles.filterIconButton}
           onPress={() => setShowFiltersModal(true)}
         >
-          <Text style={styles.filterButtonText}>Filtros</Text>
+          <Image source={filterIcon} style={styles.filterIconImage} />
         </TouchableOpacity>
       </View>
       {/* Lista de préstamos */}
@@ -325,6 +322,17 @@ const styles = StyleSheet.create({
     color: '#222',
     backgroundColor: 'transparent',
     borderWidth: 0,
+    paddingRight: 8,
+  },
+  filterIconButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#10B981',
+  },
+  filterIconImage: {
+    width: 16,
+    height: 16,
+    tintColor: '#FFFFFF',
   },
   loanCard: {
     backgroundColor: '#fff',
@@ -483,22 +491,6 @@ const styles = StyleSheet.create({
   },
   filterTextLate: {
     color: '#FFFFFF',
-  },
-  filterButtonContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  filterButton: {
-    backgroundColor: '#10B981',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  filterButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
