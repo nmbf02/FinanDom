@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Platform, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Platform, Modal, FlatList, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
@@ -130,100 +130,102 @@ const RecordPaymentScreen = () => {
         <View style={{ width: 28 }} />
       </View>
 
-      {/* Información del Préstamo */}
-      <Text style={styles.sectionTitle}>Información del Préstamo</Text>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Cliente</Text><Text style={styles.infoValue}>{loan.client_name || '-'}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Préstamo #</Text><Text style={styles.infoValue}>{loan.id || '-'}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Estado</Text><Text style={styles.infoValue}>{loan.status || '-'}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Fecha de inicio</Text><Text style={styles.infoValue}>{loan.start_date || '-'}</Text></View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Monto Del Préstamo</Text>
-        <Text style={styles.infoValue}>{formatCurrency(totalLoanAmount)}</Text>
-      </View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Monto Pagado</Text><Text style={styles.infoValue}>{formatCurrency(paidAmount)}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Cantidad De Cuotas Total</Text><Text style={styles.infoValue}>{totalInstallments}</Text></View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Cuotas Faltantes</Text>
-        <Text style={styles.infoValue}>
-          {remainingInstallments >= 0 ? remainingInstallments : totalInstallments}
-        </Text>
-      </View>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Información del Préstamo */}
+        <Text style={styles.sectionTitle}>Información del Préstamo</Text>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Cliente</Text><Text style={styles.infoValue}>{loan.client_name || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Préstamo #</Text><Text style={styles.infoValue}>{loan.id || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Estado</Text><Text style={styles.infoValue}>{loan.status || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Fecha de inicio</Text><Text style={styles.infoValue}>{loan.start_date || '-'}</Text></View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Monto Del Préstamo</Text>
+          <Text style={styles.infoValue}>{formatCurrency(totalLoanAmount)}</Text>
+        </View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Monto Pagado</Text><Text style={styles.infoValue}>{formatCurrency(paidAmount)}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>Cantidad De Cuotas Total</Text><Text style={styles.infoValue}>{totalInstallments}</Text></View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Cuotas Faltantes</Text>
+          <Text style={styles.infoValue}>
+            {remainingInstallments >= 0 ? remainingInstallments : totalInstallments}
+          </Text>
+        </View>
 
-      {/* Abono a Préstamo */}
-      <Text style={styles.sectionTitle}>Abono a Préstamo</Text>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Seleccionar Cuotas a Pagar</Text>
-        <TextInput
-          style={styles.input}
-          value={selectedInstallments}
-          onChangeText={text => {
-            // Permitir cualquier valor mientras escribe
-            setSelectedInstallments(text.replace(/[^0-9]/g, ''));
-          }}
-          onBlur={() => {
-            // Al salir del campo, corregir si es vacío o menor que 1
-            let num = parseInt(selectedInstallments, 10);
-            if (isNaN(num) || num < 1) num = 1;
-            if (num > pendingInstallments.length) num = pendingInstallments.length;
-            setSelectedInstallments(String(num));
-          }}
-          keyboardType="numeric"
-          placeholder={`1 - ${pendingInstallments.length}`}
-        />
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Monto A Abonar</Text>
-        <TextInput
-          style={styles.input}
-          value={paymentAmount}
-          onChangeText={setPaymentAmount}
-          keyboardType="numeric"
-          placeholder="0.00"
-        />
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Método de Pago</Text>
-        <View style={styles.paymentRow}>
-          <TouchableOpacity style={styles.paymentInput} onPress={() => setShowPaymentModal(true)}>
-            <Text style={{ color: paymentMethodId ? '#222' : '#888' }}>
-              {paymentMethods.find(m => m.id === paymentMethodId)?.name || 'Selecciona método'}
-            </Text>
+        {/* Abono a Préstamo */}
+        <Text style={styles.sectionTitle}>Abono a Préstamo</Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Seleccionar Cuotas a Pagar</Text>
+          <TextInput
+            style={styles.input}
+            value={selectedInstallments}
+            onChangeText={text => {
+              // Permitir cualquier valor mientras escribe
+              setSelectedInstallments(text.replace(/[^0-9]/g, ''));
+            }}
+            onBlur={() => {
+              // Al salir del campo, corregir si es vacío o menor que 1
+              let num = parseInt(selectedInstallments, 10);
+              if (isNaN(num) || num < 1) num = 1;
+              if (num > pendingInstallments.length) num = pendingInstallments.length;
+              setSelectedInstallments(String(num));
+            }}
+            keyboardType="numeric"
+            placeholder={`1 - ${pendingInstallments.length}`}
+          />
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Monto A Abonar</Text>
+          <TextInput
+            style={styles.input}
+            value={paymentAmount}
+            onChangeText={setPaymentAmount}
+            keyboardType="numeric"
+            placeholder="0.00"
+          />
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Método de Pago</Text>
+          <View style={styles.paymentRow}>
+            <TouchableOpacity style={styles.paymentInput} onPress={() => setShowPaymentModal(true)}>
+              <Text style={{ color: paymentMethodId ? '#222' : '#888' }}>
+                {paymentMethods.find(m => m.id === paymentMethodId)?.name || 'Selecciona método'}
+              </Text>
+            </TouchableOpacity>
+            {paymentMethods.find(m => m.id === paymentMethodId)?.name === 'Transferencia' && (
+              <TextInput
+                style={styles.referenceInput}
+                placeholder="Referencia"
+                value={reference}
+                onChangeText={setReference}
+              />
+            )}
+          </View>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Fecha de Pago</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+            <Text>{paymentDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
-          {paymentMethods.find(m => m.id === paymentMethodId)?.name === 'Transferencia' && (
-            <TextInput
-              style={styles.referenceInput}
-              placeholder="Referencia"
-              value={reference}
-              onChangeText={setReference}
+          {showDatePicker && (
+            <DateTimePicker
+              value={paymentDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(_, date) => {
+                setShowDatePicker(false);
+                if (date) setPaymentDate(date);
+              }}
             />
           )}
         </View>
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Fecha de Pago</Text>
-        <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-          <Text>{paymentDate.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={paymentDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={(_, date) => {
-              setShowDatePicker(false);
-              if (date) setPaymentDate(date);
-            }}
-          />
-        )}
-      </View>
 
-      {/* Botones */}
-      <TouchableOpacity style={styles.pdfButton} onPress={handleGeneratePDF}>
-        <Text style={styles.pdfButtonText}>GENERAR RECIBO PDF</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmPayment}>
-        <Text style={styles.confirmButtonText}>CONFIRMAR PAGO</Text>
-      </TouchableOpacity>
+        {/* Botones */}
+        <TouchableOpacity style={styles.pdfButton} onPress={handleGeneratePDF}>
+          <Text style={styles.pdfButtonText}>GENERAR RECIBO PDF</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmPayment}>
+          <Text style={styles.confirmButtonText}>CONFIRMAR PAGO</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Navbar */}
       <View style={styles.bottomNav}>
@@ -293,6 +295,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 120,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   headerRow: {
     flexDirection: 'row',
