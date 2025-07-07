@@ -60,6 +60,7 @@ type RootStackParamList = {
     clientName: string;
     clientIdentification: string;
   };
+  LoanList: undefined;
 };
 
 type LateFeeType = {
@@ -244,7 +245,7 @@ const CreateLoanScreen = () => {
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
         <Text style={styles.title}>Préstamos</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+        <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
       </View>

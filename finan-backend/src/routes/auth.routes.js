@@ -440,6 +440,26 @@ router.patch('/clients/:id/favorite', (req, res) => {
   });
 });
 
+// Obtener todos los préstamos
+router.get('/loans', (req, res) => {
+  const db = req.app.get('db');
+  
+  const query = `
+    SELECT l.*, c.name as client_name, c.identification as client_identification
+    FROM loans l
+    LEFT JOIN clients c ON l.client_id = c.id
+    ORDER BY l.created_at DESC, l.id DESC
+  `;
+  
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching loans:', err);
+      return res.status(500).json({ message: 'Error al obtener los préstamos.' });
+    }
+    res.json(rows || []);
+  });
+});
+
 // Crear un préstamo
 router.post('/loans', (req, res) => {
   const {
