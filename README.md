@@ -1,97 +1,150 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 📱 FinanDom
 
-# Getting Started
+**FinanDom** es una app móvil para la gestión de préstamos, diseñada para prestamistas independientes. Permite registrar usuarios, crear préstamos, llevar control de pagos y gestionar moras.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 🛠️ Tecnologías utilizadas
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Frontend (React Native)
+- React Native CLI
+- TypeScript
+- React Navigation
+- API REST para login y registro
+- Instalación manual por USB o red Wi-Fi
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Backend (Node.js)
+- Express.js
+- SQLite como base de datos
+- bcryptjs para encriptación de contraseñas
+- jsonwebtoken (opcional)
+- dotenv para manejo de variables de entorno
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
+## 🚀 Instalación del proyecto
+
+### Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/FinanDom.git
+cd FinanDom
+````
+
+---
+
+## ▶️ Iniciar el Backend
+
+### 1. Ir al directorio del backend
+
+```bash
+cd Finan-backend
 ```
 
-## Step 2: Build and run your app
+### 2. Instalar dependencias
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+npm install
 ```
 
-### iOS
+### 3. Ejecutar el servidor
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```bash
+node src/index.js
 ```
 
-Then, and every time you update your native dependencies, run:
+> Asegúrate de que el backend esté corriendo en `http://localhost:3000` y conectado a la base de datos SQLite (`finanDom.db`).
 
-```sh
-bundle exec pod install
+---
+
+## 📱 Ejecutar el Frontend (React Native)
+
+### 1. Volver al directorio raíz
+
+```bash
+cd ..
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### 2. Instalar dependencias
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+```bash
+npm install
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### 3. Conectarte por USB o red Wi-Fi
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+* Conecta tu celular con **modo desarrollador activado** y **depuración USB habilitada**.
+* Asegúrate de estar en la **misma red Wi-Fi** que tu PC.
 
-## Step 3: Modify your app
+### 4. Editar archivo de conexión al backend
 
-Now that you have successfully run the app, let's make changes!
+```ts
+// src/api/config.ts
+export const API_BASE_URL = 'http://TU_IP_LOCAL:3000'; // Ej: 'http://192.168.1.10:3000'
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+### 5. Ejecutar en dispositivo físico
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```bash
+npx react-native run-android
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+> Si ya tenías el packager corriendo, puedes hacer `npm start --reset-cache` antes de correr de nuevo.
 
-## Congratulations! :tada:
+---
 
-You've successfully run and modified your React Native App. :partying_face:
+## 📂 Estructura del Proyecto
 
-### Now what?
+```
+FinanDom/
+├── Finan-backend/           # API REST con Express y SQLite
+│   └── src/
+│       ├── routes/
+│       ├── controllers/
+│       ├── database/
+│       └── index.js
+├── src/                     # App React Native
+│   ├── screens/
+│   ├── api/
+│   ├── assets/
+│   └── navigation/
+└── README.md
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+---
 
-# Troubleshooting
+## ✅ Funcionalidades actuales
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+* Registro de usuarios
+* Login
+* Navegación protegida
+* Conexión con backend local usando IP de red
+* Soporte para dispositivos físicos Android
 
-# Learn More
+---
 
-To learn more about React Native, take a look at the following resources:
+## 🧪 Próximas funcionalidades
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+* Creación y visualización de préstamos
+* Registro de pagos
+* Cálculo automático de mora
+* Notificaciones de cobro
+* Dashboard financiero
+
+---
+
+## 📌 Notas importantes
+
+* Si ves un error de conexión `TypeError: Network request failed`, asegúrate de:
+
+  * Usar IP local correcta
+  * Backend corriendo en puerto 3000
+  * Misma red Wi-Fi entre PC y celular
+  * El backend no está protegido por firewall
+
+---
+
+## 💻 Autor
+
+Desarrollado por [Nathaly Michel Berroa Fermín](mailto:nathalyberroaf@gmail.com)
+📍 Santiago de los Caballeros, RD
