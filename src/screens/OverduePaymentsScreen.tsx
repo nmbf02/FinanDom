@@ -18,6 +18,7 @@ const user = require('../assets/icons/user-setting.png');
 const avatarDefault = require('../assets/icons/avatar.png');
 const backIcon = require('../assets/icons/back.png');
 const setting = require('../assets/icons/setting.png');
+const printer = require('../assets/icons/printer.png');
 
 const weekdays = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
@@ -222,7 +223,7 @@ const OverduePaymentsScreen = () => {
           style={[styles.actionButton, styles.printButton]} 
           onPress={() => handlePrintReceipt(item)}
         >
-          <Text style={styles.printButtonText}>🖨️</Text>
+          <Image source={printer} style={styles.printButtonIcon} />
         </TouchableOpacity>
       </View>
     </View>
@@ -235,10 +236,10 @@ const OverduePaymentsScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Pagos en Mora</Text>
+        <Text style={styles.title}>Pagos Realizados</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>Gestión de Pagos - Moras</Text>
+      <Text style={styles.subtitle}>Gestión de Pagos</Text>
       
       {/* Buscador */}
       <View style={styles.searchBox}>
@@ -541,6 +542,11 @@ const styles = StyleSheet.create({
   },
   printButtonText: {
     fontSize: 16,
+  },
+  printButtonIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#10B981',
   },
   emptyContainer: {
     alignItems: 'center',
