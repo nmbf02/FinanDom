@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingTop: 64,
   },
   backIcon: {
     width: 28,
