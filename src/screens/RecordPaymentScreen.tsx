@@ -111,9 +111,60 @@ const RecordPaymentScreen = () => {
     Alert.alert('PDF', 'Funcionalidad para generar recibo PDF (pendiente)');
   };
 
-  const handleConfirmPayment = () => {
-    // Aquí iría la lógica real de registro
-    navigation.navigate('PaymentSuccessScreen');
+  const handleConfirmPayment = async () => {
+    try {
+      // Validar campos obligatorios
+      if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+        Alert.alert('Error', 'El monto a pagar debe ser mayor a 0');
+        return;
+      }
+
+      // Obtener las cuotas seleccionadas
+      const cuotas = parseInt(selectedInstallments, 10) || 0;
+      const cuotasSeleccionadas = pendingInstallments.slice(0, cuotas);
+      const installmentIds = cuotasSeleccionadas.map(cuota => cuota.id);
+
+      // Obtener el nombre del método de pago
+      const paymentMethodName = paymentMethods.find(m => m.id === paymentMethodId)?.name || 'Efectivo';
+
+      // Preparar datos del pago
+      const paymentData = {
+        loan_id: loan.id,
+        amount_paid: parseFloat(paymentAmount),
+        payment_date: paymentDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
+        method: paymentMethodName.toLowerCase(),
+        installment_ids: installmentIds,
+        reference: reference || null
+      };
+
+      console.log('Enviando pago:', paymentData);
+
+      // Llamar al endpoint
+      const response = await fetch(`${API_BASE_URL}/api/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error del backend:', errorText);
+        Alert.alert('Error', 'No se pudo registrar el pago. Inténtalo de nuevo.');
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Pago registrado exitosamente:', result);
+      
+      // Navegar a la pantalla de éxito
+      navigation.navigate('PaymentSuccessScreen');
+      
+    } catch (error) {
+      console.error('Error al registrar pago:', error);
+      Alert.alert('Error', 'No se pudo registrar el pago. Verifica tu conexión e inténtalo de nuevo.');
+    }
   };
 
   // Filtro de métodos de pago

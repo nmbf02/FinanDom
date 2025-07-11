@@ -696,4 +696,78 @@ router.get('/loans/:id/summary', (req, res) => {
   });
 });
 
+// Crear un pago
+router.post('/payments', (req, res) => {
+  const {
+    loan_id,
+    amount_paid,
+    payment_date,
+    method,
+    installment_ids,
+    reference
+  } = req.body;
+
+  // Validar campos obligatorios
+  if (!loan_id || !amount_paid || !payment_date) {
+    return res.status(400).json({ message: 'Faltan campos obligatorios: loan_id, amount_paid, payment_date' });
+  }
+
+  const db = req.app.get('db');
+  
+  // Insertar el pago principal
+  const insertPaymentQuery = `
+    INSERT INTO payments (loan_id, amount_paid, payment_date, method, receipt_pdf_url)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  
+  db.run(insertPaymentQuery, [loan_id, amount_paid, payment_date, method || 'efectivo', null], function(err) {
+    if (err) {
+      console.error('Error al insertar pago:', err);
+      return res.status(500).json({ message: 'Error al registrar el pago.' });
+    }
+    
+    const paymentId = this.lastID;
+    
+    // Si se especificaron cuotas específicas, actualizar su estado
+    if (installment_ids && installment_ids.length > 0) {
+      const updateInstallmentQuery = `
+        UPDATE installments 
+        SET status = 'pagada' 
+        WHERE id IN (${installment_ids.map(() => '?').join(',')}) AND loan_id = ?
+      `;
+      
+      db.run(updateInstallmentQuery, [...installment_ids, loan_id], function(err2) {
+        if (err2) {
+          console.error('Error al actualizar cuotas:', err2);
+          return res.status(500).json({ message: 'Error al actualizar cuotas.' });
+        }
+        
+        res.status(201).json({
+          message: 'Pago registrado exitosamente.',
+          payment: {
+            id: paymentId,
+            loan_id,
+            amount_paid,
+            payment_date,
+            method: method || 'efectivo',
+            installment_ids
+          }
+        });
+      });
+    } else {
+      // Si no se especificaron cuotas, solo responder con éxito
+      res.status(201).json({
+        message: 'Pago registrado exitosamente.',
+        payment: {
+          id: paymentId,
+          loan_id,
+          amount_paid,
+          payment_date,
+          method: method || 'efectivo'
+        }
+      });
+    }
+  });
+});
+
 module.exports = router;
