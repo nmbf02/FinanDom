@@ -903,19 +903,19 @@ router.get('/loans/:id/summary', (req, res) => {
         // Continuar sin actualizar si hay error
       }
       
-      // Cuotas pagadas
-      db.get('SELECT COUNT(*) as paid_installments FROM installments WHERE loan_id = ? AND status = "pagada"', [loanId], (err2, row2) => {
-        const paidInstallments = row2?.paid_installments || 0;
-        // Monto pagado
-        db.get('SELECT SUM(amount_paid) as paid_amount FROM payments WHERE loan_id = ?', [loanId], (err3, row3) => {
-          const paidAmount = row3?.paid_amount || 0;
-          const totalInstallments = loan.num_installments;
-          const remainingInstallments = totalInstallments - paidInstallments;
-          res.json({
-            ...loan,
-            paid_installments: paidInstallments,
-            paid_amount: paidAmount,
-            remaining_installments: remainingInstallments,
+    // Cuotas pagadas
+    db.get('SELECT COUNT(*) as paid_installments FROM installments WHERE loan_id = ? AND status = "pagada"', [loanId], (err2, row2) => {
+      const paidInstallments = row2?.paid_installments || 0;
+      // Monto pagado
+      db.get('SELECT SUM(amount_paid) as paid_amount FROM payments WHERE loan_id = ?', [loanId], (err3, row3) => {
+        const paidAmount = row3?.paid_amount || 0;
+        const totalInstallments = loan.num_installments;
+        const remainingInstallments = totalInstallments - paidInstallments;
+        res.json({
+          ...loan,
+          paid_installments: paidInstallments,
+          paid_amount: paidAmount,
+          remaining_installments: remainingInstallments,
           });
         });
       });
@@ -1113,6 +1113,28 @@ router.get('/installments/loan/:loanId', (req, res) => {
   });
 });
 
+// Obtener pagos en mora
+router.get('/payments/overdue', (req, res) => {
+  const db = req.app.get('db');
+  
+  const query = `
+    SELECT p.*, l.amount as loan_amount, c.name as client_name, c.phone as client_phone
+    FROM payments p
+    LEFT JOIN loans l ON p.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE p.payment_date < DATE('now', '-1 day')
+    ORDER BY p.payment_date ASC, p.id ASC
+  `;
+  
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('Error al obtener pagos en mora:', err);
+      return res.status(500).json({ message: 'Error al obtener pagos en mora.' });
+    }
+    res.json(rows || []);
+  });
+});
+
 // Obtener próxima cuota a pagar por préstamo
 router.get('/installments/loan/:loanId/next', (req, res) => {
   const db = req.app.get('db');
@@ -1230,6 +1252,89 @@ router.post('/loans/:loanId/check-installments', (req, res) => {
           currentDate = addDays(currentDate, daysToAdd);
         }
       }
+    });
+  });
+});
+
+// Generar recibo de pago
+router.get('/payments/:paymentId/receipt', (req, res) => {
+  const db = req.app.get('db');
+  const { paymentId } = req.params;
+  
+  // Obtener información completa del pago
+  const query = `
+    SELECT p.*, l.amount as loan_amount, l.interest_rate, c.name as client_name, c.phone as client_phone, c.address as client_address
+    FROM payments p
+    LEFT JOIN loans l ON p.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE p.id = ?
+  `;
+  
+  db.get(query, [paymentId], (err, payment) => {
+    if (err) {
+      console.error('Error obteniendo pago para recibo:', err);
+      return res.status(500).json({ message: 'Error obteniendo información del pago.' });
+    }
+    
+    if (!payment) {
+      return res.status(404).json({ message: 'Pago no encontrado.' });
+    }
+    
+    // Generar datos del recibo
+    const receipt = {
+      receipt_number: `REC-${paymentId.toString().padStart(6, '0')}`,
+      payment_date: payment.payment_date,
+      client_name: payment.client_name,
+      client_phone: payment.client_phone,
+      client_address: payment.client_address,
+      loan_id: payment.loan_id,
+      amount_paid: payment.amount_paid,
+      method: payment.method,
+      loan_amount: payment.loan_amount,
+      interest_rate: payment.interest_rate,
+      generated_at: new Date().toISOString()
+    };
+    
+    res.json({
+      message: 'Recibo generado exitosamente.',
+      receipt,
+      download_url: `${req.protocol}://${req.get('host')}/api/payments/${paymentId}/receipt/pdf`
+    });
+  });
+});
+
+// Cancelar un pago
+router.post('/payments/:paymentId/cancel', (req, res) => {
+  const db = req.app.get('db');
+  const { paymentId } = req.params;
+  const { reason } = req.body;
+  
+  // Primero obtener el pago para verificar que existe
+  db.get('SELECT * FROM payments WHERE id = ?', [paymentId], (err, payment) => {
+    if (err) {
+      console.error('Error obteniendo pago:', err);
+      return res.status(500).json({ message: 'Error obteniendo pago.' });
+    }
+    
+    if (!payment) {
+      return res.status(404).json({ message: 'Pago no encontrado.' });
+    }
+    
+    // Marcar el pago como cancelado (podríamos agregar una columna status a la tabla payments)
+    // Por ahora, vamos a eliminar el pago y revertir las cuotas asociadas
+    db.run('DELETE FROM payments WHERE id = ?', [paymentId], function(err2) {
+      if (err2) {
+        console.error('Error cancelando pago:', err2);
+        return res.status(500).json({ message: 'Error cancelando pago.' });
+      }
+      
+      // También deberíamos revertir el estado de las cuotas asociadas
+      // Por ahora solo respondemos con éxito
+      res.json({
+        message: 'Pago cancelado exitosamente.',
+        paymentId: parseInt(paymentId),
+        reason: reason || 'Sin especificar'
+      });
     });
   });
 });

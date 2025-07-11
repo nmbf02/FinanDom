@@ -41,6 +41,7 @@ type RootStackParamList = {
   CreateLoan: undefined;
   LoanList: undefined;
   Client: { clientId?: number };
+  OverduePayments: undefined;
 };
 
 type AgendaItem = {
@@ -278,10 +279,13 @@ const DashboardScreen = () => {
             <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
               <Tab icon={loan} label="PRÉSTAMOS" active />
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('OverduePayments')}>
+              <Tab icon={overdue} label="PAGOS" active />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
               <Tab icon={payment} label="CUOTAS" active />
             </TouchableOpacity>
-            <Tab icon={overdue} label="MORAS" active />
+            
           </ScrollView>
         </View>
 

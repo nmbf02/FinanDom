@@ -19,6 +19,7 @@ import LoanListScreen from '../screens/LoanListScreen';
 import InstallmentListScreen from '../screens/InstallmentListScreen';
 import RecordPaymentScreen from '../screens/RecordPaymentScreen';
 import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
+import OverduePaymentsScreen from '../screens/OverduePaymentsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +46,7 @@ const AppNavigator = () => {
         <Stack.Screen name="InstallmentList" component={InstallmentListScreen} />
         <Stack.Screen name="RecordPaymentScreen" component={RecordPaymentScreen} />
         <Stack.Screen name="PaymentSuccessScreen" component={PaymentSuccessScreen} />
+        <Stack.Screen name="OverduePayments" component={OverduePaymentsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
