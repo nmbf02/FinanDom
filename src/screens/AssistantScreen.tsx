@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { API_BASE_URL } from '../api/config';
 
 const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
@@ -13,24 +14,21 @@ const cancel = require('../assets/icons/cancel.png');
 const edit = require('../assets/icons/edit.png');
 const avatarDefault = require('../assets/icons/avatar.png');
 
-// Simulación de datos IA
-const DUMMY_SUGGESTIONS = {
-  reminder: [
-    { id: 1, clientName: 'Olivia Turner, M.D.', text: 'Juan Pérez tiene 3 días de atraso. ¿Deseas enviarle un mensaje?' },
-    { id: 2, clientName: 'Carlos Gómez', text: 'Ana López tiene 1 día de atraso. ¿Deseas enviarle un mensaje?' },
-    { id: 3, clientName: 'María Fernández', text: 'Pedro Sánchez tiene 5 días de atraso. ¿Deseas enviarle un mensaje?' },
-  ],
-  thanks: [
-    { id: 4, clientName: 'Olivia Turner, M.D.', text: 'Gracias Olivia Turner por tu pago puntual.' },
-    { id: 5, clientName: 'Carlos Gómez', text: 'Gracias Carlos Gómez por tu pago puntual.' },
-    { id: 6, clientName: 'Ana López', text: 'Gracias Ana López por tu pago puntual.' },
-  ]
-};
-
 type Suggestion = {
-  id: number;
+  id: string;
+  type: 'reminder' | 'thanks';
   clientName: string;
+  loanId: number;
+  installmentId?: number;
+  paymentId?: number;
+  amountDue?: number;
+  amountPaid?: number;
+  dueDate?: string;
+  paymentDate?: string;
+  daysOverdue?: number;
+  method?: string;
   text: string;
+  status: string;
 };
 
 const AssistantScreen = () => {
@@ -41,12 +39,35 @@ const AssistantScreen = () => {
   const [messages, setMessages] = useState<Suggestion[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Suggestion | null>(null);
   const [editText, setEditText] = useState('');
-  // const [showFilterModal, setShowFilterModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    // Simulación de fetch al backend
-    setMessages(DUMMY_SUGGESTIONS[filter]);
+    fetchSuggestions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
+
+  const fetchSuggestions = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/assistant-suggestions?type=${filter}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      setMessages(Array.isArray(data) ? data : []);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert('Error cargando sugerencias', errorMsg);
+      setMessages([]);
+      console.error('Error cargando sugerencias:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredMessages = messages.filter(msg =>
     msg.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -58,11 +79,48 @@ const AssistantScreen = () => {
     setEditText(msg.text);
   };
 
-  const handleSend = () => {
-    Alert.alert('Mensaje enviado', `Mensaje enviado a ${selectedMessage?.clientName}:
+  const handleSend = async () => {
+    if (!selectedMessage) return;
+    
+    setSending(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/assistant-send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          suggestionId: selectedMessage.id,
+          message: editText,
+          clientName: selectedMessage.clientName,
+        }),
+      });
 
-${editText}`);
-    setSelectedMessage(null);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      await response.json();
+      
+      Alert.alert(
+        'Mensaje enviado', 
+        `Mensaje enviado exitosamente a ${selectedMessage.clientName}`,
+        [
+          { text: 'OK', onPress: () => {
+            setSelectedMessage(null);
+            // Recargar sugerencias para actualizar el estado
+            fetchSuggestions();
+          }}
+        ]
+      );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert('Error enviando mensaje', errorMsg);
+      console.error('Error enviando mensaje:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const renderSuggestion = ({ item }: { item: Suggestion }) => (
@@ -70,9 +128,15 @@ ${editText}`);
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
         <Text style={styles.cardName}>{item.clientName}</Text>
-        <Text style={styles.cardField}>Tipo: <Text style={styles.cardValue}>{filter === 'reminder' ? 'Recordatorio' : 'Agradecimiento'}</Text></Text>
+        <Text style={styles.cardField}>Tipo: <Text style={styles.cardValue}>{item.type === 'reminder' ? 'Recordatorio' : 'Agradecimiento'}</Text></Text>
+        {item.type === 'reminder' && item.daysOverdue && (
+          <Text style={styles.cardField}>Días de atraso: <Text style={[styles.cardValue, { color: '#EF4444' }]}>{item.daysOverdue}</Text></Text>
+        )}
+        {item.type === 'thanks' && item.amountPaid && (
+          <Text style={styles.cardField}>Monto pagado: <Text style={[styles.cardValue, { color: '#10B981' }]}>RD$ {parseFloat(item.amountPaid.toString()).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        )}
         <Text style={styles.cardField}>Mensaje: <Text style={styles.cardValue}>{item.text}</Text></Text>
-        <Text style={styles.cardField}>Estado: <Text style={styles.cardValue}>Pendiente</Text></Text>
+        <Text style={styles.cardField}>Estado: <Text style={styles.cardValue}>{item.status}</Text></Text>
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity 
@@ -137,18 +201,25 @@ ${editText}`);
       </View>
 
       {/* Lista de mensajes */}
-      <FlatList
-        data={filteredMessages}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderSuggestion}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No hay mensajes para mostrar</Text>
-            <Text style={styles.emptySubtext}>Intenta cambiar los filtros</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text style={styles.loadingText}>Cargando sugerencias...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMessages}
+          keyExtractor={item => item.id}
+          renderItem={renderSuggestion}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No hay mensajes para mostrar</Text>
+              <Text style={styles.emptySubtext}>Intenta cambiar los filtros</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* Modal para ver/editar/enviar mensaje */}
       <Modal visible={!!selectedMessage} transparent animationType="slide" onRequestClose={() => setSelectedMessage(null)}>
@@ -162,10 +233,22 @@ ${editText}`);
               onChangeText={setEditText}
               multiline
             />
-            <TouchableOpacity style={styles.modalSendButton} onPress={handleSend}>
-              <Text style={styles.modalSendButtonText}>Enviar</Text>
+            <TouchableOpacity 
+              style={[styles.modalSendButton, sending && styles.modalSendButtonDisabled]} 
+              onPress={handleSend}
+              disabled={sending}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.modalSendButtonText}>Enviar</Text>
+              )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setSelectedMessage(null)}>
+            <TouchableOpacity 
+              style={styles.modalCloseButton} 
+              onPress={() => setSelectedMessage(null)}
+              disabled={sending}
+            >
               <Text style={styles.modalCloseButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -273,6 +356,17 @@ const styles = StyleSheet.create({
   },
   filterButtonActiveBlue: {
     backgroundColor: '#A7C7E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 64,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -426,6 +520,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
+  },
+  modalSendButtonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   modalSendButtonText: {
     color: '#FFFFFF',
