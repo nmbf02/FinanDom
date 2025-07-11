@@ -9,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
@@ -42,6 +42,7 @@ type RootStackParamList = {
   LoanList: undefined;
   Client: { clientId?: number };
   OverduePayments: undefined;
+  Assistant: undefined;
 };
 
 type AgendaItem = {
@@ -55,6 +56,7 @@ type AgendaItem = {
 
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
   const [userName, setUserName] = useState('Usuario');
   const [greeting, setGreeting] = useState('Buenos días');
   const [metrics, setMetrics] = useState({
@@ -301,10 +303,18 @@ const DashboardScreen = () => {
 
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity><Image source={home} style={styles.navIcon} /></TouchableOpacity>
-        <TouchableOpacity><Image source={chat} style={styles.navIcon} /></TouchableOpacity>
-        <TouchableOpacity><Image source={calendar} style={styles.navIcon} /></TouchableOpacity>
-        <TouchableOpacity><Image source={user} style={styles.navIcon} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: '#00278C' }]} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
+          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: '#00278C' }]} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Image source={calendar} style={styles.navIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Image source={user} style={styles.navIcon} />
+        </TouchableOpacity>
       </View>
     </View>
   );
