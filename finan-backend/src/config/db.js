@@ -90,8 +90,48 @@ const db = new sqlite3.Database(dbPath, (err) => {
         { name: 'late_fee_type_id', type: 'INTEGER DEFAULT 1' },
         { name: 'late_days', type: 'INTEGER DEFAULT 5' },
         { name: 'late_percent', type: 'DECIMAL(5,2) DEFAULT 2.00' },
-        { name: 'contract_pdf_url', type: 'TEXT' }
+        { name: 'contract_pdf_url', type: 'TEXT' },
+        { name: 'paid_installments', type: 'INTEGER DEFAULT 0' },
+        { name: 'remaining_installments', type: 'INTEGER DEFAULT 0' }
       ];
+
+      // Verificar y agregar columnas faltantes en la tabla loans
+      loanColumnsToAdd.forEach(column => {
+        db.get(`PRAGMA table_info(loans)`, [], (err, rows) => {
+          if (err) {
+            console.error('Error verificando estructura de tabla loans:', err);
+            return;
+          }
+          
+          // Verificar si la columna existe
+          db.get(`PRAGMA table_info(loans)`, [], (err2, tableInfo) => {
+            if (err2) {
+              console.error('Error obteniendo info de tabla loans:', err2);
+              return;
+            }
+            
+            // Buscar si la columna ya existe
+            db.all(`PRAGMA table_info(loans)`, [], (err3, columns) => {
+              if (err3) {
+                console.error('Error obteniendo columnas de loans:', err3);
+                return;
+              }
+              
+              const columnExists = columns.some(col => col.name === column.name);
+              if (!columnExists) {
+                console.log(`Agregando columna ${column.name} a tabla loans...`);
+                db.run(`ALTER TABLE loans ADD COLUMN ${column.name} ${column.type}`, (err4) => {
+                  if (err4) {
+                    console.error(`Error agregando columna ${column.name}:`, err4);
+                  } else {
+                    console.log(`✅ Columna ${column.name} agregada exitosamente`);
+                  }
+                });
+              }
+            });
+          });
+        });
+      });
 
       db.run(`CREATE TABLE IF NOT EXISTS installments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

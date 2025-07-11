@@ -513,10 +513,61 @@ router.post('/loans', (req, res) => {
         console.error('Error SQL al crear el préstamo:', err);
         return res.status(500).json({ message: 'Error al crear el préstamo.', error: err.message });
       }
+      
+      const loanId = this.lastID;
+      
+      // Generar cuotas automáticamente
+      const generateInstallments = () => {
+        const cuotaBase = total_with_interest / num_installments;
+        let currentDate = new Date(start_date);
+        
+        // Función para agregar días según la frecuencia
+        const addDays = (date, days) => {
+          const result = new Date(date);
+          result.setDate(result.getDate() + days);
+          return result;
+        };
+        
+        // Calcular días según frecuencia
+        let daysToAdd = 30; // Por defecto mensual
+        if (frequency === 'semanal') daysToAdd = 7;
+        else if (frequency === 'quincenal') daysToAdd = 15;
+        else if (frequency === 'bimestral') daysToAdd = 60;
+        else if (frequency === 'trimestral') daysToAdd = 90;
+        else if (frequency === 'semestral') daysToAdd = 180;
+        else if (frequency === 'anual') daysToAdd = 365;
+        
+        // Generar cada cuota
+        for (let i = 1; i <= num_installments; i++) {
+          const dueDate = i === 1 ? start_date : addDays(currentDate, daysToAdd).toISOString().split('T')[0];
+          const amountDue = i === num_installments ? 
+            total_with_interest - (cuotaBase * (i - 1)) : // Última cuota: ajuste para evitar decimales
+            cuotaBase;
+          
+          const insertInstallmentQuery = `
+            INSERT INTO installments (loan_id, installment_number, due_date, amount_due, status)
+            VALUES (?, ?, ?, ?, ?)
+          `;
+          
+          req.app.get('db').run(insertInstallmentQuery, [loanId, i, dueDate, amountDue, 'pendiente'], (installmentErr) => {
+            if (installmentErr) {
+              console.error(`Error creando cuota ${i}:`, installmentErr);
+            }
+          });
+          
+          if (i > 1) {
+            currentDate = addDays(currentDate, daysToAdd);
+          }
+        }
+      };
+      
+      // Generar las cuotas
+      generateInstallments();
+      
       return res.status(201).json({
-        message: 'Préstamo creado exitosamente.',
+        message: 'Préstamo creado exitosamente con cuotas generadas.',
         loan: {
-          id: this.lastID,
+          id: loanId,
           client_id,
           user_id,
           amount,
@@ -660,7 +711,174 @@ router.get('/payment-methods', (req, res) => {
   });
 });
 
-// Resumen de préstamo
+// Función para calcular cuotas faltantes (versión simplificada)
+const calculateLoanRemainingInstallments = (db, loanId, callback) => {
+  // Contar cuotas pagadas
+  const countPaidQuery = 'SELECT COUNT(*) as paid_count FROM installments WHERE loan_id = ? AND status = "pagada"';
+  
+  db.get(countPaidQuery, [loanId], (err, result) => {
+    if (err) {
+      console.error('Error contando cuotas pagadas:', err);
+      return callback(err);
+    }
+    
+    const paidInstallments = result?.paid_count || 0;
+    
+    // Obtener total de cuotas del préstamo
+    const getLoanQuery = 'SELECT num_installments FROM loans WHERE id = ?';
+    
+    db.get(getLoanQuery, [loanId], (err2, loan) => {
+      if (err2 || !loan) {
+        console.error('Error obteniendo préstamo:', err2);
+        return callback(err2);
+      }
+      
+      const totalInstallments = loan.num_installments;
+      const remainingInstallments = totalInstallments - paidInstallments;
+      
+      console.log(`📊 Cálculo para préstamo ${loanId}: ${paidInstallments} pagadas de ${totalInstallments} totales = ${remainingInstallments} faltantes`);
+      callback(null, { paidInstallments, remainingInstallments, totalInstallments });
+    });
+  });
+};
+
+// Función para actualizar cuotas faltantes en la tabla de préstamos
+const updateLoanRemainingInstallments = (db, loanId, callback) => {
+  // Primero calcular las cuotas faltantes
+  calculateLoanRemainingInstallments(db, loanId, (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    
+    // Verificar si las columnas existen antes de intentar actualizar
+    db.all("PRAGMA table_info(loans)", [], (err2, columns) => {
+      if (err2) {
+        console.error('Error verificando estructura de tabla loans:', err2);
+        // Si no podemos verificar, solo devolver el cálculo
+        return callback(null, result);
+      }
+      
+      const hasPaidInstallments = columns.some(col => col.name === 'paid_installments');
+      const hasRemainingInstallments = columns.some(col => col.name === 'remaining_installments');
+      
+      if (!hasPaidInstallments || !hasRemainingInstallments) {
+        console.log('⚠️ Columnas paid_installments o remaining_installments no existen en la tabla loans');
+        // Devolver solo el cálculo sin actualizar la tabla
+        return callback(null, result);
+      }
+      
+      // Si las columnas existen, actualizar la tabla
+      const updateQuery = 'UPDATE loans SET paid_installments = ?, remaining_installments = ? WHERE id = ?';
+      
+      db.run(updateQuery, [result.paidInstallments, result.remainingInstallments, loanId], function(err3) {
+        if (err3) {
+          console.error('Error actualizando cuotas faltantes en tabla:', err3);
+          // Devolver el cálculo aunque falle la actualización
+          return callback(null, result);
+        }
+        
+        console.log(`✅ Cuotas faltantes actualizadas en tabla para préstamo ${loanId}`);
+        callback(null, result);
+      });
+    });
+  });
+};
+
+// Ruta para verificar estructura de la tabla loans
+router.get('/loans/check-structure', (req, res) => {
+  const db = req.app.get('db');
+  
+  db.all("PRAGMA table_info(loans)", [], (err, columns) => {
+    if (err) {
+      console.error('Error verificando estructura de tabla loans:', err);
+      return res.status(500).json({ message: 'Error verificando estructura de tabla.' });
+    }
+    
+    const columnNames = columns.map(col => col.name);
+    const hasPaidInstallments = columnNames.includes('paid_installments');
+    const hasRemainingInstallments = columnNames.includes('remaining_installments');
+    
+    res.json({
+      columns: columnNames,
+      hasPaidInstallments,
+      hasRemainingInstallments,
+      needsUpdate: !hasPaidInstallments || !hasRemainingInstallments
+    });
+  });
+});
+
+// Ruta para agregar columnas faltantes a la tabla loans
+router.post('/loans/add-missing-columns', (req, res) => {
+  const db = req.app.get('db');
+  
+  db.all("PRAGMA table_info(loans)", [], (err, columns) => {
+    if (err) {
+      console.error('Error verificando estructura de tabla loans:', err);
+      return res.status(500).json({ message: 'Error verificando estructura de tabla.' });
+    }
+    
+    const columnNames = columns.map(col => col.name);
+    const hasPaidInstallments = columnNames.includes('paid_installments');
+    const hasRemainingInstallments = columnNames.includes('remaining_installments');
+    
+    let columnsAdded = 0;
+    let totalToAdd = 0;
+    
+    if (!hasPaidInstallments) totalToAdd++;
+    if (!hasRemainingInstallments) totalToAdd++;
+    
+    if (totalToAdd === 0) {
+      return res.json({ message: 'Todas las columnas ya existen.' });
+    }
+    
+    const addColumn = (columnName, columnType) => {
+      db.run(`ALTER TABLE loans ADD COLUMN ${columnName} ${columnType}`, (err) => {
+        if (err) {
+          console.error(`Error agregando columna ${columnName}:`, err);
+          return res.status(500).json({ message: `Error agregando columna ${columnName}` });
+        }
+        
+        console.log(`✅ Columna ${columnName} agregada exitosamente`);
+        columnsAdded++;
+        
+        if (columnsAdded === totalToAdd) {
+          res.json({ 
+            message: 'Columnas agregadas exitosamente.',
+            columnsAdded: totalToAdd
+          });
+        }
+      });
+    };
+    
+    if (!hasPaidInstallments) {
+      addColumn('paid_installments', 'INTEGER DEFAULT 0');
+    }
+    
+    if (!hasRemainingInstallments) {
+      addColumn('remaining_installments', 'INTEGER DEFAULT 0');
+    }
+  });
+});
+
+// Ruta para actualizar cuotas faltantes de un préstamo específico
+router.post('/loans/:id/update-installments', (req, res) => {
+  const db = req.app.get('db');
+  const loanId = req.params.id;
+
+  updateLoanRemainingInstallments(db, loanId, (err, result) => {
+    if (err) {
+      console.error('Error actualizando cuotas faltantes:', err);
+      return res.status(500).json({ message: 'Error al actualizar cuotas faltantes.' });
+    }
+    
+    res.json({
+      message: 'Cuotas faltantes actualizadas exitosamente.',
+      result
+    });
+  });
+});
+
+// Resumen de préstamo con actualización automática de cuotas faltantes
 router.get('/loans/:id/summary', (req, res) => {
   const db = req.app.get('db');
   const loanId = req.params.id;
@@ -677,19 +895,28 @@ router.get('/loans/:id/summary', (req, res) => {
     if (err || !loan) {
       return res.status(404).json({ message: 'Préstamo no encontrado.' });
     }
-    // Cuotas pagadas
-    db.get('SELECT COUNT(*) as paid_installments FROM installments WHERE loan_id = ? AND status = "pagada"', [loanId], (err2, row2) => {
-      const paidInstallments = row2?.paid_installments || 0;
-      // Monto pagado
-      db.get('SELECT SUM(amount_paid) as paid_amount FROM payments WHERE loan_id = ?', [loanId], (err3, row3) => {
-        const paidAmount = row3?.paid_amount || 0;
-        const totalInstallments = loan.num_installments;
-        const remainingInstallments = totalInstallments - paidInstallments;
-        res.json({
-          ...loan,
-          paid_installments: paidInstallments,
-          paid_amount: paidAmount,
-          remaining_installments: remainingInstallments,
+    
+    // Actualizar cuotas faltantes automáticamente
+    updateLoanRemainingInstallments(db, loanId, (updateErr, updateResult) => {
+      if (updateErr) {
+        console.error('Error actualizando cuotas faltantes:', updateErr);
+        // Continuar sin actualizar si hay error
+      }
+      
+      // Cuotas pagadas
+      db.get('SELECT COUNT(*) as paid_installments FROM installments WHERE loan_id = ? AND status = "pagada"', [loanId], (err2, row2) => {
+        const paidInstallments = row2?.paid_installments || 0;
+        // Monto pagado
+        db.get('SELECT SUM(amount_paid) as paid_amount FROM payments WHERE loan_id = ?', [loanId], (err3, row3) => {
+          const paidAmount = row3?.paid_amount || 0;
+          const totalInstallments = loan.num_installments;
+          const remainingInstallments = totalInstallments - paidInstallments;
+          res.json({
+            ...loan,
+            paid_installments: paidInstallments,
+            paid_amount: paidAmount,
+            remaining_installments: remainingInstallments,
+          });
         });
       });
     });
@@ -767,6 +994,330 @@ router.post('/payments', (req, res) => {
         }
       });
     }
+  });
+});
+
+// Obtener todos los pagos
+router.get('/payments', (req, res) => {
+  const db = req.app.get('db');
+  const { loan_id } = req.query;
+  
+  let query = `
+    SELECT p.*, l.amount as loan_amount, c.name as client_name
+    FROM payments p
+    LEFT JOIN loans l ON p.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+  `;
+  
+  let params = [];
+  
+  if (loan_id) {
+    query += ' WHERE p.loan_id = ?';
+    params.push(loan_id);
+  }
+  
+  query += ' ORDER BY p.payment_date DESC, p.id DESC';
+  
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error al obtener pagos:', err);
+      return res.status(500).json({ message: 'Error al obtener pagos.' });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Obtener pagos por préstamo
+router.get('/payments/loan/:loanId', (req, res) => {
+  const db = req.app.get('db');
+  const { loanId } = req.params;
+  
+  const query = `
+    SELECT p.*, l.amount as loan_amount, c.name as client_name
+    FROM payments p
+    LEFT JOIN loans l ON p.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE p.loan_id = ?
+    ORDER BY p.payment_date DESC, p.id DESC
+  `;
+  
+  db.all(query, [loanId], (err, rows) => {
+    if (err) {
+      console.error('Error al obtener pagos del préstamo:', err);
+      return res.status(500).json({ message: 'Error al obtener pagos del préstamo.' });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Obtener todas las cuotas
+router.get('/installments', (req, res) => {
+  const db = req.app.get('db');
+  const { loan_id, status } = req.query;
+  
+  let query = `
+    SELECT i.*, l.amount as loan_amount, c.name as client_name
+    FROM installments i
+    LEFT JOIN loans l ON i.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+  `;
+  
+  let params = [];
+  let whereConditions = [];
+  
+  if (loan_id) {
+    whereConditions.push('i.loan_id = ?');
+    params.push(loan_id);
+  }
+  
+  if (status) {
+    whereConditions.push('i.status = ?');
+    params.push(status);
+  }
+  
+  if (whereConditions.length > 0) {
+    query += ' WHERE ' + whereConditions.join(' AND ');
+  }
+  
+  query += ' ORDER BY i.due_date ASC, i.id ASC';
+  
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error al obtener cuotas:', err);
+      return res.status(500).json({ message: 'Error al obtener cuotas.' });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Obtener cuotas por préstamo
+router.get('/installments/loan/:loanId', (req, res) => {
+  const db = req.app.get('db');
+  const { loanId } = req.params;
+  
+  const query = `
+    SELECT i.*, l.amount as loan_amount, c.name as client_name
+    FROM installments i
+    LEFT JOIN loans l ON i.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE i.loan_id = ?
+    ORDER BY i.due_date ASC, i.id ASC
+  `;
+  
+  db.all(query, [loanId], (err, rows) => {
+    if (err) {
+      console.error('Error al obtener cuotas del préstamo:', err);
+      return res.status(500).json({ message: 'Error al obtener cuotas del préstamo.' });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Obtener próxima cuota a pagar por préstamo
+router.get('/installments/loan/:loanId/next', (req, res) => {
+  const db = req.app.get('db');
+  const { loanId } = req.params;
+  
+  const query = `
+    SELECT i.*, l.amount as loan_amount, c.name as client_name
+    FROM installments i
+    LEFT JOIN loans l ON i.loan_id = l.id
+    LEFT JOIN clients c ON l.client_id = c.id
+    WHERE i.loan_id = ? AND i.status = 'pendiente'
+    ORDER BY i.due_date ASC, i.id ASC
+    LIMIT 1
+  `;
+  
+  db.get(query, [loanId], (err, row) => {
+    if (err) {
+      console.error('Error al obtener próxima cuota:', err);
+      return res.status(500).json({ message: 'Error al obtener próxima cuota.' });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ message: 'No hay cuotas pendientes para este préstamo.' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// Verificar y generar cuotas si es necesario
+router.post('/loans/:loanId/check-installments', (req, res) => {
+  const db = req.app.get('db');
+  const { loanId } = req.params;
+  
+  // Verificar si el préstamo existe
+  db.get('SELECT * FROM loans WHERE id = ?', [loanId], (err, loan) => {
+    if (err) {
+      console.error('Error obteniendo préstamo:', err);
+      return res.status(500).json({ message: 'Error obteniendo préstamo.' });
+    }
+    
+    if (!loan) {
+      return res.status(404).json({ message: 'Préstamo no encontrado.' });
+    }
+    
+    // Verificar si tiene cuotas
+    db.get('SELECT COUNT(*) as count FROM installments WHERE loan_id = ?', [loanId], (err2, result) => {
+      if (err2) {
+        console.error('Error verificando cuotas:', err2);
+        return res.status(500).json({ message: 'Error verificando cuotas.' });
+      }
+      
+      if (result.count > 0) {
+        return res.json({
+          message: 'El préstamo ya tiene cuotas.',
+          hasInstallments: true,
+          installmentsCount: result.count
+        });
+      }
+      
+      // Si no tiene cuotas, generarlas automáticamente
+      const cuotaBase = loan.total_with_interest / loan.num_installments;
+      let currentDate = new Date(loan.start_date);
+      
+      // Función para agregar días según la frecuencia
+      const addDays = (date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+      };
+      
+      // Calcular días según frecuencia
+      let daysToAdd = 30; // Por defecto mensual
+      if (loan.frequency === 'semanal') daysToAdd = 7;
+      else if (loan.frequency === 'quincenal') daysToAdd = 15;
+      else if (loan.frequency === 'bimestral') daysToAdd = 60;
+      else if (loan.frequency === 'trimestral') daysToAdd = 90;
+      else if (loan.frequency === 'semestral') daysToAdd = 180;
+      else if (loan.frequency === 'anual') daysToAdd = 365;
+      
+      let installmentsCreated = 0;
+      const totalInstallments = loan.num_installments;
+      
+      // Generar cada cuota
+      for (let i = 1; i <= totalInstallments; i++) {
+        const dueDate = i === 1 ? loan.start_date : addDays(currentDate, daysToAdd).toISOString().split('T')[0];
+        const amountDue = i === totalInstallments ? 
+          loan.total_with_interest - (cuotaBase * (i - 1)) : // Última cuota: ajuste para evitar decimales
+          cuotaBase;
+        
+        const insertInstallmentQuery = `
+          INSERT INTO installments (loan_id, installment_number, due_date, amount_due, status)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+        
+        db.run(insertInstallmentQuery, [loanId, i, dueDate, amountDue, 'pendiente'], (installmentErr) => {
+          if (installmentErr) {
+            console.error(`Error creando cuota ${i}:`, installmentErr);
+          } else {
+            installmentsCreated++;
+            
+            // Si es la última cuota, responder
+            if (installmentsCreated === totalInstallments) {
+              res.json({
+                message: `Cuotas generadas automáticamente para el préstamo ${loanId}.`,
+                hasInstallments: true,
+                installmentsCreated,
+                loanId
+              });
+            }
+          }
+        });
+        
+        if (i > 1) {
+          currentDate = addDays(currentDate, daysToAdd);
+        }
+      }
+    });
+  });
+});
+
+// Generar cuotas para un préstamo existente
+router.post('/loans/:loanId/generate-installments', (req, res) => {
+  const db = req.app.get('db');
+  const { loanId } = req.params;
+  
+  // Primero verificar si el préstamo existe y obtener sus datos
+  db.get('SELECT * FROM loans WHERE id = ?', [loanId], (err, loan) => {
+    if (err) {
+      console.error('Error obteniendo préstamo:', err);
+      return res.status(500).json({ message: 'Error obteniendo préstamo.' });
+    }
+    
+    if (!loan) {
+      return res.status(404).json({ message: 'Préstamo no encontrado.' });
+    }
+    
+    // Verificar si ya tiene cuotas
+    db.get('SELECT COUNT(*) as count FROM installments WHERE loan_id = ?', [loanId], (err2, result) => {
+      if (err2) {
+        console.error('Error verificando cuotas existentes:', err2);
+        return res.status(500).json({ message: 'Error verificando cuotas existentes.' });
+      }
+      
+      if (result.count > 0) {
+        return res.status(400).json({ message: 'El préstamo ya tiene cuotas generadas.' });
+      }
+      
+      // Generar cuotas
+      const cuotaBase = loan.total_with_interest / loan.num_installments;
+      let currentDate = new Date(loan.start_date);
+      
+      // Función para agregar días según la frecuencia
+      const addDays = (date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+      };
+      
+      // Calcular días según frecuencia
+      let daysToAdd = 30; // Por defecto mensual
+      if (loan.frequency === 'semanal') daysToAdd = 7;
+      else if (loan.frequency === 'quincenal') daysToAdd = 15;
+      else if (loan.frequency === 'bimestral') daysToAdd = 60;
+      else if (loan.frequency === 'trimestral') daysToAdd = 90;
+      else if (loan.frequency === 'semestral') daysToAdd = 180;
+      else if (loan.frequency === 'anual') daysToAdd = 365;
+      
+      let installmentsCreated = 0;
+      const totalInstallments = loan.num_installments;
+      
+      // Generar cada cuota
+      for (let i = 1; i <= totalInstallments; i++) {
+        const dueDate = i === 1 ? loan.start_date : addDays(currentDate, daysToAdd).toISOString().split('T')[0];
+        const amountDue = i === totalInstallments ? 
+          loan.total_with_interest - (cuotaBase * (i - 1)) : // Última cuota: ajuste para evitar decimales
+          cuotaBase;
+        
+        const insertInstallmentQuery = `
+          INSERT INTO installments (loan_id, installment_number, due_date, amount_due, status)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+        
+        db.run(insertInstallmentQuery, [loanId, i, dueDate, amountDue, 'pendiente'], (installmentErr) => {
+          if (installmentErr) {
+            console.error(`Error creando cuota ${i}:`, installmentErr);
+          } else {
+            installmentsCreated++;
+            
+            // Si es la última cuota, responder
+            if (installmentsCreated === totalInstallments) {
+              res.json({
+                message: `Cuotas generadas exitosamente para el préstamo ${loanId}.`,
+                installmentsCreated,
+                loanId
+              });
+            }
+          }
+        });
+        
+        if (i > 1) {
+          currentDate = addDays(currentDate, daysToAdd);
+        }
+      }
+    });
   });
 });
 

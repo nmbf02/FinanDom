@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ScrollView, ActivityIndicator, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
+
+type RootStackParamList = {
+  Dashboard: undefined;
+  // ...other screens
+};
 
 const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
@@ -26,7 +32,7 @@ function getWeekDates(date = new Date()) {
 }
 
 const InstallmentListScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState(getWeekDates(new Date()));
@@ -41,6 +47,7 @@ const InstallmentListScreen = () => {
 
   useEffect(() => {
     fetchInstallments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   useEffect(() => {
@@ -60,10 +67,17 @@ const InstallmentListScreen = () => {
     try {
       const dateStr = selectedDate.toISOString().slice(0, 10);
       const res = await fetch(`${API_BASE_URL}/api/installments?date=${dateStr}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
       const data = await res.json();
       setInstallments(Array.isArray(data) ? data : data.installments || []);
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      Alert.alert('Error cargando cuotas', errorMsg);
       setInstallments([]);
+      console.error('Error cargando cuotas:', err);
     }
     setLoading(false);
   };
@@ -94,7 +108,7 @@ const InstallmentListScreen = () => {
         <Text style={styles.title}>Listado de prestamos</Text>
         <View style={{ width: 24 }} />
       </View>
-      <Text style={styles.subtitle}>Cuotas</Text>
+      <Text style={styles.subtitle}>Cuotas - Pagos</Text>
       {/* Buscador */}
       <View style={styles.searchBox}>
         <TextInput

@@ -30,8 +30,6 @@ const RecordPaymentScreen = () => {
 
   // Datos generales del préstamo
   const totalInstallments = Number(loan.num_installments) || 0;
-  const paidInstallments = Number(loan.paid_installments) || 0;
-  const remainingInstallments = totalInstallments - (paidInstallments || 0);
   const totalLoanAmount = Number(loan.total_with_interest) || (Number(loan.amount) + (Number(loan.amount) * Number(loan.interest_rate || 0) / 100));
   const paidAmount = Number(loan.paid_amount) || 0.00;
 
@@ -46,19 +44,117 @@ const RecordPaymentScreen = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [searchPayment, setSearchPayment] = useState('');
   const [pendingInstallments, setPendingInstallments] = useState<any[]>([]);
+  const [loanPayments, setLoanPayments] = useState<any[]>([]);
 
-  // Traer cuotas pendientes al cargar
+  // Traer cuotas pendientes y pagos al cargar
   useEffect(() => {
     if (loan?.id) {
+      // Función para actualizar cuotas faltantes
+      const updateInstallments = async () => {
+        try {
+          // Verificar estructura de la tabla
+          const structureRes = await fetch(`${API_BASE_URL}/api/loans/check-structure`);
+          const structureData = await structureRes.json();
+          console.log('Estructura de tabla:', structureData);
+          
+          if (structureData.needsUpdate) {
+            console.log('Agregando columnas faltantes...');
+            await fetch(`${API_BASE_URL}/api/loans/add-missing-columns`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+          }
+          
+          // Actualizar cuotas faltantes
+          const updateRes = await fetch(`${API_BASE_URL}/api/loans/${loan.id}/update-installments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          const updateData = await updateRes.json();
+          console.log('Cuotas faltantes actualizadas:', updateData);
+        } catch (error) {
+          console.error('Error actualizando cuotas faltantes:', error);
+        }
+      };
+
+      // Ejecutar actualización
+      updateInstallments();
+
+      // Verificar y generar cuotas si es necesario
+      const checkAndGenerateInstallments = async () => {
+        try {
+          const checkInstallmentsRes = await fetch(`${API_BASE_URL}/api/loans/${loan.id}/check-installments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          const checkData = await checkInstallmentsRes.json();
+          console.log('Verificación de cuotas:', checkData);
+        } catch (error) {
+          console.error('Error verificando cuotas:', error);
+        }
+      };
+      
+      checkAndGenerateInstallments();
+
+      // Cargar cuotas pendientes
       fetch(`${API_BASE_URL}/api/installments?loan_id=${loan.id}&status=pendiente`)
-        .then(res => res.json())
-        .then(data => setPendingInstallments(Array.isArray(data) ? data : []));
+        .then(async res => {
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`HTTP ${res.status}: ${errorText}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          const installments = Array.isArray(data) ? data : [];
+          setPendingInstallments(installments);
+          // Solo inicializar selectedInstallments si está vacío o es 0
+          if (installments.length > 0 && (selectedInstallments === '' || selectedInstallments === '0')) {
+            setSelectedInstallments('1');
+          }
+        })
+        .catch(error => {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          Alert.alert('Error cargando cuotas', errorMsg);
+          setPendingInstallments([]);
+          console.error('Error cargando cuotas:', error);
+        });
+
+      // Cargar pagos del préstamo
+      fetch(`${API_BASE_URL}/api/payments?loan_id=${loan.id}`)
+        .then(async res => {
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`HTTP ${res.status}: ${errorText}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          const payments = Array.isArray(data) ? data : [];
+          setLoanPayments(payments);
+        })
+        .catch(error => {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          Alert.alert('Error cargando pagos', errorMsg);
+          setLoanPayments([]);
+          console.error('Error cargando pagos:', error);
+        });
     }
-  }, [loan?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loan?.id]); // Removido selectedInstallments de las dependencias para evitar re-ejecución
 
   // Calcular monto a abonar sumando las primeras N cuotas pendientes
   useEffect(() => {
-    const cuotas = parseInt(selectedInstallments, 10) || 0;
+    // Solo calcular automáticamente si selectedInstallments es un número válido
+    const cuotas = parseInt(selectedInstallments, 10);
+    if (isNaN(cuotas) || cuotas <= 0) return;
+    
     const cuotasSeleccionadas = pendingInstallments.slice(0, cuotas);
     const today = new Date();
     const moraPercent = parseFloat(loan.late_percent || '0') / 100;
@@ -96,15 +192,26 @@ const RecordPaymentScreen = () => {
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/payment-methods`)
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`HTTP ${res.status}: ${errorText}`);
+        }
+        return res.json();
+      })
       .then(data => setPaymentMethods(data))
-      .catch(() => setPaymentMethods([
-        { id: 1, name: 'Efectivo' },
-        { id: 2, name: 'Cheque' },
-        { id: 3, name: 'Transferencia' },
-        { id: 4, name: 'Tarjeta' },
-        { id: 5, name: 'Otros' },
-      ]));
+      .catch(error => {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        Alert.alert('Error cargando métodos de pago', errorMsg);
+        setPaymentMethods([
+          { id: 1, name: 'Efectivo' },
+          { id: 2, name: 'Cheque' },
+          { id: 3, name: 'Transferencia' },
+          { id: 4, name: 'Tarjeta' },
+          { id: 5, name: 'Otros' },
+        ]);
+        console.error('Error cargando métodos de pago:', error);
+      });
   }, []);
 
   const handleGeneratePDF = () => {
@@ -158,6 +265,19 @@ const RecordPaymentScreen = () => {
       const result = await response.json();
       console.log('Pago registrado exitosamente:', result);
       
+      // Actualizar cuotas faltantes después del pago
+      try {
+        await fetch(`${API_BASE_URL}/api/loans/${loan.id}/update-installments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        console.log('Cuotas faltantes actualizadas después del pago');
+      } catch (updateError) {
+        console.error('Error actualizando cuotas faltantes después del pago:', updateError);
+      }
+      
       // Navegar a la pantalla de éxito
       navigation.navigate('PaymentSuccessScreen');
       
@@ -197,26 +317,47 @@ const RecordPaymentScreen = () => {
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Cuotas Faltantes</Text>
           <Text style={styles.infoValue}>
-            {remainingInstallments >= 0 ? remainingInstallments : totalInstallments}
+            {totalInstallments - loanPayments.length}
           </Text>
         </View>
 
         {/* Abono a Préstamo */}
         <Text style={styles.sectionTitle}>Abono a Préstamo</Text>
         <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Fecha de Pago</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+            <Text>{paymentDate.toLocaleDateString()}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={paymentDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(_, date) => {
+                setShowDatePicker(false);
+                if (date) setPaymentDate(date);
+              }}
+            />
+          )}
+        </View>
+        <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Seleccionar Cuotas a Pagar</Text>
           <TextInput
             style={styles.input}
             value={selectedInstallments}
             onChangeText={text => {
-              // Permitir cualquier valor mientras escribe
-              setSelectedInstallments(text.replace(/[^0-9]/g, ''));
+              // Permitir cualquier valor mientras escribe, pero solo números
+              const cleanText = text.replace(/[^0-9]/g, '');
+              setSelectedInstallments(cleanText);
             }}
             onBlur={() => {
               // Al salir del campo, corregir si es vacío o menor que 1
               let num = parseInt(selectedInstallments, 10);
-              if (isNaN(num) || num < 1) num = 1;
-              if (num > pendingInstallments.length) num = pendingInstallments.length;
+              if (isNaN(num) || num < 1) {
+                num = 1;
+              } else if (num > pendingInstallments.length && pendingInstallments.length > 0) {
+                num = pendingInstallments.length;
+              }
               setSelectedInstallments(String(num));
             }}
             keyboardType="numeric"
@@ -250,23 +391,6 @@ const RecordPaymentScreen = () => {
               />
             )}
           </View>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Fecha de Pago</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-            <Text>{paymentDate.toLocaleDateString()}</Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={paymentDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(_, date) => {
-                setShowDatePicker(false);
-                if (date) setPaymentDate(date);
-              }}
-            />
-          )}
         </View>
 
         {/* Botones */}
