@@ -17,6 +17,7 @@ const calendar = require('../assets/icons/calendar.png');
 const user = require('../assets/icons/user-setting.png');
 const avatarDefault = require('../assets/icons/avatar.png');
 const backIcon = require('../assets/icons/back.png');
+const setting = require('../assets/icons/setting.png');
 
 const weekdays = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
@@ -248,7 +249,7 @@ const OverduePaymentsScreen = () => {
           onChangeText={setSearch}
         />
         <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
-          <Text style={styles.filterIcon}>⚙️</Text>
+          <Image source={setting} style={styles.filterIconImg} />
         </TouchableOpacity>
       </View>
       
@@ -438,6 +439,11 @@ const styles = StyleSheet.create({
   filterIcon: {
     fontSize: 20,
     color: '#10B981',
+  },
+  filterIconImg: {
+    width: 24,
+    height: 24,
+    tintColor: '#10B981',
   },
   calendarRow: {
     flexDirection: 'row',
