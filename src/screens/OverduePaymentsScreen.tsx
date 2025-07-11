@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ScrollView, ActivityIndicator, Platform, Alert, Modal } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
@@ -8,7 +8,8 @@ import { API_BASE_URL } from '../api/config';
 type RootStackParamList = {
   Dashboard: undefined;
   RecordPaymentScreen: { loan: any };
-  // ...other screens
+  OverduePayments: undefined;
+  Assistant: undefined;
 };
 
 const home = require('../assets/icons/home.png');
@@ -37,6 +38,7 @@ function getWeekDates(date = new Date()) {
 
 const OverduePaymentsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState(getWeekDates(new Date()));
@@ -370,10 +372,10 @@ const OverduePaymentsScreen = () => {
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: '#00278C' }]} />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+        <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
+          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: '#00278C' }]} />
         </TouchableOpacity>
         <TouchableOpacity>
           <Image source={calendar} style={styles.navIcon} />
