@@ -74,11 +74,16 @@ const DashboardScreen = () => {
   const [agendaDate, setAgendaDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState<false | 'start' | 'end' | true>(false);
   const [customRange, setCustomRange] = useState<{start: Date|null, end: Date|null}>({start: null, end: null});
+  const [currency, setCurrency] = useState('DOP');
 
   useEffect(() => {
     loadUserData();
     updateGreeting();
     fetchMetrics();
+    (async () => {
+      const saved = await AsyncStorage.getItem('currency');
+      if (saved) setCurrency(saved);
+    })();
   }, []);
 
   useEffect(() => {
@@ -163,6 +168,14 @@ const DashboardScreen = () => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
+  // Utilidad para mostrar símbolo/código
+  const getCurrencySymbol = (code: string) => {
+    if (code === 'USD') return '$';
+    if (code === 'EUR') return '€';
+    if (code === 'DOP') return 'RD$';
+    return code;
+  };
 
   return (
     <View style={styles.container}>
@@ -299,9 +312,9 @@ const DashboardScreen = () => {
 
         {/* MÉTRICAS */}
         <View style={styles.statsContainer}>
-          <StatCard icon={wallet} title="Total Prestado" amount={`RD$ ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={barChart} title="Total Recuperado" amount={`RD$ ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={dollarCross} title="Total en Mora" amount={`RD$ ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
+          <StatCard icon={wallet} title="Total Prestado" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={barChart} title="Total Recuperado" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={dollarCross} title="Total en Mora" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
           <StatCard icon={pieChart} title="Cantidad de Préstamos Activos" amount={metrics.prestamos_activos.toString()} />
           <StatCard icon={users} title="Clientes Activos" amount={metrics.clientes_activos.toString()} />
         </View>

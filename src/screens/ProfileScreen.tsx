@@ -17,6 +17,7 @@ type RootStackParamList = {
   Assistant: undefined;
   Profile: undefined;
   HelpCenter: undefined;
+  Currency: undefined;
 };
 
 const avatar = require('../assets/icons/avatar.png');
@@ -60,7 +61,7 @@ const ProfileScreen = () => {
         {/* Opciones */}
         <View style={styles.optionsList}>
           <Option icon={user} label="Perfil" onPress={() => {}} />
-          <Option icon={currency} label="Moneda Predeterminada" onPress={() => {}} />
+          <Option icon={currency} label="Moneda Predeterminada" onPress={() => navigation.navigate('Currency')} />
           <Option icon={setting} label="Configuraciones" onPress={() => {}} />
           <Option icon={help} label="Ayuda" onPress={() => navigation.navigate('HelpCenter')} />
           <Option icon={logout} label="Salir" onPress={() => setLogoutVisible(true)} />

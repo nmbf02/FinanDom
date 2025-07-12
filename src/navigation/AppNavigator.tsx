@@ -24,6 +24,7 @@ import AssistantScreen from '../screens/AssistantScreen';
 import CommunicationHistoryScreen from '../screens/CommunicationHistoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpCenterScreen from '../screens/HelpCenterScreen';
+import CurrencyScreen from '../screens/CurrencyScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +56,7 @@ const AppNavigator = () => {
         <Stack.Screen name="CommunicationHistory" component={CommunicationHistoryScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+        <Stack.Screen name="Currency" component={CurrencyScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
