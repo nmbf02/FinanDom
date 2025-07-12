@@ -6,11 +6,6 @@ const jwt = require('jsonwebtoken');
 const { sendPasswordResetEmail } = require('../config/email');
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_secreta_finanDom';
 
-const requireAuth = (req, res, next) => {
-  // Aquí puedes agregar lógica de autenticación si tienes JWT/token
-  next();
-};
-
 router.post('/register', (req, res) => {
   const { name, email, password, role = 'prestamista' } = req.body;
 
@@ -1431,50 +1426,68 @@ router.post('/loans/:loanId/generate-installments', (req, res) => {
   });
 });
 
-// Actualizar perfil de usuario
-router.put('/user/:id', requireAuth, async (req, res) => {
+// Actualizar datos de usuario
+router.put('/user/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, phone, email, password, photo_url } = req.body;
+  const { name, email, phone, password, photo_url, role, document_type_id, identification } = req.body;
 
   if (!name || !email) {
     return res.status(400).json({ message: 'Nombre y email son obligatorios.' });
   }
 
-  // Verificar si el email ya está en uso por otro usuario
-  db.get('SELECT * FROM users WHERE email = ? AND id != ?', [email, id], async (err, existingUser) => {
-    if (err) return res.status(500).json({ message: 'Error interno del servidor.' });
-    if (existingUser) return res.status(409).json({ message: 'El correo ya está registrado por otro usuario.' });
+  let updateQuery = 'UPDATE users SET name = ?, email = ?, phone = ?, role = ?';
+  const params = [name, email, phone, role || 'prestamista'];
 
-    let updateQuery = 'UPDATE users SET name = ?, phone = ?, email = ?';
-    const params = [name, phone, email];
-    if (photo_url) {
-      updateQuery += ', photo_url = ?';
-      params.push(photo_url);
+  if (password) {
+    const bcrypt = require('bcryptjs');
+    const password_hash = await bcrypt.hash(password, 10);
+    updateQuery += ', password_hash = ?';
+    params.push(password_hash);
+  }
+
+  if (photo_url) {
+    updateQuery += ', photo_url = ?';
+    params.push(photo_url);
+  }
+
+  if (document_type_id) {
+    updateQuery += ', document_type_id = ?';
+    params.push(document_type_id);
+  }
+
+  if (identification) {
+    updateQuery += ', identification = ?';
+    params.push(identification);
+  }
+
+  updateQuery += ' WHERE id = ?';
+  params.push(id);
+
+  const db = req.app ? req.app.get('db') : require('../config/db');
+  db.run(updateQuery, params, function (err) {
+    if (err) {
+      console.error('Error actualizando usuario:', err);
+      return res.status(500).json({ message: 'Error al actualizar usuario.' });
     }
-
-    if (password) {
-      const bcrypt = require('bcryptjs');
-      const password_hash = await bcrypt.hash(password, 10);
-      updateQuery += ', password_hash = ?';
-      params.push(password_hash);
+    if (this.changes === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-    updateQuery += ' WHERE id = ?';
-    params.push(id);
-
-    db.run(updateQuery, params, function (updateErr) {
-      if (updateErr) return res.status(500).json({ message: 'Error actualizando usuario.' });
-      if (this.changes === 0) return res.status(404).json({ message: 'Usuario no encontrado.' });
-      return res.json({ message: 'Usuario actualizado exitosamente.' });
-    });
+    return res.json({ message: 'Usuario actualizado correctamente.' });
   });
 });
 
-// Obtener datos de usuario por id
+// Obtener datos de un usuario por ID
 router.get('/user/:id', (req, res) => {
   const { id } = req.params;
-  db.get('SELECT id, name, phone, email, role, photo_url FROM users WHERE id = ?', [id], (err, user) => {
-    if (err) return res.status(500).json({ message: 'Error interno del servidor.' });
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+  const db = req.app ? req.app.get('db') : require('../config/db');
+  db.get('SELECT * FROM users WHERE id = ?', [id], (err, user) => {
+    if (err) {
+      console.error('Error obteniendo usuario:', err);
+      return res.status(500).json({ message: 'Error al obtener usuario.' });
+    }
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
     res.json(user);
   });
 });

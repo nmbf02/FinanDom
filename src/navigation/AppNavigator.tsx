@@ -25,6 +25,7 @@ import CommunicationHistoryScreen from '../screens/CommunicationHistoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpCenterScreen from '../screens/HelpCenterScreen';
 import CurrencyScreen from '../screens/CurrencyScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
         <Stack.Screen name="Currency" component={CurrencyScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

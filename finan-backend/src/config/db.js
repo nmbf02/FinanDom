@@ -15,9 +15,37 @@ const db = new sqlite3.Database(dbPath, (err) => {
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
+        phone TEXT,
+        document_type_id INTEGER,
+        identification TEXT,
         role TEXT DEFAULT 'prestamista',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (document_type_id) REFERENCES document_types(id)
       )`);
+
+      // Verificar y agregar columna phone si no existe en users
+      db.all(`PRAGMA table_info(users)`, [], (err, columns) => {
+        if (err) {
+          console.error('Error obteniendo columnas de users:', err);
+          return;
+        }
+        const addColumnIfNotExists = (colName, colType) => {
+          const exists = columns.some(col => col.name === colName);
+          if (!exists) {
+            console.log(`Agregando columna ${colName} a tabla users...`);
+            db.run(`ALTER TABLE users ADD COLUMN ${colName} ${colType}`, (err2) => {
+              if (err2) {
+                console.error(`Error agregando columna ${colName}:`, err2);
+              } else {
+                console.log(`✅ Columna ${colName} agregada exitosamente a users`);
+              }
+            });
+          }
+        };
+        addColumnIfNotExists('phone', 'TEXT');
+        addColumnIfNotExists('document_type_id', 'INTEGER');
+        addColumnIfNotExists('identification', 'TEXT');
+      });
 
       // Crear tabla de tipos de documentos
       db.run(`CREATE TABLE IF NOT EXISTS document_types (

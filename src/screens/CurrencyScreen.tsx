@@ -20,13 +20,11 @@ type RootStackParamList = {
 const CurrencyScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selected, setSelected] = useState('DOP');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const saved = await AsyncStorage.getItem('currency');
       if (saved) setSelected(saved);
-      setLoading(false);
     })();
   }, []);
 
