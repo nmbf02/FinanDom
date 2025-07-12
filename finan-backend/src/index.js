@@ -168,9 +168,10 @@ app.post('/api/assistant-send-message', async (req, res) => {
       return res.status(400).json({ message: 'Método de envío inválido' });
     }
 
-    // Buscar el cliente por el préstamo (loanId)
+    // Buscar el cliente y tipo de sugerencia por el préstamo (loanId)
     db.get(
-      `SELECT c.email, c.phone, c.name FROM clients c
+      `SELECT c.id as client_id, c.email, c.phone, c.name, l.id as loan_id
+       FROM clients c
        JOIN loans l ON l.client_id = c.id
        WHERE l.id = ?`,
       [loanId],
@@ -178,6 +179,10 @@ app.post('/api/assistant-send-message', async (req, res) => {
         if (err || !client) {
           return res.status(404).json({ message: 'Cliente no encontrado para el préstamo' });
         }
+
+        // Determinar tipo de sugerencia (reminder/thanks) a partir del suggestionId
+        let type = 'reminder';
+        if (suggestionId && suggestionId.startsWith('thanks_')) type = 'thanks';
 
         if (method === 'email') {
           if (!client.email) {
@@ -192,7 +197,17 @@ app.post('/api/assistant-send-message', async (req, res) => {
           </div>`;
           const sent = await sendEmail(client.email, subject, html);
           if (sent) {
-            return res.json({ success: true, message: 'Correo enviado exitosamente', data: { suggestionId, clientName, method, sentAt: new Date().toISOString() } });
+            // Registrar en historial
+            db.run(
+              `INSERT INTO communications_history (client_id, loan_id, type, method, message, sent_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+              [client.client_id, client.loan_id, type, method, message],
+              function (err2) {
+                if (err2) {
+                  console.error('Error guardando historial:', err2);
+                }
+                return res.json({ success: true, message: 'Correo enviado exitosamente', data: { suggestionId, clientName, method, sentAt: new Date().toISOString() } });
+              }
+            );
           } else {
             return res.status(500).json({ message: 'Error enviando el correo' });
           }
@@ -205,7 +220,17 @@ app.post('/api/assistant-send-message', async (req, res) => {
           if (phone.startsWith('0')) phone = '1' + phone.substring(1); // Asume República Dominicana
           const encodedMsg = encodeURIComponent(message);
           const waLink = `https://wa.me/${phone}?text=${encodedMsg}`;
-          return res.json({ success: true, message: 'Link de WhatsApp generado', data: { suggestionId, clientName, method, waLink } });
+          // Registrar en historial
+          db.run(
+            `INSERT INTO communications_history (client_id, loan_id, type, method, message, sent_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+            [client.client_id, client.loan_id, type, method, message],
+            function (err2) {
+              if (err2) {
+                console.error('Error guardando historial:', err2);
+              }
+              return res.json({ success: true, message: 'Link de WhatsApp generado', data: { suggestionId, clientName, method, waLink } });
+            }
+          );
         }
       }
     );
@@ -216,6 +241,35 @@ app.post('/api/assistant-send-message', async (req, res) => {
       error: error.message 
     });
   }
+});
+
+// Endpoint para obtener historial de comunicaciones
+app.get('/api/communications-history', (req, res) => {
+  const { type, search } = req.query;
+  let query = `
+    SELECT h.id, h.type, h.method, h.message, h.sent_at, h.loan_id, c.name as client_name
+    FROM communications_history h
+    JOIN clients c ON h.client_id = c.id
+    WHERE 1=1
+  `;
+  const params = [];
+  if (type && type !== 'all') {
+    query += ' AND h.type = ?';
+    params.push(type);
+  }
+  if (search) {
+    query += ' AND (c.name LIKE ? OR h.method LIKE ? OR h.message LIKE ?)';
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  query += ' ORDER BY h.sent_at DESC LIMIT 100';
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error obteniendo historial:', err);
+      return res.status(500).json({ message: 'Error obteniendo historial', error: err.message });
+    }
+    res.json(rows);
+  });
 });
 
 // Ruta de prueba

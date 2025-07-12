@@ -13,6 +13,7 @@ const checkmark = require('../assets/icons/checkmark.png');
 const cancel = require('../assets/icons/cancel.png');
 const edit = require('../assets/icons/edit.png');
 const avatarDefault = require('../assets/icons/avatar.png');
+const menuIcon = require('../assets/icons/menu.png');
 
 type Suggestion = {
   id: string;
@@ -174,7 +175,9 @@ const AssistantScreen = () => {
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.title}>Asistente Inteligente</Text>
-        <View style={{ width: 28 }} />
+        <TouchableOpacity onPress={() => (navigation as any).navigate('CommunicationHistory')}>
+          <Image source={menuIcon} style={styles.menuIcon} />
+        </TouchableOpacity>
       </View>
       <Text style={styles.subtitle}>Gestión de Mensajes</Text>
       
@@ -556,6 +559,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  menuIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#6B7280',
   },
 });
 

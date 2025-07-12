@@ -259,6 +259,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
           [method]
         );
       });
+
+      db.run(`CREATE TABLE IF NOT EXISTS communications_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER NOT NULL,
+        loan_id INTEGER NOT NULL,
+        type TEXT NOT NULL, -- 'reminder' o 'thanks'
+        method TEXT NOT NULL, -- 'email' o 'whatsapp'
+        message TEXT NOT NULL,
+        sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_by INTEGER,
+        FOREIGN KEY (client_id) REFERENCES clients(id),
+        FOREIGN KEY (loan_id) REFERENCES loans(id)
+      )`);
     });
   }
 });
