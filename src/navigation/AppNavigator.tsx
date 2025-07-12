@@ -22,6 +22,8 @@ import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import OverduePaymentsScreen from '../screens/OverduePaymentsScreen';
 import AssistantScreen from '../screens/AssistantScreen';
 import CommunicationHistoryScreen from '../screens/CommunicationHistoryScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import HelpCenterScreen from '../screens/HelpCenterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,6 +53,8 @@ const AppNavigator = () => {
         <Stack.Screen name="OverduePayments" component={OverduePaymentsScreen} />
         <Stack.Screen name="Assistant" component={AssistantScreen} />
         <Stack.Screen name="CommunicationHistory" component={CommunicationHistoryScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

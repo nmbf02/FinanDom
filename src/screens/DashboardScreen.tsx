@@ -43,6 +43,7 @@ type RootStackParamList = {
   Client: { clientId?: number };
   OverduePayments: undefined;
   Assistant: undefined;
+  Profile: undefined;
 };
 
 type AgendaItem = {
@@ -312,8 +313,8 @@ const DashboardScreen = () => {
         <TouchableOpacity>
           <Image source={calendar} style={styles.navIcon} />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Image source={user} style={[styles.navIcon, route.name === 'Profile' && { tintColor: '#00278C' }]} />
         </TouchableOpacity>
       </View>
     </View>
