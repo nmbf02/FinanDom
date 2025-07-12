@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, Alert, ActivityIndicator, Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
 
@@ -79,9 +79,8 @@ const AssistantScreen = () => {
     setEditText(msg.text);
   };
 
-  const handleSend = async () => {
+  const handleSend = async (method: 'email' | 'whatsapp') => {
     if (!selectedMessage) return;
-    
     setSending(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/assistant-send-message`, {
@@ -93,6 +92,8 @@ const AssistantScreen = () => {
           suggestionId: selectedMessage.id,
           message: editText,
           clientName: selectedMessage.clientName,
+          method,
+          loanId: selectedMessage.loanId,
         }),
       });
 
@@ -101,15 +102,19 @@ const AssistantScreen = () => {
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      await response.json();
-      
+      const result = await response.json();
+      if (method === 'whatsapp' && result.data && result.data.waLink) {
+        Linking.openURL(result.data.waLink);
+        setSelectedMessage(null);
+        fetchSuggestions();
+        return;
+      }
       Alert.alert(
-        'Mensaje enviado', 
+        'Mensaje enviado',
         `Mensaje enviado exitosamente a ${selectedMessage.clientName}`,
         [
           { text: 'OK', onPress: () => {
             setSelectedMessage(null);
-            // Recargar sugerencias para actualizar el estado
             fetchSuggestions();
           }}
         ]
@@ -235,13 +240,24 @@ const AssistantScreen = () => {
             />
             <TouchableOpacity 
               style={[styles.modalSendButton, sending && styles.modalSendButtonDisabled]} 
-              onPress={handleSend}
+              onPress={() => handleSend('email')}
               disabled={sending}
             >
               {sending ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.modalSendButtonText}>Enviar</Text>
+                <Text style={styles.modalSendButtonText}>Enviar por Correo</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalSendButton, sending && styles.modalSendButtonDisabled, { backgroundColor: '#25D366' }]} 
+              onPress={() => handleSend('whatsapp')}
+              disabled={sending}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.modalSendButtonText}>Enviar por WhatsApp</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity 

@@ -40,4 +40,22 @@ const sendPasswordResetEmail = async (email, code) => {
   }
 };
 
-module.exports = { sendPasswordResetEmail }; 
+// Función para enviar email genérico (asistente)
+const sendEmail = async (to, subject, html) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    html
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error enviando email:', error);
+    return false;
+  }
+};
+
+module.exports = { sendPasswordResetEmail, sendEmail }; 

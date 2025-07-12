@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./config/db');
 const app = express();
+const { sendEmail } = require('./config/email');
 
 // Middlewares
 app.use(cors());
@@ -158,28 +159,56 @@ app.get('/api/assistant-suggestions', (req, res) => {
   }
 });
 
-// Ruta para enviar mensaje (simulada)
-app.post('/api/assistant-send-message', (req, res) => {
-  const { suggestionId, message, clientName } = req.body;
-  
+// Ruta para enviar mensaje (real email o WhatsApp link)
+app.post('/api/assistant-send-message', async (req, res) => {
+  const { suggestionId, message, clientName, method, loanId } = req.body;
+
   try {
-    // Aquí se implementaría la lógica real de envío de mensajes
-    // (WhatsApp, SMS, email, etc.)
-    
-    console.log(`Mensaje enviado a ${clientName}:`, message);
-    
-    // Simular éxito
-    res.json({
-      success: true,
-      message: 'Mensaje enviado exitosamente',
-      data: {
-        suggestionId,
-        clientName,
-        message,
-        sentAt: new Date().toISOString()
+    if (!method || !['email', 'whatsapp'].includes(method)) {
+      return res.status(400).json({ message: 'Método de envío inválido' });
+    }
+
+    // Buscar el cliente por el préstamo (loanId)
+    db.get(
+      `SELECT c.email, c.phone, c.name FROM clients c
+       JOIN loans l ON l.client_id = c.id
+       WHERE l.id = ?`,
+      [loanId],
+      async (err, client) => {
+        if (err || !client) {
+          return res.status(404).json({ message: 'Cliente no encontrado para el préstamo' });
+        }
+
+        if (method === 'email') {
+          if (!client.email) {
+            return res.status(400).json({ message: 'El cliente no tiene email registrado' });
+          }
+          const subject = 'Mensaje de FinanDom';
+          const html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1CC88A;">Mensaje de FinanDom</h2>
+            <p>Hola ${client.name},</p>
+            <p>${message}</p>
+            <p>Saludos,<br>Equipo FinanDom</p>
+          </div>`;
+          const sent = await sendEmail(client.email, subject, html);
+          if (sent) {
+            return res.json({ success: true, message: 'Correo enviado exitosamente', data: { suggestionId, clientName, method, sentAt: new Date().toISOString() } });
+          } else {
+            return res.status(500).json({ message: 'Error enviando el correo' });
+          }
+        } else if (method === 'whatsapp') {
+          if (!client.phone) {
+            return res.status(400).json({ message: 'El cliente no tiene número de teléfono registrado' });
+          }
+          // Formato internacional para WhatsApp (quita espacios y guiones)
+          let phone = client.phone.replace(/[^0-9]/g, '');
+          if (phone.startsWith('0')) phone = '1' + phone.substring(1); // Asume República Dominicana
+          const encodedMsg = encodeURIComponent(message);
+          const waLink = `https://wa.me/${phone}?text=${encodedMsg}`;
+          return res.json({ success: true, message: 'Link de WhatsApp generado', data: { suggestionId, clientName, method, waLink } });
+        }
       }
-    });
-    
+    );
   } catch (error) {
     console.error('Error enviando mensaje:', error);
     res.status(500).json({ 
