@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -54,7 +54,7 @@ const ProfileScreen = () => {
         {/* Foto de perfil */}
         <View style={styles.avatarContainer}>
           <Image source={avatar} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIconContainer}>
+          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert('Info', 'La selección de imagen de perfil no está disponible en este momento.') }>
             <Image source={edit} style={styles.editIcon} />
           </TouchableOpacity>
         </View>
