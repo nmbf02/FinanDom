@@ -86,7 +86,7 @@ const SettingsScreen = () => {
             <Text style={[styles.pillText, language === 'en' && styles.pillTextActive]}>Inglés</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pill, language === 'other' && styles.pillActive]} onPress={() => setLanguage('other')}>
-            <Text style={[styles.pillText, language === 'other' && styles.pillTextActive]}>Otros</Text>
+            <Text style={[styles.pillText, language === 'other' && styles.pillTextActive]}>Sistema</Text>
           </TouchableOpacity>
         </View>
         <View style={{ height: 100 }} />
