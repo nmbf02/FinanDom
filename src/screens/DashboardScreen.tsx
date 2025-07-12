@@ -44,6 +44,7 @@ type RootStackParamList = {
   OverduePayments: undefined;
   Assistant: undefined;
   Profile: undefined;
+  CommunicationHistory: undefined;
 };
 
 type AgendaItem = {
@@ -176,8 +177,12 @@ const DashboardScreen = () => {
         </View>
 
         <View style={styles.rightIcons}>
-          <Image source={bell} style={styles.icon} />
-          <Image source={setting} style={styles.icon} />
+          <TouchableOpacity onPress={() => navigation.navigate('CommunicationHistory')}>
+            <Image source={bell} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Image source={setting} style={styles.icon} />
+          </TouchableOpacity>
         </View>
       </View>
 
