@@ -6,6 +6,11 @@ const jwt = require('jsonwebtoken');
 const { sendPasswordResetEmail } = require('../config/email');
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_secreta_finanDom';
 
+const requireAuth = (req, res, next) => {
+  // Aquí puedes agregar lógica de autenticación si tienes JWT/token
+  next();
+};
+
 router.post('/register', (req, res) => {
   const { name, email, password, role = 'prestamista' } = req.body;
 
@@ -1423,6 +1428,54 @@ router.post('/loans/:loanId/generate-installments', (req, res) => {
         }
       }
     });
+  });
+});
+
+// Actualizar perfil de usuario
+router.put('/user/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, email, password, photo_url } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Nombre y email son obligatorios.' });
+  }
+
+  // Verificar si el email ya está en uso por otro usuario
+  db.get('SELECT * FROM users WHERE email = ? AND id != ?', [email, id], async (err, existingUser) => {
+    if (err) return res.status(500).json({ message: 'Error interno del servidor.' });
+    if (existingUser) return res.status(409).json({ message: 'El correo ya está registrado por otro usuario.' });
+
+    let updateQuery = 'UPDATE users SET name = ?, phone = ?, email = ?';
+    const params = [name, phone, email];
+    if (photo_url) {
+      updateQuery += ', photo_url = ?';
+      params.push(photo_url);
+    }
+
+    if (password) {
+      const bcrypt = require('bcryptjs');
+      const password_hash = await bcrypt.hash(password, 10);
+      updateQuery += ', password_hash = ?';
+      params.push(password_hash);
+    }
+    updateQuery += ' WHERE id = ?';
+    params.push(id);
+
+    db.run(updateQuery, params, function (updateErr) {
+      if (updateErr) return res.status(500).json({ message: 'Error actualizando usuario.' });
+      if (this.changes === 0) return res.status(404).json({ message: 'Usuario no encontrado.' });
+      return res.json({ message: 'Usuario actualizado exitosamente.' });
+    });
+  });
+});
+
+// Obtener datos de usuario por id
+router.get('/user/:id', (req, res) => {
+  const { id } = req.params;
+  db.get('SELECT id, name, phone, email, role, photo_url FROM users WHERE id = ?', [id], (err, user) => {
+    if (err) return res.status(500).json({ message: 'Error interno del servidor.' });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+    res.json(user);
   });
 });
 

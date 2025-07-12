@@ -75,6 +75,7 @@ const DashboardScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState<false | 'start' | 'end' | true>(false);
   const [customRange, setCustomRange] = useState<{start: Date|null, end: Date|null}>({start: null, end: null});
   const [currency, setCurrency] = useState('DOP');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserData();
@@ -83,6 +84,12 @@ const DashboardScreen = () => {
     (async () => {
       const saved = await AsyncStorage.getItem('currency');
       if (saved) setCurrency(saved);
+      // Cargar foto de perfil
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setAvatarUrl(user.photo_url || null);
+      }
     })();
   }, []);
 
@@ -182,7 +189,7 @@ const DashboardScreen = () => {
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
-            <Image source={avatar} style={styles.avatar} />
+            <Image source={avatarUrl ? { uri: avatarUrl } : avatar} style={styles.avatar} />
             <View style={styles.userInfoText}>
               <Text style={styles.welcomeText}>{greeting}!</Text>
               <Text style={styles.userName}>{userName}</Text>
