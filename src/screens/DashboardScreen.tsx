@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 // ICONOS
 const avatar = require('../assets/icons/avatar.png');
@@ -77,6 +78,7 @@ const DashboardScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState<false | 'start' | 'end' | true>(false);
   const [customRange, setCustomRange] = useState<{start: Date|null, end: Date|null}>({start: null, end: null});
   const [currency, setCurrency] = useState('DOP');
+  const { theme } = useTheme();
 
   const loadUserData = React.useCallback(async () => {
     try {
@@ -180,27 +182,25 @@ const DashboardScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
             <Image source={avatar} style={styles.avatar} />
             <View style={styles.userInfoText}>
-              <Text style={styles.welcomeText}>{greeting}!</Text>
-              <Text style={styles.userName}>{userName}</Text>
+              <Text style={[styles.welcomeText, { color: theme.muted }]}>{greeting}!</Text>
+              <Text style={[styles.userName, { color: theme.text }]}>{userName}</Text>
             </View>
         </View>
-
         <View style={styles.rightIcons}>
           <TouchableOpacity onPress={() => navigation.navigate('CommunicationHistory')}>
-            <Image source={bell} style={styles.icon} />
+            <Image source={bell} style={[styles.icon, { tintColor: theme.primary }]} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Image source={setting} style={styles.icon} />
+            <Image source={setting} style={[styles.icon, { tintColor: theme.primary }]} />
           </TouchableOpacity>
         </View>
       </View>
-
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
         {/* Selector de rango para la agenda */}
         <View style={styles.rangeSelectorContainer}>
@@ -210,13 +210,13 @@ const DashboardScreen = () => {
                 key={v}
                 style={[
                   styles.rangeButton,
-                  agendaView === v && styles.rangeButtonActive
+                  agendaView === v && { backgroundColor: theme.primary }
                 ]}
                 onPress={() => setAgendaView(v)}
               >
                 <Text style={[
                   styles.rangeButtonText,
-                  agendaView === v && styles.rangeButtonTextActive
+                  agendaView === v && { color: '#fff' }
                 ]}>
                   {v === 'dia' ? t('dashboard.range.day') : 
                    v === 'semana' ? t('dashboard.range.week') : 
@@ -227,27 +227,25 @@ const DashboardScreen = () => {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          
           {/* Fecha seleccionada */}
           <View style={styles.dateSelectorContainer}>
             {(agendaView === 'dia' || agendaView === 'semana' || agendaView === 'mes' || agendaView === 'ano') && (
-              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-                <Text style={styles.dateButtonText}>📅 {formatDate(agendaDate)}</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.primary }]}> 
+                <Text style={[styles.dateButtonText, { color: theme.primary } ]}>📅 {formatDate(agendaDate)}</Text>
               </TouchableOpacity>
             )}
             {agendaView === 'personalizado' && (
               <View style={styles.customRangeContainer}>
-                <TouchableOpacity onPress={() => setShowDatePicker('start')} style={styles.dateButton}>
-                  <Text style={styles.dateButtonText}>{t('dashboard.dateRange.start')}: {customRange.start ? formatDate(customRange.start) : t('dashboard.dateRange.choose')}</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker('start')} style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.primary }]}> 
+                  <Text style={[styles.dateButtonText, { color: theme.primary } ]}>{t('dashboard.dateRange.start')}: {customRange.start ? formatDate(customRange.start) : t('dashboard.dateRange.choose')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setShowDatePicker('end')} style={styles.dateButton}>
-                  <Text style={styles.dateButtonText}>{t('dashboard.dateRange.end')}: {customRange.end ? formatDate(customRange.end) : t('dashboard.dateRange.choose')}</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker('end')} style={[styles.dateButton, { backgroundColor: theme.card, borderColor: theme.primary }]}> 
+                  <Text style={[styles.dateButtonText, { color: theme.primary } ]}>{t('dashboard.dateRange.end')}: {customRange.end ? formatDate(customRange.end) : t('dashboard.dateRange.choose')}</Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
         </View>
-
         {/* DateTimePicker */}
         {showDatePicker !== false && (
           <DateTimePicker
@@ -268,10 +266,9 @@ const DashboardScreen = () => {
             }}
           />
         )}
-
         {/* AGENDA DEL DÍA */}
-        <View style={styles.agendaContainer}>
-          <Text style={styles.agendaDayLabel}>
+        <View style={[styles.agendaContainer, { backgroundColor: theme.card }]}> 
+          <Text style={[styles.agendaDayLabel, { color: theme.primary }]}> 
             {agendaView === 'dia' ? t('dashboard.agenda.dayPayments') : 
              agendaView === 'semana' ? t('dashboard.agenda.weekPayments') : 
              agendaView === 'mes' ? t('dashboard.agenda.monthPayments') : 
@@ -279,25 +276,24 @@ const DashboardScreen = () => {
              t('dashboard.agenda.customPayments')}
           </Text>
           {agenda.length === 0 ? (
-            <Text style={styles.emptyAgendaText}>{t('dashboard.agenda.noPayments')}</Text>
+            <Text style={[styles.emptyAgendaText, { color: theme.muted }]}>{t('dashboard.agenda.noPayments')}</Text>
           ) : (
             agenda.map((item: AgendaItem) => (
               <View key={item.installment_id} style={styles.agendaItem}>
-                <Text style={styles.agendaTime}>{item.due_date}</Text>
-                <View style={styles.agendaDetails}>
+                <Text style={[styles.agendaTime, { color: theme.muted }]}>{item.due_date}</Text>
+                <View style={[styles.agendaDetails, { backgroundColor: theme.background }]}> 
                   <View style={styles.agendaHeader}>
-                    <Text style={styles.agendaTitle}>{item.client_name}</Text>
-                    <Text style={styles.agendaCheck}>{item.status === 'pendiente' ? '⏳' : item.status === 'vencida' ? '⚠️' : '✔️'}</Text>
+                    <Text style={[styles.agendaTitle, { color: theme.text }]}>{item.client_name}</Text>
+                    <Text style={[styles.agendaCheck, { color: theme.primary }]}>{item.status === 'pendiente' ? '⏳' : item.status === 'vencida' ? '⚠️' : '✔️'}</Text>
                   </View>
-                  <Text style={styles.agendaDesc}>{t('dashboard.agenda.amount')}: RD$ {Number(item.amount_due).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-                  <Text style={styles.agendaDesc}>{t('dashboard.agenda.loan')} #{item.loan_id}</Text>
+                  <Text style={[styles.agendaDesc, { color: theme.muted }]}>{t('dashboard.agenda.amount')}: RD$ {Number(item.amount_due).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                  <Text style={[styles.agendaDesc, { color: theme.muted }]}>{t('dashboard.agenda.loan')} #{item.loan_id}</Text>
                 </View>
               </View>
             ))
           )}
         </View>
-
-        {/* TABS */}
+        {/* TABS (NO MODIFICAR) */}
         <View style={styles.tabsContainer}>
           <ScrollView
             horizontal
@@ -316,33 +312,30 @@ const DashboardScreen = () => {
             <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
               <Tab icon={payment} label={t('dashboard.tabs.installments')} active />
             </TouchableOpacity>
-            
           </ScrollView>
         </View>
-
         {/* MÉTRICAS */}
         <View style={styles.statsContainer}>
-          <StatCard icon={wallet} title={t('dashboard.metrics.totalLent')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={barChart} title={t('dashboard.metrics.totalRecovered')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={dollarCross} title={t('dashboard.metrics.totalOverdue')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
-          <StatCard icon={pieChart} title={t('dashboard.metrics.activeLoans')} amount={metrics.prestamos_activos.toString()} />
-          <StatCard icon={users} title={t('dashboard.metrics.activeClients')} amount={metrics.clientes_activos.toString()} />
+          <StatCard icon={wallet} title={t('dashboard.metrics.totalLent')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} theme={theme} />
+          <StatCard icon={barChart} title={t('dashboard.metrics.totalRecovered')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} theme={theme} />
+          <StatCard icon={dollarCross} title={t('dashboard.metrics.totalOverdue')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} theme={theme} />
+          <StatCard icon={pieChart} title={t('dashboard.metrics.activeLoans')} amount={metrics.prestamos_activos.toString()} theme={theme} />
+          <StatCard icon={users} title={t('dashboard.metrics.activeClients')} amount={metrics.clientes_activos.toString()} theme={theme} />
         </View>
       </ScrollView>
-
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}> 
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: '#00278C' }]} />
+          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: '#00278C' }]} />
+          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image source={user} style={[styles.navIcon, route.name === 'Profile' && { tintColor: '#00278C' }]} />
+          <Image source={user} style={[styles.navIcon, route.name === 'Profile' && { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
@@ -356,19 +349,20 @@ const Tab = ({ icon, label, active }: any) => (
   </View>
 );
 
-const StatCard = ({ icon, title, amount, badge }: any) => (
-  <View style={styles.statCard}>
-    <View style={styles.statIconContainer}>
-      <Image source={icon} style={styles.statIcon} />
+// StatCard adaptado al theme
+const StatCard = ({ icon, title, amount, badge, theme }: any) => (
+  <View style={[styles.statCard, { backgroundColor: theme.card }]}> 
+    <View style={[styles.statIconContainer, { backgroundColor: theme.background }]}> 
+      <Image source={icon} style={[styles.statIcon, { tintColor: theme.primary }]} />
     </View>
     <View style={styles.statTextContainer}>
-      <Text style={styles.statTitle}>{title}</Text>
-      <Text style={styles.statAmount}>{amount}</Text>
+      <Text style={[styles.statTitle, { color: theme.primary }]}>{title}</Text>
+      <Text style={[styles.statAmount, { color: theme.text }]}>{amount}</Text>
     </View>
     {badge && (
-      <View style={styles.statBadge}>
-        <Text style={styles.statBadgeIcon}>★</Text>
-        <Text style={styles.statBadgeText}>{badge}</Text>
+      <View style={[styles.statBadge, { backgroundColor: theme.background }]}> 
+        <Text style={[styles.statBadgeIcon, { color: theme.primary }]}>★</Text>
+        <Text style={[styles.statBadgeText, { color: theme.primary }]}>{badge}</Text>
       </View>
     )}
   </View>
