@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -42,6 +43,7 @@ const InstallmentListScreen = () => {
   const [filteredInstallments, setFilteredInstallments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setWeekDates(getWeekDates(selectedDate));
@@ -85,42 +87,43 @@ const InstallmentListScreen = () => {
   };
 
   const renderInstallment = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.card }]}>
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{item.client_name || t('installmentList.client')}</Text>
-        <Text style={styles.cardField}>{t('installmentList.installmentNumber')}: <Text style={styles.cardValue}>{item.installment_number || '-'}</Text></Text>
-        <Text style={styles.cardField}>{t('installmentList.amount')}: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_due).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.cardField}>{t('installmentList.dueDate')}: <Text style={styles.cardValue}>{item.due_date || '-'}</Text></Text>
-        <Text style={styles.cardField}>{t('installmentList.status')}: <Text style={styles.cardValue}>{item.status || '-'}</Text></Text>
+        <Text style={[styles.cardName, { color: theme.primary }]}>{item.client_name || t('installmentList.client')}</Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('installmentList.installmentNumber')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.installment_number || '-'}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('installmentList.amount')}: <Text style={[styles.cardValue, { color: theme.text }]}>RD$ {parseFloat(item.amount_due).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('installmentList.dueDate')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.due_date || '-'}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('installmentList.status')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.status || '-'}</Text></Text>
       </View>
-      <TouchableOpacity style={styles.plusButton} onPress={() => {/* acción para ver detalles o registrar pago */}}>
-        <Text style={styles.plusText}>+</Text>
+      <TouchableOpacity style={[styles.plusButton, { backgroundColor: theme.secondary }]} onPress={() => {/* acción para ver detalles o registrar pago */}}>
+        <Text style={[styles.plusText, { color: theme.primary }]}>+</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>{'←'}</Text>
+          <Text style={[styles.backArrow, { color: theme.primary }]}>{'←'}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('installmentList.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('installmentList.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
-      <Text style={styles.subtitle}>{t('installmentList.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('installmentList.subtitle')}</Text>
       {/* Buscador */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder={t('installmentList.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
         <TouchableOpacity style={styles.filterButton}>
-          <Text style={styles.filterIcon}>⚙️</Text>
+          <Text style={[styles.filterIcon, { color: theme.primary }]}>⚙️</Text>
         </TouchableOpacity>
       </View>
       {/* Calendario horizontal */}
@@ -130,11 +133,11 @@ const InstallmentListScreen = () => {
           return (
             <TouchableOpacity
               key={idx}
-              style={[styles.calendarBubble, isSelected && styles.calendarBubbleActive]}
+              style={[styles.calendarBubble, { backgroundColor: isSelected ? theme.primary : theme.card }]}
               onPress={() => setSelectedDate(date)}
             >
-              <Text style={[styles.calendarDay, isSelected && styles.calendarDayActive]}>{date.getDate()}</Text>
-              <Text style={[styles.calendarWeek, isSelected && styles.calendarWeekActive]}>{weekdays[date.getDay()]}</Text>
+              <Text style={[styles.calendarDay, { color: isSelected ? theme.card : theme.text }]}>{date.getDate()}</Text>
+              <Text style={[styles.calendarWeek, { color: isSelected ? theme.card : theme.muted }]}>{weekdays[date.getDay()]}</Text>
             </TouchableOpacity>
           );
         })}
@@ -153,7 +156,7 @@ const InstallmentListScreen = () => {
       )}
       {/* Lista de cuotas */}
       {loading ? (
-        <ActivityIndicator size="large" color="#1CC88A" style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 32 }} />
       ) : (
         <FlatList
           data={filteredInstallments}
@@ -163,18 +166,18 @@ const InstallmentListScreen = () => {
         />
       )}
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
