@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -33,9 +34,20 @@ const logout = require('../assets/icons/back.png');
 const home = require('../assets/icons/home.png');
 const calendar = require('../assets/icons/calendar.png');
 
+const Option = ({ icon, label, onPress, theme }: { icon: any; label: string; onPress: () => void; theme: any }) => (
+  <TouchableOpacity style={[styles.optionRow, { backgroundColor: theme.card }]} onPress={onPress}>
+    <View style={[styles.optionIconContainer, { backgroundColor: theme.primary }]}>
+      <Image source={icon} style={[styles.optionIcon, { tintColor: '#fff' }]} />
+    </View>
+    <Text style={[styles.optionLabel, { color: theme.text }]}>{label}</Text>
+    <Text style={[styles.optionArrow, { color: theme.muted }]}>{'>'}</Text>
+  </TouchableOpacity>
+);
+
 const ProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const userName = 'Nathaly Berroa'; // Aquí puedes traer el nombre real del usuario
   const [logoutVisible, setLogoutVisible] = React.useState(false);
   const handleLogout = async () => {
@@ -44,44 +56,44 @@ const ProfileScreen = () => {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Encabezado */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={logout} style={styles.backIcon} />
+          <Image source={logout} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('profile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         {/* Foto de perfil */}
         <View style={styles.avatarContainer}>
           <Image source={avatar} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert('Info', t('profile.photoEdit')) }>
-            <Image source={edit} style={styles.editIcon} />
+          <TouchableOpacity style={[styles.editIconContainer, { backgroundColor: theme.card }]} onPress={() => Alert.alert('Info', t('profile.photoEdit')) }>
+            <Image source={edit} style={[styles.editIcon, { tintColor: theme.primary }]} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.userName}>{userName}</Text>
+        <Text style={[styles.userName, { color: theme.text }]}>{userName}</Text>
         {/* Opciones */}
         <View style={styles.optionsList}>
-          <Option icon={user} label={t('profile.editProfile')} onPress={() => navigation.navigate('EditProfile')} />
-          <Option icon={currency} label={t('profile.currency')} onPress={() => navigation.navigate('Currency')} />
-          <Option icon={setting} label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} />
-          <Option icon={help} label={t('profile.help')} onPress={() => navigation.navigate('HelpCenter')} />
-          <Option icon={logout} label={t('profile.logout')} onPress={() => setLogoutVisible(true)} />
+          <Option icon={user} label={t('profile.editProfile')} onPress={() => navigation.navigate('EditProfile')} theme={theme} />
+          <Option icon={currency} label={t('profile.currency')} onPress={() => navigation.navigate('Currency')} theme={theme} />
+          <Option icon={setting} label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} theme={theme} />
+          <Option icon={help} label={t('profile.help')} onPress={() => navigation.navigate('HelpCenter')} theme={theme} />
+          <Option icon={logout} label={t('profile.logout')} onPress={() => setLogoutVisible(true)} theme={theme} />
         </View>
       </ScrollView>
       {/* Modal de logout */}
       <Modal visible={logoutVisible} transparent animationType="slide" onRequestClose={() => setLogoutVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.logoutModal}>
-            <Text style={styles.logoutTitle}>{t('profile.logout')}</Text>
-            <Text style={styles.logoutText}>{t('profile.logoutConfirm')}</Text>
+          <View style={[styles.logoutModal, { backgroundColor: theme.card }]}>
+            <Text style={[styles.logoutTitle, { color: theme.text }]}>{t('profile.logout')}</Text>
+            <Text style={[styles.logoutText, { color: theme.muted }]}>{t('profile.logoutConfirm')}</Text>
             <View style={styles.logoutButtonsRow}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setLogoutVisible(false)}>
-                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+              <TouchableOpacity style={[styles.cancelButton, { backgroundColor: theme.accent || theme.primary }]} onPress={() => setLogoutVisible(false)}>
+                <Text style={[styles.cancelButtonText, { color: theme.primary }]}>{t('common.cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.primary }]} onPress={handleLogout}>
                 <Text style={styles.logoutButtonText}>{t('common.yes')}, {t('profile.logout')}</Text>
               </TouchableOpacity>
             </View>
@@ -89,33 +101,23 @@ const ProfileScreen = () => {
         </View>
       </Modal>
       {/* Barra de navegación inferior */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={help} style={styles.navIcon} />
+          <Image source={help} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={[styles.navIcon, { tintColor: '#00278C' }]} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const Option = ({ icon, label, onPress }: { icon: any; label: string; onPress: () => void }) => (
-  <TouchableOpacity style={styles.optionRow} onPress={onPress}>
-    <View style={styles.optionIconContainer}>
-      <Image source={icon} style={styles.optionIcon} />
-    </View>
-    <Text style={styles.optionLabel}>{label}</Text>
-    <Text style={styles.optionArrow}>{'>'}</Text>
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
