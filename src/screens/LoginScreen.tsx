@@ -13,6 +13,7 @@ import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const checkmarkIcon = require('../assets/icons/checkmark.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -20,6 +21,7 @@ const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const LoginScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -96,39 +98,40 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>{t('auth.greeting')}</Text>
-      <Text style={styles.subheader}>{t('auth.subtitle')}</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.header, { color: theme.text }]}>{t('auth.greeting')}</Text>
+      <Text style={[styles.subheader, { color: theme.muted }]}>{t('auth.subtitle')}</Text>
 
-      <Text style={styles.label}>{t('auth.email')}</Text>
-      <View style={styles.inputRow}>
+      <Text style={[styles.label, { color: theme.muted }]}>{t('auth.email')}</Text>
+      <View style={[styles.inputRow, { borderColor: theme.primary }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text }]}
           value={email}
           onChangeText={setEmail}
           placeholder={t('auth.email')}
+          placeholderTextColor={theme.muted}
           keyboardType="email-address"
           autoCapitalize="none"
         />
         {email.length > 3 && (
-          <Image source={checkmarkIcon} style={styles.icon} />
+          <Image source={checkmarkIcon} style={[styles.icon, { tintColor: theme.primary }]} />
         )}
       </View>
 
-      <Text style={styles.passwordLabel}>{t('auth.password')}</Text>
-      <View style={styles.inputRow}>
+      <Text style={[styles.passwordLabel, { color: theme.muted }]}>{t('auth.password')}</Text>
+      <View style={[styles.inputRow, { borderColor: theme.primary }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text }]}
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
           placeholder={t('auth.password')}
+          placeholderTextColor={theme.muted}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Image
             source={showPassword ? eyeOffIcon : eyeIcon}
-            style={styles.icon}
-          />
+            style={[styles.icon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
       </View>
 
@@ -136,33 +139,33 @@ const LoginScreen = ({ navigation }: any) => {
         <View style={styles.checkboxContainer}>
           <CheckBox
             value={rememberMe}
-          onValueChange={(value) => {
-            setRememberMe(value);
-            if (!value) {
-              // Limpiar credenciales si se desmarca
-              AsyncStorage.removeItem('rememberedEmail');
-              AsyncStorage.removeItem('rememberedPassword');
-              AsyncStorage.removeItem('rememberMe');
-            }
-          }}
-            tintColors={{ true: '#1CC88A', false: '#ccc' }}
+            onValueChange={(value) => {
+              setRememberMe(value);
+              if (!value) {
+                // Limpiar credenciales si se desmarca
+                AsyncStorage.removeItem('rememberedEmail');
+                AsyncStorage.removeItem('rememberedPassword');
+                AsyncStorage.removeItem('rememberMe');
+              }
+            }}
+            tintColors={{ true: theme.primary, false: theme.border }}
           />
-          <Text style={styles.rememberText}>{t('auth.rememberMe')}</Text>
+          <Text style={[styles.rememberText, { color: theme.text }]}>{t('auth.rememberMe')}</Text>
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
+          <Text style={[styles.forgotText, { color: theme.primary }]}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>{t('auth.login').toUpperCase()}</Text>
+      <TouchableOpacity style={[styles.loginButton, { backgroundColor: theme.primary }]} onPress={handleLogin}>
+        <Text style={[styles.loginButtonText, { color: theme.text }]}>{t('auth.login').toUpperCase()}</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
+        <Text style={[styles.registerText, { color: theme.text }]}>{t('auth.noAccount')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}> {t('auth.register')}</Text>
+          <Text style={[styles.registerLink, { color: theme.primary }]}>{t('auth.register')}</Text>
         </TouchableOpacity>
       </View>
     </View>
