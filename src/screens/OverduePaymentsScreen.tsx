@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, ScrollView, ActivityIndicator, Platform, Alert, Modal } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -39,7 +40,6 @@ function getWeekDates(date = new Date()) {
 
 const OverduePaymentsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute();
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -51,6 +51,7 @@ const OverduePaymentsScreen = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all'); // all, overdue, paid
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('all');
+  const { theme } = useTheme();
 
   useEffect(() => {
     setWeekDates(getWeekDates(selectedDate));
@@ -215,55 +216,56 @@ const OverduePaymentsScreen = () => {
   };
 
   const renderPayment = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.card }]}>
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{item.client_name || t('overduePayments.client')}</Text>
-        <Text style={styles.cardField}>{t('overduePayments.loanNumber')}: <Text style={styles.cardValue}>{item.loan_id || '-'}</Text></Text>
-        <Text style={styles.cardField}>{t('overduePayments.amount')}: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_paid || item.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.cardField}>{t('overduePayments.date')}: <Text style={styles.cardValue}>{item.payment_date || item.due_date || '-'}</Text></Text>
-        <Text style={styles.cardField}>{t('overduePayments.method')}: <Text style={styles.cardValue}>{item.method || '-'}</Text></Text>
-        <Text style={styles.cardField}>{t('overduePayments.status')}: <Text style={[styles.cardValue, { color: item.status === 'vencida' ? '#EF4444' : '#10B981' }]}>{item.status || '-'}</Text></Text>
+        <Text style={[styles.cardName, { color: theme.primary }]}>{item.client_name || t('overduePayments.client')}</Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('overduePayments.loanNumber')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.loan_id || '-'}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('overduePayments.amount')}: <Text style={[styles.cardValue, { color: theme.text }]}>RD$ {parseFloat(item.amount_paid || item.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('overduePayments.date')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.payment_date || item.due_date || '-'}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('overduePayments.method')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.method || '-'}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.text }]}>{t('overduePayments.status')}: <Text style={[styles.cardValue, { color: item.status === 'vencida' ? theme.accent : theme.primary }]}>{item.status || '-'}</Text></Text>
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.cancelButton]} 
+          style={[styles.actionButton, styles.cancelButton, { backgroundColor: theme.accent }]} 
           onPress={() => handleCancelPayment(item)}
         >
-          <Text style={styles.cancelButtonText}>✕</Text>
+          <Text style={[styles.cancelButtonText, { color: theme.card } ]}>✕</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.printButton]} 
+          style={[styles.actionButton, styles.printButton, { backgroundColor: theme.secondary }]} 
           onPress={() => handlePrintReceipt(item)}
         >
-          <Image source={printer} style={styles.printButtonIcon} />
+          <Image source={printer} style={[styles.printButtonIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('overduePayments.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('overduePayments.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>{t('overduePayments.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('overduePayments.subtitle')}</Text>
       
       {/* Buscador */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder={t('overduePayments.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
         <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
-          <Image source={setting} style={styles.filterIconImg} />
+          <Image source={setting} style={[styles.filterIconImg, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
       
@@ -274,11 +276,11 @@ const OverduePaymentsScreen = () => {
           return (
             <TouchableOpacity
               key={idx}
-              style={[styles.calendarBubble, isSelected && styles.calendarBubbleActive]}
+              style={[styles.calendarBubble, { backgroundColor: isSelected ? theme.primary : theme.card }]}
               onPress={() => setSelectedDate(date)}
             >
-              <Text style={[styles.calendarDay, isSelected && styles.calendarDayActive]}>{date.getDate()}</Text>
-              <Text style={[styles.calendarWeek, isSelected && styles.calendarWeekActive]}>{weekdays[date.getDay()]}</Text>
+              <Text style={[styles.calendarDay, { color: isSelected ? theme.card : theme.text }]}>{date.getDate()}</Text>
+              <Text style={[styles.calendarWeek, { color: isSelected ? theme.card : theme.muted }]}>{weekdays[date.getDay()]}</Text>
             </TouchableOpacity>
           );
         })}
@@ -299,7 +301,7 @@ const OverduePaymentsScreen = () => {
       
       {/* Lista de pagos */}
       {loading ? (
-        <ActivityIndicator size="large" color="#1CC88A" style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 32 }} />
       ) : (
         <FlatList
           data={filteredPayments}
@@ -308,8 +310,8 @@ const OverduePaymentsScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('overduePayments.noPayments')}</Text>
-              <Text style={styles.emptySubtext}>{t('overduePayments.tryFilters')}</Text>
+              <Text style={[styles.emptyText, { color: theme.muted }]}>{t('overduePayments.noPayments')}</Text>
+              <Text style={[styles.emptySubtext, { color: theme.muted }]}>{t('overduePayments.tryFilters')}</Text>
             </View>
           }
         />
@@ -323,76 +325,76 @@ const OverduePaymentsScreen = () => {
         onRequestClose={() => setShowFilterModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('overduePayments.filters')}</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('overduePayments.filters')}</Text>
             
-            <Text style={styles.filterLabel}>{t('overduePayments.paymentStatus')}:</Text>
+            <Text style={[styles.filterLabel, { color: theme.text }]}>{t('overduePayments.paymentStatus')}:</Text>
             <View style={styles.filterOptions}>
               <TouchableOpacity
-                style={[styles.filterOption, selectedFilter === 'all' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedFilter === 'all' ? theme.primary : theme.card, borderColor: selectedFilter === 'all' ? theme.primary : theme.border }]}
                 onPress={() => setSelectedFilter('all')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'all' && styles.filterOptionTextActive]}>{t('overduePayments.all')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedFilter === 'all' ? theme.card : theme.text, fontWeight: selectedFilter === 'all' ? 'bold' : 'normal' }]}>{t('overduePayments.all')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterOption, selectedFilter === 'overdue' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedFilter === 'overdue' ? theme.accent : theme.card, borderColor: selectedFilter === 'overdue' ? theme.accent : theme.border }]}
                 onPress={() => setSelectedFilter('overdue')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'overdue' && styles.filterOptionTextActive]}>{t('overduePayments.overdue')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedFilter === 'overdue' ? theme.card : theme.text, fontWeight: selectedFilter === 'overdue' ? 'bold' : 'normal' }]}>{t('overduePayments.overdue')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterOption, selectedFilter === 'paid' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedFilter === 'paid' ? theme.secondary : theme.card, borderColor: selectedFilter === 'paid' ? theme.secondary : theme.border }]}
                 onPress={() => setSelectedFilter('paid')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'paid' && styles.filterOptionTextActive]}>{t('overduePayments.paid')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedFilter === 'paid' ? theme.card : theme.text, fontWeight: selectedFilter === 'paid' ? 'bold' : 'normal' }]}>{t('overduePayments.paid')}</Text>
               </TouchableOpacity>
             </View>
             
-            <Text style={styles.filterLabel}>{t('overduePayments.paymentMethod')}:</Text>
+            <Text style={[styles.filterLabel, { color: theme.text }]}>{t('overduePayments.paymentMethod')}:</Text>
             <View style={styles.filterOptions}>
               <TouchableOpacity
-                style={[styles.filterOption, selectedPaymentMethod === 'all' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedPaymentMethod === 'all' ? theme.primary : theme.card, borderColor: selectedPaymentMethod === 'all' ? theme.primary : theme.border }]}
                 onPress={() => setSelectedPaymentMethod('all')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'all' && styles.filterOptionTextActive]}>{t('overduePayments.all')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedPaymentMethod === 'all' ? theme.card : theme.text, fontWeight: selectedPaymentMethod === 'all' ? 'bold' : 'normal' }]}>{t('overduePayments.all')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterOption, selectedPaymentMethod === 'efectivo' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedPaymentMethod === 'efectivo' ? theme.primary : theme.card, borderColor: selectedPaymentMethod === 'efectivo' ? theme.primary : theme.border }]}
                 onPress={() => setSelectedPaymentMethod('efectivo')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'efectivo' && styles.filterOptionTextActive]}>{t('overduePayments.cash')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedPaymentMethod === 'efectivo' ? theme.card : theme.text, fontWeight: selectedPaymentMethod === 'efectivo' ? 'bold' : 'normal' }]}>{t('overduePayments.cash')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterOption, selectedPaymentMethod === 'transferencia' && styles.filterOptionActive]}
+                style={[styles.filterOption, { backgroundColor: selectedPaymentMethod === 'transferencia' ? theme.primary : theme.card, borderColor: selectedPaymentMethod === 'transferencia' ? theme.primary : theme.border }]}
                 onPress={() => setSelectedPaymentMethod('transferencia')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'transferencia' && styles.filterOptionTextActive]}>{t('overduePayments.transfer')}</Text>
+                <Text style={[styles.filterOptionText, { color: selectedPaymentMethod === 'transferencia' ? theme.card : theme.text, fontWeight: selectedPaymentMethod === 'transferencia' ? 'bold' : 'normal' }]}>{t('overduePayments.transfer')}</Text>
               </TouchableOpacity>
             </View>
             
             <TouchableOpacity 
-              style={styles.modalCloseButton} 
+              style={[styles.modalCloseButton, { backgroundColor: theme.primary }]} 
               onPress={() => setShowFilterModal(false)}
             >
-              <Text style={styles.modalCloseButtonText}>{t('overduePayments.applyFilters')}</Text>
+              <Text style={[styles.modalCloseButtonText, { color: theme.card }]}>{t('overduePayments.applyFilters')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
       
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: '#00278C' }]} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: '#00278C' }]} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
