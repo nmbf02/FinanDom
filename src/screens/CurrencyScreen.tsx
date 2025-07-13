@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const backIcon = require('../assets/icons/back.png');
 const checkIcon = require('../assets/icons/checkmark.png');
@@ -21,6 +22,7 @@ type RootStackParamList = {
 const CurrencyScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [selected, setSelected] = useState('DOP');
 
   useEffect(() => {
@@ -42,24 +44,24 @@ const CurrencyScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('currency.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('currency.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>{t('currency.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('currency.subtitle')}</Text>
       <FlatList
         data={CURRENCIES}
         keyExtractor={item => item.code}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.currencyRow} onPress={() => handleSelect(item.code)}>
-            <Text style={styles.currencyCode}>{item.code}</Text>
-            <Text style={styles.currencyName}>{getCurrencyName(item.code)}</Text>
-            {selected === item.code && <Image source={checkIcon} style={styles.checkIcon} />}
+          <TouchableOpacity style={[styles.currencyRow, { backgroundColor: theme.card }]} onPress={() => handleSelect(item.code)}>
+            <Text style={[styles.currencyCode, { color: theme.primary }]}>{item.code}</Text>
+            <Text style={[styles.currencyName, { color: theme.text }]}>{getCurrencyName(item.code)}</Text>
+            {selected === item.code && <Image source={checkIcon} style={[styles.checkIcon, { tintColor: theme.primary }]} />}
           </TouchableOpacity>
         )}
         contentContainerStyle={{ paddingBottom: 40 }}
