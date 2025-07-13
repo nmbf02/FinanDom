@@ -5,6 +5,7 @@ import { pick, keepLocalCopy, types } from '@react-native-documents/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 // Iconos del navbar
 const home = require('../assets/icons/home.png');
@@ -48,6 +49,7 @@ const ClientScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
+  const { theme } = useTheme();
   const clientId = (route.params as any)?.clientId;
 
   const [client, setClient] = useState<Client>({
@@ -296,12 +298,12 @@ const ClientScreen = () => {
   };
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('clientScreen.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('clientScreen.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('ClientList')}>
-          <Image source={menuIcon} style={styles.menuIcon} />
+          <Image source={menuIcon} style={[styles.menuIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
       <ScrollView 
@@ -311,40 +313,43 @@ const ClientScreen = () => {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>
           {clientId ? t('clientScreen.edit') : t('clientScreen.create')} - {t('clientScreen.clients')}
         </Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
           placeholder={t('clientScreen.fullNamePlaceholder')}
+          placeholderTextColor={theme.muted}
           value={client.name}
           onChangeText={(text) => setClient({...client, name: text})}
         />
 
         <View style={styles.documentTypeContainer}>
-          <Text style={styles.label}>{t('clientScreen.documentType')}</Text>
+          <Text style={[styles.label, { color: theme.text }]}>{t('clientScreen.documentType')}</Text>
           <TouchableOpacity 
-            style={styles.documentTypeButton}
+            style={[styles.documentTypeButton, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowDocumentTypeModal(true)}
           >
-            <Text style={styles.documentTypeText}>
+            <Text style={[styles.documentTypeText, { color: theme.text }]}>
               {documentTypes.find(dt => dt.id === client.document_type_id)?.name || t('clientScreen.cedula')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
           placeholder={t('clientScreen.documentNumberPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={client.identification}
           onChangeText={(text) => setClient({...client, identification: text})}
           keyboardType="numeric"
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
           placeholder={t('clientScreen.emailPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={client.email}
           onChangeText={(text) => setClient({...client, email: text})}
           keyboardType="email-address"
@@ -352,16 +357,18 @@ const ClientScreen = () => {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
           placeholder={t('clientScreen.phonePlaceholder')}
+          placeholderTextColor={theme.muted}
           value={client.phone}
           onChangeText={(text) => setClient({...client, phone: text})}
           keyboardType="phone-pad"
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
           placeholder={t('clientScreen.addressPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={client.address}
           onChangeText={(text) => setClient({...client, address: text})}
           multiline
@@ -370,31 +377,31 @@ const ClientScreen = () => {
         />
 
         <View style={styles.photoSection}>
-          <Text style={styles.sectionLabel}>{t('clientScreen.clientPhoto')}</Text>
+          <Text style={[styles.sectionLabel, { color: theme.text }]}>{t('clientScreen.clientPhoto')}</Text>
           
-          <TouchableOpacity style={styles.addPhotoButton} onPress={handlePickPhoto}>
+          <TouchableOpacity style={[styles.addPhotoButton, { borderColor: theme.border }]} onPress={handlePickPhoto}>
             {clientPhoto ? (
               <Image source={{ uri: clientPhoto.uri }} style={styles.clientPhoto} />
             ) : (
-              <Text style={styles.addPhotoText}>{t('clientScreen.addPhoto')}</Text>
+              <Text style={[styles.addPhotoText, { color: theme.muted }]}>{t('clientScreen.addPhoto')}</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.documentsSection}>
-          <Text style={styles.sectionLabel}>{t('clientScreen.clientDocuments')}</Text>
+          <Text style={[styles.sectionLabel, { color: theme.text }]}>{t('clientScreen.clientDocuments')}</Text>
           
-          <TouchableOpacity style={styles.addDocumentButton} onPress={handlePickDocument}>
-            <Text style={styles.addDocumentText}>{t('clientScreen.addDocument')}</Text>
+          <TouchableOpacity style={[styles.addDocumentButton, { borderColor: theme.border }]} onPress={handlePickDocument}>
+            <Text style={[styles.addDocumentText, { color: theme.muted }]}>{t('clientScreen.addDocument')}</Text>
           </TouchableOpacity>
 
           {documents.map((doc, _index) => (
-            <View key={doc.id} style={styles.documentItem}>
-              <Text style={styles.documentName} numberOfLines={1}>
+            <View key={doc.id} style={[styles.documentItem, { backgroundColor: theme.card }]}>
+              <Text style={[styles.documentName, { color: theme.text }]} numberOfLines={1}>
                 {doc.name}
               </Text>
               <TouchableOpacity 
-                style={styles.removeDocumentButton}
+                style={[styles.removeDocumentButton, { backgroundColor: theme.primary }]}
                 onPress={() => removeDocument(doc.id)}
               >
                 <Text style={styles.removeDocumentText}>×</Text>
@@ -404,7 +411,7 @@ const ClientScreen = () => {
         </View>
 
         <TouchableOpacity 
-          style={[styles.button, isLoading && styles.buttonDisabled]} 
+          style={[styles.button, { backgroundColor: theme.primary }, isLoading && styles.buttonDisabled]} 
           onPress={handleSave}
           disabled={isLoading}
         >
@@ -422,8 +429,8 @@ const ClientScreen = () => {
         onRequestClose={() => setShowDocumentTypeModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('clientScreen.selectDocumentType')}</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('clientScreen.selectDocumentType')}</Text>
             
             {documentTypes.map((docType) => (
               <TouchableOpacity 
@@ -434,12 +441,12 @@ const ClientScreen = () => {
                   setShowDocumentTypeModal(false);
                 }}
               >
-                <Text style={styles.modalOptionText}>{docType.name}</Text>
+                <Text style={[styles.modalOptionText, { color: theme.text }]}>{docType.name}</Text>
               </TouchableOpacity>
             ))}
             
             <TouchableOpacity 
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { backgroundColor: theme.primary }]}
               onPress={() => setShowDocumentTypeModal(false)}
             >
               <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
@@ -449,18 +456,18 @@ const ClientScreen = () => {
       </Modal>
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>

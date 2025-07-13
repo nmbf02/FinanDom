@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 // Iconos (debes agregar los archivos reales en src/assets/icons/)
 const menuIcon = require('../assets/icons/menu.png');
@@ -45,6 +46,7 @@ interface Client {
 const ClientListScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { theme, mode } = useTheme();
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
@@ -181,35 +183,35 @@ const ClientListScreen = () => {
   };
 
   const renderClient = ({ item }: { item: Client }) => (
-    <View style={styles.clientCard}>
+    <View style={[styles.clientCard, { backgroundColor: mode === 'light' ? '#fff' : theme.card }]}>
       <View style={styles.avatarContainer}>
         <Image 
           source={item.photo_url ? { uri: item.photo_url } : avatarDefault} 
-          style={styles.avatar} 
+          style={[styles.avatar, { backgroundColor: theme.card }]} 
         />
         <View style={[
           styles.statusIndicator, 
-          { backgroundColor: item.is_active ? '#10B981' : '#EF4444' }
+          { backgroundColor: item.is_active ? theme.primary : '#EF4444', borderColor: mode === 'light' ? '#FFF' : theme.card }
         ]} />
       </View>
       <View style={styles.clientInfo}>
-        <Text style={styles.clientName}>{item.name}</Text>
+        <Text style={[styles.clientName, { color: theme.text }]}>{item.name}</Text>
         <View style={styles.documentInfo}>
-          <Text style={styles.documentType}>
+          <Text style={[styles.documentType, { backgroundColor: theme.card, color: theme.muted }]}>
             {item.document_type_name || t('clientListScreen.cedula')}
           </Text>
-          <Text style={styles.clientDoc}>{item.identification || t('clientListScreen.noDocument')}</Text>
+          <Text style={[styles.clientDoc, { color: theme.muted }]}>{item.identification || t('clientListScreen.noDocument')}</Text>
         </View>
-        <Text style={styles.clientPhone}>{item.phone || t('clientListScreen.noPhone')}</Text>
+        <Text style={[styles.clientPhone, { color: theme.muted }]}>{item.phone || t('clientListScreen.noPhone')}</Text>
         <View style={styles.loansRow}>
-          <Text style={styles.activeLoans}>{t('clientListScreen.activeLoans')}</Text>
-          <Image source={checkIcon} style={styles.starIcon} />
-          <Text style={styles.activeLoansNum}>{item.active_loans ?? 0}</Text>
+          <Text style={[styles.activeLoans, { color: theme.primary }]}>{t('clientListScreen.activeLoans')}</Text>
+          <Image source={checkIcon} style={[styles.starIcon, { tintColor: theme.primary }]} />
+          <Text style={[styles.activeLoansNum, { color: theme.primary }]}>{item.active_loans ?? 0}</Text>
         </View>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => navigation.navigate('Client', { clientId: item.id })}>
-          <Image source={editIcon} style={styles.actionIcon} />
+          <Image source={editIcon} style={[styles.actionIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity 
           onPress={() => handleCancelClient(item)}
@@ -219,7 +221,8 @@ const ClientListScreen = () => {
             source={cancelIcon} 
             style={[
               styles.actionIcon, 
-              (item.active_loans || 0) > 0 && styles.actionIconDisabled
+              (item.active_loans || 0) > 0 && styles.actionIconDisabled,
+              { tintColor: '#EF4444' }
             ]} 
           />
         </TouchableOpacity>
@@ -228,7 +231,8 @@ const ClientListScreen = () => {
             source={likeIcon} 
             style={[
               styles.actionIcon, 
-              item.is_favorite === true && styles.actionIconFavorite
+              item.is_favorite === true && styles.actionIconFavorite,
+              { tintColor: item.is_favorite === true ? '#EF4444' : theme.muted }
             ]} 
           />
         </TouchableOpacity>
@@ -237,20 +241,21 @@ const ClientListScreen = () => {
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('clientListScreen.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('clientListScreen.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
-          <Image source={menuIcon} style={styles.menuIcon} />
+          <Image source={menuIcon} style={[styles.menuIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
 
       {/* Buscador */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder={t('clientListScreen.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
@@ -259,24 +264,24 @@ const ClientListScreen = () => {
       {/* Filtros */}
       <View style={styles.filterRow}>
         <TouchableOpacity
-          style={[styles.filterBtn, filters.activo && styles.filterBtnActive]}
+          style={[styles.filterBtn, { backgroundColor: theme.card }, filters.activo && { backgroundColor: theme.primary }]}
           onPress={() => setFilters(prev => ({ ...prev, activo: !prev.activo }))}
         >
-          <Text style={[styles.filterText, filters.activo && styles.filterTextActive]}>{t('clientListScreen.active')}</Text>
+          <Text style={[styles.filterText, { color: filters.activo ? '#fff' : theme.muted }]}>{t('clientListScreen.active')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterBtn, filters.inactivo && styles.filterBtnInactive]}
+          style={[styles.filterBtn, { backgroundColor: theme.card }, filters.inactivo && { backgroundColor: theme.accent || theme.primary }]}
           onPress={() => setFilters(prev => ({ ...prev, inactivo: !prev.inactivo }))}
         >
-          <Text style={[styles.filterText, filters.inactivo && styles.filterTextInactive]}>{t('clientListScreen.inactive')}</Text>
+          <Text style={[styles.filterText, { color: filters.inactivo ? '#fff' : theme.muted }]}>{t('clientListScreen.inactive')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterBtn, filters.favoritos && styles.filterBtnFavorites]}
+          style={[styles.filterBtn, { backgroundColor: theme.card }, filters.favoritos && { backgroundColor: '#FEE2E2' }]}
           onPress={() => setFilters(prev => ({ ...prev, favoritos: !prev.favoritos }))}
         >
           <Image 
             source={likeIcon} 
-            style={[styles.filterIcon, filters.favoritos && styles.filterIconActive]} 
+            style={[styles.filterIcon, filters.favoritos && { tintColor: '#EF4444' }, { tintColor: filters.favoritos ? '#EF4444' : theme.muted }]} 
           />
         </TouchableOpacity>
       </View>
@@ -291,18 +296,18 @@ const ClientListScreen = () => {
       />
 
       {/* Navbar */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
