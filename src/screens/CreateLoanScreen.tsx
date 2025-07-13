@@ -8,6 +8,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 
 const home = require('../assets/icons/home.png');
@@ -77,6 +78,7 @@ type LateFeeType = {
 const CreateLoanScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [clients, setClients] = useState<any[]>([]);
   const [lateFeeTypes, setLateFeeTypes] = useState<LateFeeType[]>([]);
   const [clientId, setClientId] = useState('');
@@ -243,27 +245,27 @@ const CreateLoanScreen = () => {
   };
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('createLoan.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('createLoan.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
-          <Image source={menuIcon} style={styles.menuIcon} />
+          <Image source={menuIcon} style={[styles.menuIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
         showsVerticalScrollIndicator={true}
         bounces={true}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.subtitle}>{t('createLoan.subtitle')}</Text>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>{t('createLoan.subtitle')}</Text>
 
       <Picker
         selectedValue={clientId}
         onValueChange={(value: string) => setClientId(value)}
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
       >
         <Picker.Item label={t('createLoan.selectClient')} value="" />
         {clients.map((client: any) => (
@@ -271,29 +273,32 @@ const CreateLoanScreen = () => {
         ))}
       </Picker>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         placeholder={t('createLoan.loanAmount')}
+        placeholderTextColor={theme.muted}
         value={amount}
         onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         placeholder={t('createLoan.interestRate')}
+        placeholderTextColor={theme.muted}
         value={interestRate}
         onChangeText={text => setInterestRate(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         placeholder={t('createLoan.numInstallments')}
+        placeholderTextColor={theme.muted}
         value={numInstallments}
         onChangeText={text => setNumInstallments(text.replace(/[^0-9]/g, ''))}
         keyboardType="numeric"
       />
 
-      <TouchableOpacity style={styles.input} onPress={() => setShowStartPicker(true)}>
-        <Text style={{ color: '#555' }}>{`${t('createLoan.startDate')}: ${formatDateLocal(startDate)}`}</Text>
+      <TouchableOpacity style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setShowStartPicker(true)}>
+        <Text style={{ color: theme.text }}>{`${t('createLoan.startDate')}: ${formatDateLocal(startDate)}`}</Text>
       </TouchableOpacity>
 
       {showStartPicker && (
@@ -306,15 +311,15 @@ const CreateLoanScreen = () => {
       )}
 
       <View style={styles.frequencySection}>
-        <Text style={styles.sectionLabel}>{t('createLoan.paymentFrequency')}:</Text>
+        <Text style={[styles.sectionLabel, { color: theme.text }]}>{t('createLoan.paymentFrequency')}:</Text>
         <View style={styles.frequencyButtons}>
           {frequencies.map(f => (
             <TouchableOpacity
               key={f.value}
-              style={[styles.freqButton, frequency === f.value && styles.freqButtonActive]}
+              style={[styles.freqButton, { borderColor: theme.primary }, frequency === f.value && { backgroundColor: theme.primary }]}
               onPress={() => setFrequency(f.value)}
             >
-              <Text style={[styles.freqButtonText, frequency === f.value && styles.freqButtonTextActive]}>
+              <Text style={[styles.freqButtonText, { color: frequency === f.value ? '#fff' : theme.primary }]}>
                 {t(`createLoan.frequencies.${f.value}`)}
               </Text>
             </TouchableOpacity>
@@ -323,11 +328,11 @@ const CreateLoanScreen = () => {
       </View>
 
       <View style={styles.frequencySection}>
-        <Text style={styles.sectionLabel}>{t('createLoan.lateFeeType')}:</Text>
+        <Text style={[styles.sectionLabel, { color: theme.text }]}>{t('createLoan.lateFeeType')}:</Text>
         <Picker
           selectedValue={lateFeeTypeId}
           onValueChange={(value: string) => setLateFeeTypeId(value)}
-          style={styles.input}
+          style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         >
           {lateFeeTypes.map((type: LateFeeType) => (
             <Picker.Item key={type.id} label={type.name} value={type.id.toString()} />
@@ -336,71 +341,73 @@ const CreateLoanScreen = () => {
       </View>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         placeholder={t('createLoan.graceDays')}
+        placeholderTextColor={theme.muted}
         value={lateDays}
         onChangeText={text => setLateDays(text.replace(/[^0-9]/g, ''))}
         keyboardType="numeric"
       />
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
         placeholder={t('createLoan.lateFeePercentage')}
+        placeholderTextColor={theme.muted}
         value={latePercent}
         onChangeText={text => setLatePercent(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
 
-      <TouchableOpacity style={styles.input} onPress={handlePickPdf}>
-        <Text style={{ color: '#555' }}>{pdf ? `${t('createLoan.pdfSelected')}: ${pdf.name}` : t('createLoan.addPdfDocument')}</Text>
+      <TouchableOpacity style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={handlePickPdf}>
+        <Text style={{ color: theme.text }}>{pdf ? `${t('createLoan.pdfSelected')}: ${pdf.name}` : t('createLoan.addPdfDocument')}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.calcButton} onPress={handleCalculateInstallments}>
-        <Text style={styles.calcButtonText}>{t('createLoan.calculateInstallment')}</Text>
+      <TouchableOpacity style={[styles.calcButton, { backgroundColor: theme.accent || theme.primary }]} onPress={handleCalculateInstallments}>
+        <Text style={[styles.calcButtonText, { color: theme.text }]}>{t('createLoan.calculateInstallment')}</Text>
       </TouchableOpacity>
 
       {installments.length > 0 && (
-        <View style={styles.tableContainer}>
-          <View style={styles.tableHeader}>
-            <Text style={styles.tableCell}>{t('createLoan.installment')}</Text>
-            <Text style={styles.tableCell}>{t('createLoan.date')}</Text>
-            <Text style={styles.tableCell}>{t('createLoan.amount')}</Text>
-            <Text style={styles.tableCell}>{t('createLoan.withLateFee')}</Text>
+        <View style={[styles.tableContainer, { borderColor: theme.border }]}>
+          <View style={[styles.tableHeader, { backgroundColor: theme.card }]}>
+            <Text style={[styles.tableCell, { color: theme.text }]}>{t('createLoan.installment')}</Text>
+            <Text style={[styles.tableCell, { color: theme.text }]}>{t('createLoan.date')}</Text>
+            <Text style={[styles.tableCell, { color: theme.text }]}>{t('createLoan.amount')}</Text>
+            <Text style={[styles.tableCell, { color: theme.text }]}>{t('createLoan.withLateFee')}</Text>
           </View>
           {installments.map((row, idx) => (
-            <View key={idx} style={[styles.tableRow, idx % 2 === 0 && { backgroundColor: '#f9f9f9' }]}>
-              <Text style={styles.tableCell}>{row.cuota}</Text>
-              <Text style={styles.tableCell}>{row.fecha}</Text>
-              <Text style={styles.tableCell}>RD$ {row.monto.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-              <Text style={styles.tableCell}>RD$ {row.montoAtraso.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+            <View key={idx} style={[styles.tableRow, idx % 2 === 0 && { backgroundColor: theme.background }]}>
+              <Text style={[styles.tableCell, { color: theme.text }]}>{row.cuota}</Text>
+              <Text style={[styles.tableCell, { color: theme.text }]}>{row.fecha}</Text>
+              <Text style={[styles.tableCell, { color: theme.text }]}>RD$ {row.monto.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+              <Text style={[styles.tableCell, { color: theme.text }]}>RD$ {row.montoAtraso.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
           ))}
           
           {/* Información adicional sobre el tipo de mora */}
-          <View style={styles.moraInfoContainer}>
-            <Text style={styles.moraInfoTitle}>
+          <View style={[styles.moraInfoContainer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
+            <Text style={[styles.moraInfoTitle, { color: theme.text }]}>
               {t('createLoan.lateFeeType')}: {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.name}
             </Text>
-            <Text style={styles.moraInfoText}>
+            <Text style={[styles.moraInfoText, { color: theme.muted }]}>
               {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.description}
             </Text>
             {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'fixed_interval' && (
-              <Text style={styles.moraInfoText}>
+              <Text style={[styles.moraInfoText, { color: theme.muted }]}>
                 {t('createLoan.fixedIntervalExample')}: RD$4,620 + (RD$4,620 × {(parseFloat(latePercent || '0') / 100).toFixed(3)}) = RD$4,620 + RD${(4620 * parseFloat(latePercent || '0') / 100).toFixed(2)} = RD${(4620 * (1 + parseFloat(latePercent || '0') / 100)).toFixed(2)}
               </Text>
             )}
             {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && (
               <View>
-                <Text style={styles.moraInfoText}>
+                <Text style={[styles.moraInfoText, { color: theme.muted }]}>
                   {t('createLoan.carryOverExample')}:
                 </Text>
-                <Text style={styles.moraInfoText}>
+                <Text style={[styles.moraInfoText, { color: theme.muted }]}>
                   • {t('createLoan.installment')} 1 {t('createLoan.withLateFee')}: RD$2,300 + RD$46 = RD$2,346
                 </Text>
-                <Text style={styles.moraInfoText}>
+                <Text style={[styles.moraInfoText, { color: theme.muted }]}>
                   • {t('createLoan.installment')} 2 {t('createLoan.withLateFee')}: RD$2,300 + RD$46 = RD$2,346
                 </Text>
-                <Text style={styles.moraInfoText}>
+                <Text style={[styles.moraInfoText, { color: theme.muted }]}>
                   • {t('createLoan.totalAccumulated')}: RD$4,646 + 2% = RD$4,738.92
                 </Text>
               </View>
@@ -409,13 +416,13 @@ const CreateLoanScreen = () => {
 
           {/* Tabla de cálculo acumulado para mora por arrastre */}
           {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && installments.length > 0 && (
-            <View style={styles.carryOverTableContainer}>
-              <Text style={styles.carryOverTableTitle}>{t('createLoan.carryOverCalculation')}</Text>
-              <View style={styles.carryOverTableHeader}>
-                <Text style={styles.carryOverTableCell}>{t('createLoan.installment')}</Text>
-                <Text style={styles.carryOverTableCell}>{t('createLoan.baseAmount')}</Text>
-                <Text style={styles.carryOverTableCell}>{t('createLoan.individualLateFee')}</Text>
-                <Text style={styles.carryOverTableCell}>{t('createLoan.totalAccumulated')}</Text>
+            <View style={[styles.carryOverTableContainer, { borderColor: theme.primary, backgroundColor: theme.background }]}>
+              <Text style={[styles.carryOverTableTitle, { backgroundColor: theme.primary, color: '#fff' }]}>{t('createLoan.carryOverCalculation')}</Text>
+              <View style={[styles.carryOverTableHeader, { backgroundColor: theme.card }]}>
+                <Text style={[styles.carryOverTableCell, { color: theme.text }]}>{t('createLoan.installment')}</Text>
+                <Text style={[styles.carryOverTableCell, { color: theme.text }]}>{t('createLoan.baseAmount')}</Text>
+                <Text style={[styles.carryOverTableCell, { color: theme.text }]}>{t('createLoan.individualLateFee')}</Text>
+                <Text style={[styles.carryOverTableCell, { color: theme.text }]}>{t('createLoan.totalAccumulated')}</Text>
               </View>
               {(() => {
                 const lateFeeRate = parseFloat(latePercent || '2') / 100;
@@ -434,11 +441,11 @@ const CreateLoanScreen = () => {
                   const totalAcumulado = deudaConMoraAcumulada + (deudaConMoraAcumulada * lateFeeRate);
                   
                   return (
-                    <View key={`carry-${idx}`} style={[styles.carryOverTableRow, idx % 2 === 0 && { backgroundColor: '#f9f9f9' }]}>
-                      <Text style={styles.carryOverTableCell}>{row.cuota}</Text>
-                      <Text style={styles.carryOverTableCell}>RD$ {montoBase.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-                      <Text style={styles.carryOverTableCell}>RD$ {moraIndividual.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-                      <Text style={styles.carryOverTableCell}>RD$ {totalAcumulado.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                    <View key={`carry-${idx}`} style={[styles.carryOverTableRow, idx % 2 === 0 && { backgroundColor: theme.card }]}>
+                      <Text style={[styles.carryOverTableCell, { color: theme.text }]}>{row.cuota}</Text>
+                      <Text style={[styles.carryOverTableCell, { color: theme.text }]}>RD$ {montoBase.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                      <Text style={[styles.carryOverTableCell, { color: theme.text }]}>RD$ {moraIndividual.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                      <Text style={[styles.carryOverTableCell, { color: theme.text }]}>RD$ {totalAcumulado.toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
                     </View>
                   );
                 });
@@ -447,50 +454,50 @@ const CreateLoanScreen = () => {
           )}
 
           {/* Resumen del préstamo */}
-          <View style={styles.loanSummaryContainer}>
-            <Text style={styles.loanSummaryTitle}>{t('createLoan.loanSummary')}</Text>
+          <View style={[styles.loanSummaryContainer, { backgroundColor: theme.card, borderTopColor: theme.primary }]}>
+            <Text style={[styles.loanSummaryTitle, { color: theme.text }]}>{t('createLoan.loanSummary')}</Text>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('createLoan.loanAmount')}:</Text>
-              <Text style={styles.summaryValue}>RD$ {parseFloat(amount || '0').toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+              <Text style={[styles.summaryLabel, { color: theme.muted }]}>{t('createLoan.loanAmount')}:</Text>
+              <Text style={[styles.summaryValue, { color: theme.text }]}>RD$ {parseFloat(amount || '0').toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('createLoan.interest')} ({interestRate}%):</Text>
-              <Text style={styles.summaryValue}>RD$ {(parseFloat(amount || '0') * parseFloat(interestRate || '0') / 100).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+              <Text style={[styles.summaryLabel, { color: theme.muted }]}>{t('createLoan.interest')} ({interestRate}%):</Text>
+              <Text style={[styles.summaryValue, { color: theme.text }]}>RD$ {(parseFloat(amount || '0') * parseFloat(interestRate || '0') / 100).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
-            <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>{t('createLoan.totalToPay')}:</Text>
-              <Text style={styles.totalValue}>RD$ {(parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('createLoan.numInstallments')}:</Text>
-              <Text style={styles.summaryValue}>{numInstallments}</Text>
+            <View style={[styles.summaryRow, styles.totalRow, { borderTopColor: theme.primary }]}>
+              <Text style={[styles.totalLabel, { color: theme.primary }]}>{t('createLoan.totalToPay')}:</Text>
+              <Text style={[styles.totalValue, { color: theme.primary }]}>RD$ {(parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('createLoan.amountPerInstallment')}:</Text>
-              <Text style={styles.summaryValue}>RD$ {((parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)) / parseInt(numInstallments || '1')).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+              <Text style={[styles.summaryLabel, { color: theme.muted }]}>{t('createLoan.numInstallments')}:</Text>
+              <Text style={[styles.summaryValue, { color: theme.text }]}>{numInstallments}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: theme.muted }]}>{t('createLoan.amountPerInstallment')}:</Text>
+              <Text style={[styles.summaryValue, { color: theme.text }]}>RD$ {((parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)) / parseInt(numInstallments || '1')).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
           </View>
         </View>
       )}
 
-      <TouchableOpacity style={styles.button} onPress={handleGoToContractPreview}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleGoToContractPreview}>
         <Text style={styles.buttonText}>{t('createLoan.generateContract')}</Text>
       </TouchableOpacity>
       </ScrollView>
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
