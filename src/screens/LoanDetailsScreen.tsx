@@ -5,6 +5,7 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import FileViewer from 'react-native-file-viewer';
 import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const BackIcon = require('../assets/icons/back.png');
 const PencilIcon = require('../assets/icons/edit.png'); // Usa tu icono de lápiz aquí
@@ -27,6 +28,7 @@ const LoanDetailsScreen = () => {
     frequency?: string;
     interestRate?: number | string;
   };
+  const { theme } = useTheme();
 
   const handleGenerateAndOpenPDF = async () => {
     try {
@@ -55,81 +57,81 @@ const LoanDetailsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={BackIcon} style={styles.iconBack} />
+          <Image source={BackIcon} style={[styles.iconBack, { tintColor: theme.muted }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('loanDetails.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('loanDetails.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.successTitle}>{t('loanDetails.successTitle')}</Text>
-        <Text style={styles.subtitle}>{t('loanDetails.subtitle')}</Text>
+        <Text style={[styles.successTitle, { color: theme.primary }]}>{t('loanDetails.successTitle')}</Text>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>{t('loanDetails.subtitle')}</Text>
 
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.loanAmount')}:</Text>
-          <Text style={styles.dataValue}>RD$ {parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.loanAmount')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>RD$ {parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.installments')}:</Text>
-          <Text style={styles.dataValue}>{numInstallments}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.installments')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{numInstallments}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.totalAmount')}:</Text>
-          <Text style={styles.dataValue}>RD$ {parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.totalAmount')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>RD$ {parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.client')}:</Text>
-          <Text style={styles.dataValue}>{clientName || '-'}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.client')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{clientName || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.identification')}:</Text>
-          <Text style={styles.dataValue}>{clientIdentification || '-'}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.identification')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{clientIdentification || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.startDate')}:</Text>
-          <Text style={styles.dataValue}>{startDate || '-'}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.startDate')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{startDate || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.frequency')}:</Text>
-          <Text style={styles.dataValue}>{frequency || '-'}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.frequency')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{frequency || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>{t('loanDetails.interest')}:</Text>
-          <Text style={styles.dataValue}>{interestRate ? `${interestRate}%` : '-'}</Text>
+          <Text style={[styles.dataLabel, { color: theme.text }]}>{t('loanDetails.interest')}:</Text>
+          <Text style={[styles.dataValue, { color: theme.text }]}>{interestRate ? `${interestRate}%` : '-'}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>{t('loanDetails.signedContract')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('loanDetails.signedContract')}</Text>
 
-        <TouchableOpacity style={styles.contractButton} onPress={handleGenerateAndOpenPDF}>
-          <Image source={PencilIcon} style={styles.pencilIcon} />
-          <Text style={styles.contractButtonText}>{t('loanDetails.viewContract')}</Text>
+        <TouchableOpacity style={[styles.contractButton, { backgroundColor: theme.card }]} onPress={handleGenerateAndOpenPDF}>
+          <Image source={PencilIcon} style={[styles.pencilIcon, { tintColor: theme.muted }]} />
+          <Text style={[styles.contractButtonText, { color: theme.text }]}>{t('loanDetails.viewContract')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.greenButtonText}>{t('loanDetails.recordPayment')}</Text>
+        <TouchableOpacity style={[styles.greenButton, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.greenButtonText, { color: theme.text }]}>{t('loanDetails.recordPayment')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.greenButtonText}>{t('loanDetails.viewPaymentCalendar')}</Text>
+        <TouchableOpacity style={[styles.greenButton, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.greenButtonText, { color: theme.text }]}>{t('loanDetails.viewPaymentCalendar')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
