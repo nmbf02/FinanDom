@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -84,6 +85,7 @@ const HelpCenterScreen = () => {
   const [faqCategory, setFaqCategory] = useState('Popular Topic');
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { theme, mode } = useTheme();
 
   // Filtro FAQ
   const filteredFaq = FAQ_DATA.filter(
@@ -100,39 +102,47 @@ const HelpCenterScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('helpCenter.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('helpCenter.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>{t('helpCenter.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('helpCenter.subtitle')}</Text>
       {/* Search */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text, backgroundColor: theme.card }]}
           placeholder={t('helpCenter.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
-        <Image source={faqIcon} style={styles.searchIcon} />
+        <Image source={faqIcon} style={[styles.searchIcon, { tintColor: theme.muted }]} />
       </View>
       {/* Tabs */}
       <View style={styles.tabRow}>
         <TouchableOpacity
-          style={[styles.tabButton, tab === 'FAQ' && styles.tabButtonActive]}
+          style={[styles.tabButton, tab === 'FAQ' && { backgroundColor: theme.primary }]}
           onPress={() => setTab('FAQ')}
         >
-          <Text style={[styles.tabText, tab === 'FAQ' && styles.tabTextActive]}>{t('helpCenter.faq')}</Text>
+          <Text style={[styles.tabText, tab === 'FAQ' && { color: theme.card }]}>{t('helpCenter.faq')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, tab === 'Contact' && styles.tabButtonActiveBlue]}
+          style={[styles.tabButton, tab === 'Contact' && { backgroundColor: theme.secondary }]}
           onPress={() => setTab('Contact')}
         >
-          <Text style={[styles.tabText, tab === 'Contact' && styles.tabTextActive]}>{t('helpCenter.contactUs')}</Text>
+          <Text
+            style={[
+              styles.tabText,
+              tab === 'Contact' && { color: mode === 'dark' ? '#fff' : theme.text }
+            ]}
+          >
+            {t('helpCenter.contactUs')}
+          </Text>
         </TouchableOpacity>
       </View>
       {/* FAQ Content */}
@@ -142,25 +152,25 @@ const HelpCenterScreen = () => {
             {FAQ_CATEGORIES.map(cat => (
               <TouchableOpacity
                 key={cat}
-                style={[styles.faqCategoryButton, faqCategory === cat && styles.faqCategoryButtonActive]}
+                style={[styles.faqCategoryButton, faqCategory === cat && { backgroundColor: theme.primary }]}
                 onPress={() => setFaqCategory(cat)}
               >
-                <Text style={[styles.faqCategoryText, faqCategory === cat && styles.faqCategoryTextActive]}>{t(`helpCenter.categories.${cat.toLowerCase().replace(' ', '')}`)}</Text>
+                <Text style={[styles.faqCategoryText, faqCategory === cat && { color: theme.card }]}>{t(`helpCenter.categories.${cat.toLowerCase().replace(' ', '')}`)}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }}>
             {filteredFaq.map(faq => (
-              <View key={faq.id} style={styles.faqCard}>
+              <View key={faq.id} style={[styles.faqCard, { backgroundColor: theme.card }]}>
                 <TouchableOpacity style={styles.faqQuestionRow} onPress={() => setExpanded(expanded === faq.id ? null : faq.id)}>
-                  <Text style={styles.faqQuestion}>{t(faq.questionKey)}</Text>
-                  <Text style={styles.faqCheck}>{expanded === faq.id ? '˄' : '˅'}</Text>
+                  <Text style={[styles.faqQuestion, { color: theme.text }]}>{t(faq.questionKey)}</Text>
+                  <Text style={[styles.faqCheck, { color: theme.primary }]}>{expanded === faq.id ? '˄' : '˅'}</Text>
                 </TouchableOpacity>
-                {expanded === faq.id && <Text style={styles.faqAnswer}>{t(faq.answerKey)}</Text>}
+                {expanded === faq.id && <Text style={[styles.faqAnswer, { color: theme.muted }]}>{t(faq.answerKey)}</Text>}
               </View>
             ))}
             {filteredFaq.length === 0 && (
-              <Text style={styles.emptyText}>{t('helpCenter.noResults')}</Text>
+              <Text style={[styles.emptyText, { color: theme.muted }]}>{t('helpCenter.noResults')}</Text>
             )}
           </ScrollView>
         </>
@@ -169,33 +179,33 @@ const HelpCenterScreen = () => {
       {tab === 'Contact' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }}>
           {filteredContact.map(contact => (
-            <View key={contact.id} style={styles.contactRow}>
-              <View style={styles.contactIconContainer}>
-                <Image source={contactIcons[t(contact.labelKey) as keyof typeof contactIcons]} style={styles.contactIcon} />
+            <View key={contact.id} style={[styles.contactRow, { backgroundColor: theme.card }]}>
+              <View style={[styles.contactIconContainer, { backgroundColor: theme.primary }]}>
+                <Image source={contactIcons[t(contact.labelKey) as keyof typeof contactIcons]} style={[styles.contactIcon, { tintColor: theme.card }]} />
               </View>
-              <Text style={styles.contactLabel}>{t(contact.labelKey)}</Text>
-              <Text style={styles.contactValue}>{contact.value}</Text>
-              <Image source={checkmark} style={styles.contactCheck} />
+              <Text style={[styles.contactLabel, { color: theme.text }]}>{t(contact.labelKey)}</Text>
+              <Text style={[styles.contactValue, { color: theme.muted }]}>{contact.value}</Text>
+              <Image source={checkmark} style={[styles.contactCheck, { tintColor: theme.primary }]} />
             </View>
           ))}
           {filteredContact.length === 0 && (
-            <Text style={styles.emptyText}>{t('helpCenter.noResults')}</Text>
+            <Text style={[styles.emptyText, { color: theme.muted }]}>{t('helpCenter.noResults')}</Text>
           )}
         </ScrollView>
       )}
       {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image source={user} style={[styles.navIcon, { tintColor: '#00278C' }]} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
