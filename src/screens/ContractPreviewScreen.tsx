@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const BackIcon = require('../assets/icons/back.png');
 
@@ -9,6 +10,7 @@ const ContractPreviewScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const {
     amount,
     numInstallments,
@@ -62,23 +64,23 @@ const ContractPreviewScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={BackIcon} style={styles.iconBack} />
+          <Image source={BackIcon} style={[styles.iconBack, { tintColor: theme.muted }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('contractPreview.previewTitle')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('contractPreview.previewTitle')}</Text>
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 32 }}>
-        <Text style={styles.contractText}>{contractText}</Text>
+      <ScrollView style={[styles.scroll, { backgroundColor: theme.background }]} contentContainerStyle={{ paddingBottom: 32 }}>
+        <Text style={[styles.contractText, { color: theme.text }]}>{contractText}</Text>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.signButton} onPress={handleAccept}>
-            <Text style={styles.signButtonText}>{t('contractPreview.sign')}</Text>
+          <TouchableOpacity style={[styles.signButton, { backgroundColor: theme.primary }]} onPress={handleAccept}>
+            <Text style={[styles.signButtonText, { color: theme.text }]}>{t('contractPreview.sign')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+          <TouchableOpacity style={[styles.cancelButton, { backgroundColor: theme.card }]} onPress={() => navigation.goBack()}>
+            <Text style={[styles.cancelButtonText, { color: theme.text }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
