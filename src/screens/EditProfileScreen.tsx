@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const avatar = require('../assets/icons/avatar.png');
 const edit = require('../assets/icons/edit.png');
@@ -16,6 +17,7 @@ const user = require('../assets/icons/user-setting.png');
 const EditProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [userId, setUserId] = useState<number|null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -111,52 +113,53 @@ const EditProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={require('../assets/icons/back.png')} style={styles.backIcon} />
+          <Image source={require('../assets/icons/back.png')} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('editProfile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarContainer}>
           <Image source={photoUrl ? { uri: photoUrl } : avatar} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert(t('common.info'), t('editProfile.photoEdit'))}>
-            <Image source={edit} style={styles.editIcon} />
+          <TouchableOpacity style={[styles.editIconContainer, { backgroundColor: theme.card }]} onPress={() => Alert.alert(t('common.info'), t('editProfile.photoEdit'))}>
+            <Image source={edit} style={[styles.editIcon, { tintColor: theme.primary }]} />
           </TouchableOpacity>
         </View>
         <View style={styles.formContainer}>
-          <TextInput style={styles.input} placeholder={t('editProfile.fullName')} value={name} onChangeText={setName} />
-          <TextInput style={styles.input} placeholder={t('editProfile.phone')} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-          <TextInput style={styles.input} placeholder={t('editProfile.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <TextInput style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]} placeholder={t('editProfile.fullName')} placeholderTextColor={theme.muted} value={name} onChangeText={setName} />
+          <TextInput style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]} placeholder={t('editProfile.phone')} placeholderTextColor={theme.muted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <TextInput style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]} placeholder={t('editProfile.email')} placeholderTextColor={theme.muted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
           <View style={styles.passwordRow}>
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder={t('editProfile.password')} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" />
+            <TextInput style={[styles.input, { flex: 1, backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]} placeholder={t('editProfile.password')} placeholderTextColor={theme.muted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" />
             <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
-              <Image source={showPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={styles.eyeIcon} />
+              <Image source={showPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={[styles.eyeIcon, { tintColor: theme.muted }]} />
             </TouchableOpacity>
           </View>
           <View style={styles.passwordRow}>
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder={t('editProfile.confirmPassword')} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showConfirmPassword} autoCapitalize="none" />
+            <TextInput style={[styles.input, { flex: 1, backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]} placeholder={t('editProfile.confirmPassword')} placeholderTextColor={theme.muted} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showConfirmPassword} autoCapitalize="none" />
             <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)}>
-              <Image source={showConfirmPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={styles.eyeIcon} />
+              <Image source={showConfirmPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={[styles.eyeIcon, { tintColor: theme.muted }]} />
             </TouchableOpacity>
           </View>
           {/* Selector de tipo de documento */}
-          <View style={styles.input}>
-            <Text style={{ color: '#888', marginBottom: 4 }}>{t('editProfile.documentType')}</Text>
-            <TouchableOpacity 
+          <View style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, justifyContent: 'center' }]}>
+            <Text style={{ color: theme.muted, marginBottom: 4 }}>{t('editProfile.documentType')}</Text>
+            <TouchableOpacity
               style={{ paddingVertical: 12 }}
               onPress={() => setShowDocumentTypeModal(true)}
             >
-              <Text style={{ fontSize: 16, color: '#222' }}>
+              <Text style={{ fontSize: 16, color: theme.text }}>
                 {documentTypes.find(dt => dt.id === documentTypeId)?.name || t('editProfile.selectDocumentType')}
               </Text>
             </TouchableOpacity>
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
             placeholder={t('editProfile.documentNumber')}
+            placeholderTextColor={theme.muted}
             value={identification}
             onChangeText={setIdentification}
           />
@@ -168,22 +171,22 @@ const EditProfileScreen = () => {
             onRequestClose={() => setShowDocumentTypeModal(false)}
           >
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
-              <View style={{ backgroundColor: '#FFF', borderRadius: 12, padding: 24, width: '80%', maxWidth: 300 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#1F2937' }}>{t('editProfile.selectDocumentType')}</Text>
+              <View style={{ backgroundColor: theme.card, borderRadius: 12, padding: 24, width: '80%', maxWidth: 300 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: theme.text }}>{t('editProfile.selectDocumentType')}</Text>
                 {documentTypes.map((docType) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={docType.id}
-                    style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}
+                    style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.border }}
                     onPress={() => {
                       setDocumentTypeId(docType.id);
                       setShowDocumentTypeModal(false);
                     }}
                   >
-                    <Text style={{ fontSize: 16, color: '#374151', textAlign: 'center' }}>{docType.name}</Text>
+                    <Text style={{ fontSize: 16, color: theme.text, textAlign: 'center' }}>{docType.name}</Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity 
-                  style={{ marginTop: 16, paddingVertical: 12, backgroundColor: '#EF4444', borderRadius: 8 }}
+                <TouchableOpacity
+                  style={{ marginTop: 16, paddingVertical: 12, backgroundColor: theme.primary, borderRadius: 8 }}
                   onPress={() => setShowDocumentTypeModal(false)}
                 >
                   <Text style={{ fontSize: 16, color: '#FFF', textAlign: 'center', fontWeight: '600' }}>{t('common.cancel')}</Text>
@@ -191,27 +194,27 @@ const EditProfileScreen = () => {
               </View>
             </View>
           </Modal>
-          <View style={[styles.input, { justifyContent: 'center' }]}> 
-            <Text style={{ fontSize: 16, color: '#888' }}>{role}</Text>
+          <View style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, justifyContent: 'center' }]}>
+            <Text style={{ fontSize: 16, color: theme.muted }}>{role}</Text>
           </View>
-          <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
+          <TouchableOpacity style={[styles.updateButton, { backgroundColor: theme.primary }]} onPress={handleUpdate}>
             <Text style={styles.updateButtonText}>{t('editProfile.updateData')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={[styles.navIcon, /* opcional: resalta si es Dashboard */]} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={chat} style={[styles.navIcon, /* opcional: resalta si es Assistant */]} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image source={user} style={[styles.navIcon, /* opcional: resalta si es Profile */]} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
