@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const BackIcon = require('../assets/icons/back.png');
 const CheckIcon = require('../assets/icons/checkmark.png');
@@ -21,6 +22,7 @@ const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -113,23 +115,24 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>{t('forgotPassword.recoverPassword')}</Text>
-      <Text style={styles.subtitle}>{t('forgotPassword.enterEmailForCode')}</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{t('forgotPassword.recoverPassword')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('forgotPassword.enterEmailForCode')}</Text>
 
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { borderColor: theme.border }]}>
         <TextInput
-          style={styles.inputPassword}
+          style={[styles.inputPassword, { color: theme.text }]}
           placeholder={t('auth.email')}
+          placeholderTextColor={theme.muted}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
         />
-        {isEmailValid && <Image source={CheckIcon} style={styles.smallIcon} />}
+        {isEmailValid && <Image source={CheckIcon} style={[styles.smallIcon, { tintColor: theme.primary }]} />}
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
+        style={[styles.button, { backgroundColor: theme.primary }, isLoading && styles.buttonDisabled]} 
         onPress={handleSendCode}
         disabled={isLoading}
       >
@@ -142,61 +145,64 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>{t('forgotPassword.verifyCode')}</Text>
-      <Text style={styles.subtitle}>{t('forgotPassword.enterCodeFromEmail')}</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{t('forgotPassword.verifyCode')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('forgotPassword.enterCodeFromEmail')}</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
         placeholder={t('forgotPassword.sixDigitCode')}
+        placeholderTextColor={theme.muted}
         value={code}
         onChangeText={setCode}
         keyboardType="numeric"
         maxLength={6}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleVerifyCode}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleVerifyCode}>
         <Text style={styles.buttonText}>{t('forgotPassword.verifyCode')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.linkButton} onPress={() => setStep(1)}>
-        <Text style={styles.linkText}>{t('forgotPassword.changeEmail')}</Text>
+        <Text style={[styles.linkText, { color: theme.primary }]}>{t('forgotPassword.changeEmail')}</Text>
       </TouchableOpacity>
     </View>
   );
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>{t('forgotPassword.newPassword')}</Text>
-      <Text style={styles.subtitle}>{t('forgotPassword.enterNewPassword')}</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{t('forgotPassword.newPassword')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('forgotPassword.enterNewPassword')}</Text>
 
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { borderColor: theme.border }]}>
         <TextInput
-          style={styles.inputPassword}
+          style={[styles.inputPassword, { color: theme.text }]}
           placeholder={t('forgotPassword.newPasswordPlaceholder')}
+          placeholderTextColor={theme.muted}
           secureTextEntry={!showPassword}
           value={newPassword}
           onChangeText={setNewPassword}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Image source={showPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
+          <Image source={showPassword ? eyeOffIcon : eyeIcon} style={[styles.smallIcon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { borderColor: theme.border }]}>
         <TextInput
-          style={styles.inputPassword}
+          style={[styles.inputPassword, { color: theme.text }]}
           placeholder={t('forgotPassword.confirmNewPassword')}
+          placeholderTextColor={theme.muted}
           secureTextEntry={!showConfirmPassword}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
         <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-          <Image source={showConfirmPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
+          <Image source={showConfirmPassword ? eyeOffIcon : eyeIcon} style={[styles.smallIcon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
+        style={[styles.button, { backgroundColor: theme.primary }, isLoading && styles.buttonDisabled]} 
         onPress={handleResetPassword}
         disabled={isLoading}
       >
@@ -209,12 +215,12 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }] }>
         <TouchableOpacity style={styles.backIcon} onPress={() => navigation.navigate('Login')}>
-          <Image source={BackIcon} style={styles.iconBack} />
+          <Image source={BackIcon} style={[styles.iconBack, { tintColor: theme.primary }]} />
         </TouchableOpacity>
 
         <View style={styles.content}>
