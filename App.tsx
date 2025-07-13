@@ -3,6 +3,7 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import './src/i18n'; // Importar configuración de i18n
+import { ThemeProvider } from './src/theme/ThemeContext';
 
 /**
  * App principal de FinanDom
@@ -11,10 +12,10 @@ import './src/i18n'; // Importar configuración de i18n
  */
 const App = () => {
   return (
-    <>
+    <ThemeProvider>
       <StatusBar barStyle="light-content" backgroundColor="#1CC88A" />
       <AppNavigator />
-    </>
+    </ThemeProvider>
   );
 };
 

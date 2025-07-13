@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
+import { useTheme } from '../theme/ThemeContext';
 // Puedes usar react-native-vector-icons para los íconos si lo tienes instalado
 // Si no, usa imágenes locales o el componente Text con emojis como fallback
 
@@ -19,7 +20,7 @@ const SettingsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useLanguage();
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { mode, setMode, theme } = useTheme();
   const [language, setLanguage] = useState<'es' | 'en' | 'system'>('es');
   const [userName, setUserName] = useState('Usuario');
 
@@ -52,20 +53,20 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header con back */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={back} style={styles.backIcon} />
+          <Image source={back} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('settings.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Foto y nombre */}
         <View style={styles.profileSection}>
           <Image source={avatar} style={styles.avatar} />
-          <Text style={styles.userName}>{userName}</Text>
+          <Text style={[styles.userName, { color: theme.text }]}>{userName}</Text>
         </View>
         {/* Indicador de conexión
         <View style={styles.connectionRow}>
@@ -80,46 +81,88 @@ const SettingsScreen = () => {
           <Text style={styles.syncButtonText}>{t('settings.syncButton')}</Text>
         </TouchableOpacity> */}
         {/* Tema */}
-        <Text style={styles.sectionTitle}>{t('settings.theme')}</Text>
-        <View style={styles.pillRow}>
-          <TouchableOpacity style={[styles.pill, theme === 'light' && styles.pillActive]} onPress={() => setTheme('light')}>
-            <Text style={[styles.pillText, theme === 'light' && styles.pillTextActive]}>{t('settings.themeOptions.light')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.theme')}</Text>
+        <View style={[styles.pillRow, { backgroundColor: theme.card }]}>
+          <TouchableOpacity style={[styles.pill, mode === 'light' && { backgroundColor: theme.primary }]} onPress={() => setMode('light')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.themeOptions.light')}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, theme === 'dark' && styles.pillActive]} onPress={() => setTheme('dark')}>
-            <Text style={[styles.pillText, theme === 'dark' && styles.pillTextActive]}>{t('settings.themeOptions.dark')}</Text>
+          <TouchableOpacity style={[styles.pill, mode === 'dark' && { backgroundColor: theme.primary }]} onPress={() => setMode('dark')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.themeOptions.dark')}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, theme === 'system' && styles.pillActive]} onPress={() => setTheme('system')}>
-            <Text style={[styles.pillText, theme === 'system' && styles.pillTextActive]}>{t('settings.themeOptions.system')}</Text>
+          <TouchableOpacity style={[styles.pill, mode === 'system' && { backgroundColor: theme.primary }]} onPress={() => setMode('system')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.themeOptions.system')}
+            </Text>
           </TouchableOpacity>
         </View>
         {/* Idioma */}
-        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-        <View style={styles.pillRow}>
-          <TouchableOpacity style={[styles.pill, language === 'es' && styles.pillActive]} onPress={() => handleLanguageChange('es')}>
-            <Text style={[styles.pillText, language === 'es' && styles.pillTextActive]}>{t('settings.languageOptions.es')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('settings.language')}</Text>
+        <View style={[styles.pillRow, { backgroundColor: theme.card }]}>
+          <TouchableOpacity style={[styles.pill, language === 'es' && { backgroundColor: theme.primary }]} onPress={() => handleLanguageChange('es')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.languageOptions.es')}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, language === 'en' && styles.pillActive]} onPress={() => handleLanguageChange('en')}>
-            <Text style={[styles.pillText, language === 'en' && styles.pillTextActive]}>{t('settings.languageOptions.en')}</Text>
+          <TouchableOpacity style={[styles.pill, language === 'en' && { backgroundColor: theme.primary }]} onPress={() => handleLanguageChange('en')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.languageOptions.en')}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, language === 'system' && styles.pillActive]} onPress={() => handleLanguageChange('system')}>
-            <Text style={[styles.pillText, language === 'system' && styles.pillTextActive]}>{t('settings.languageOptions.system')}</Text>
+          <TouchableOpacity style={[styles.pill, language === 'system' && { backgroundColor: theme.primary }]} onPress={() => handleLanguageChange('system')}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: theme.text }
+              ]}
+            >
+              {t('settings.languageOptions.system')}
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.nav }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.navIcon }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Assistant')}>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.navIcon }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.navIcon }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.navIcon }]} />
         </TouchableOpacity>
       </View>
     </View>
@@ -246,7 +289,6 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 15,
-    color: '#222',
     fontWeight: '500',
   },
   pillTextActive: {
