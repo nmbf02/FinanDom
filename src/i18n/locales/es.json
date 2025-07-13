@@ -46,18 +46,42 @@
     "requiredFields": "Todos los campos son obligatorios"
   },
   "dashboard": {
-    "greeting": {
-      "morning": "Buenos días",
-      "afternoon": "Buenas tardes",
-      "evening": "Buenas noches"
+    "range": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes",
+      "year": "Año",
+      "custom": "Personalizado"
+    },
+    "dateRange": {
+      "start": "Inicio",
+      "end": "Fin",
+      "choose": "Elegir"
+    },
+    "agenda": {
+      "weekPayments": "Pagos de la semana",
+      "customPayments": "Pagos personalizados",
+      "noPayments": "No hay pagos programados en este rango."
+    },
+    "tabs": {
+      "clients": "CLIENTES",
+      "loans": "PRÉSTAMOS",
+      "payments": "PAGOS",
+      "installments": "CUOTAS"
     },
     "metrics": {
+      "totalLent": "Total Prestado",
       "totalLoaned": "Total Prestado",
       "totalRecovered": "Total Recuperado",
       "totalOverdue": "Total en Mora",
       "activeLoans": "Préstamos Activos",
       "overdueLoans": "Préstamos en Mora",
       "activeClients": "Clientes Activos"
+    },
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
     },
     "quickActions": {
       "createLoan": "Crear Préstamo",
@@ -197,7 +221,7 @@
   },
   "assistant": {
     "title": "Asistente",
-    "reminders": "Recordatorios",
+    "reminders": "Recordatorios"
   },
   "assistantScreen": {
     "title": "Asistente Inteligente",
@@ -273,8 +297,7 @@
     "search": "Buscar...",
     "sendMessage": "Enviar Mensaje",
     "editMessage": "Editar Mensaje",
-    "messageSent": "Mensaje enviado exitosamente"
-  },
+    "messageSent": "Mensaje enviado exitosamente",
   "communicationHistory": {
     "title": "Historial De Comunicaciones",
     "search": "Buscar...",
