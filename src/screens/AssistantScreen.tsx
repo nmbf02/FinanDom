@@ -3,13 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, M
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
 const calendar = require('../assets/icons/calendar.png');
 const user = require('../assets/icons/user-setting.png');
 const backIcon = require('../assets/icons/back.png');
-const setting = require('../assets/icons/setting.png');
 const checkmark = require('../assets/icons/checkmark.png');
 const cancel = require('../assets/icons/cancel.png');
 const edit = require('../assets/icons/edit.png');
@@ -37,6 +37,7 @@ const AssistantScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
+  const { theme, mode } = useTheme();
   const [filter, setFilter] = useState<'reminder' | 'thanks'>('reminder');
   const [search, setSearch] = useState('');
   const [messages, setMessages] = useState<Suggestion[]>([]);
@@ -132,89 +133,89 @@ const AssistantScreen = () => {
   };
 
   const renderSuggestion = ({ item }: { item: Suggestion }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: mode === 'light' ? '#FFFFFF' : theme.card }]}>
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{item.clientName}</Text>
-        <Text style={styles.cardField}>{t('assistantScreen.type')}: <Text style={styles.cardValue}>{item.type === 'reminder' ? t('assistantScreen.reminder') : t('assistantScreen.thanks')}</Text></Text>
+        <Text style={[styles.cardName, { color: theme.text }]}>{item.clientName}</Text>
+        <Text style={[styles.cardField, { color: theme.muted }]}>{t('assistantScreen.type')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.type === 'reminder' ? t('assistantScreen.reminder') : t('assistantScreen.thanks')}</Text></Text>
         {item.type === 'reminder' && item.daysOverdue && (
-          <Text style={styles.cardField}>{t('assistantScreen.daysOverdue')}: <Text style={[styles.cardValue, { color: '#EF4444' }]}>{item.daysOverdue}</Text></Text>
+          <Text style={[styles.cardField, { color: theme.muted }]}>{t('assistantScreen.daysOverdue')}: <Text style={[styles.cardValue, { color: '#EF4444' }]}>{item.daysOverdue}</Text></Text>
         )}
         {item.type === 'thanks' && item.amountPaid && (
-          <Text style={styles.cardField}>{t('assistantScreen.amountPaid')}: <Text style={[styles.cardValue, { color: '#10B981' }]}>RD$ {parseFloat(item.amountPaid.toString()).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+          <Text style={[styles.cardField, { color: theme.muted }]}>{t('assistantScreen.amountPaid')}: <Text style={[styles.cardValue, { color: theme.primary }]}>RD$ {parseFloat(item.amountPaid.toString()).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
         )}
-        <Text style={styles.cardField}>{t('assistantScreen.message')}: <Text style={styles.cardValue}>{item.text}</Text></Text>
-        <Text style={styles.cardField}>{t('assistantScreen.status')}: <Text style={styles.cardValue}>{item.status}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.muted }]}>{t('assistantScreen.message')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.text}</Text></Text>
+        <Text style={[styles.cardField, { color: theme.muted }]}>{t('assistantScreen.status')}: <Text style={[styles.cardValue, { color: theme.text }]}>{item.status}</Text></Text>
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.editButton]} 
+          style={[styles.actionButton, styles.editButton, { backgroundColor: theme.accent || '#EFF6FF' }]} 
           onPress={() => openModal(item)}
         >
-          <Image source={edit} style={styles.editButtonIcon} />
+          <Image source={edit} style={[styles.editButtonIcon, { tintColor: mode === 'dark' ? '#fff' : theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.approveButton]} 
+          style={[styles.actionButton, styles.approveButton, { backgroundColor: theme.primary }]} 
           onPress={() => openModal(item)}
         >
-          <Image source={checkmark} style={styles.approveButtonIcon} />
+          <Image source={checkmark} style={[styles.approveButtonIcon, { tintColor: '#fff' }]} />
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.cancelButton]} 
+          style={[styles.actionButton, styles.cancelButton, { backgroundColor: '#FEF2F2' }]} 
           onPress={() => setSelectedMessage(null)}
         >
-          <Image source={cancel} style={styles.cancelButtonIcon} />
+          <Image source={cancel} style={[styles.cancelButtonIcon, { tintColor: '#EF4444' }]} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('assistantScreen.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('assistantScreen.title')}</Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('CommunicationHistory')}>
-          <Image source={menuIcon} style={styles.menuIcon} />
+          <Image source={menuIcon} style={[styles.menuIcon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>{t('assistantScreen.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('assistantScreen.subtitle')}</Text>
       
       {/* Buscador */}
       <View style={styles.searchBox}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: theme.card, color: theme.text }]}
           placeholder={t('assistantScreen.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
-        <Image source={setting} style={styles.searchIcon} />
       </View>
 
       {/* Filtros */}
       <View style={styles.filterRow}>
         <TouchableOpacity
-          style={[styles.filterButton, filter === 'reminder' && styles.filterButtonActive]}
+          style={[styles.filterButton, { backgroundColor: theme.card }, filter === 'reminder' && { backgroundColor: theme.primary }]}
           onPress={() => setFilter('reminder')}
         >
-          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>{t('assistantScreen.reminder')}</Text>
+          <Text style={[styles.filterText, { color: filter === 'reminder' ? '#fff' : theme.muted }]}>{t('assistantScreen.reminder')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterButton, filter === 'thanks' && styles.filterButtonActiveBlue]}
+          style={[styles.filterButton, { backgroundColor: theme.card }, filter === 'thanks' && { backgroundColor: theme.accent || theme.primary }]}
           onPress={() => setFilter('thanks')}
         >
-          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>{t('assistantScreen.thanks')}</Text>
+          <Text style={[styles.filterText, { color: filter === 'thanks' ? '#fff' : theme.muted }]}>{t('assistantScreen.thanks')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Lista de mensajes */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>{t('assistantScreen.loadingSuggestions')}</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.muted }]}>{t('assistantScreen.loadingSuggestions')}</Text>
         </View>
       ) : (
         <FlatList
@@ -224,8 +225,8 @@ const AssistantScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('assistantScreen.noMessages')}</Text>
-              <Text style={styles.emptySubtext}>{t('assistantScreen.tryFilters')}</Text>
+              <Text style={[styles.emptyText, { color: theme.muted }]}>{t('assistantScreen.noMessages')}</Text>
+              <Text style={[styles.emptySubtext, { color: theme.muted }]}>{t('assistantScreen.tryFilters')}</Text>
             </View>
           }
         />
@@ -234,17 +235,18 @@ const AssistantScreen = () => {
       {/* Modal para ver/editar/enviar mensaje */}
       <Modal visible={!!selectedMessage} transparent animationType="slide" onRequestClose={() => setSelectedMessage(null)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('assistantScreen.suggestedMessage')}</Text>
-            <Text style={styles.modalClient}>{selectedMessage?.clientName}</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('assistantScreen.suggestedMessage')}</Text>
+            <Text style={[styles.modalClient, { color: theme.primary }]}>{selectedMessage?.clientName}</Text>
             <TextInput
-              style={styles.modalMsgInput}
+              style={[styles.modalMsgInput, { backgroundColor: theme.background, color: theme.text }]}
               value={editText}
               onChangeText={setEditText}
               multiline
+              placeholderTextColor={theme.muted}
             />
             <TouchableOpacity 
-              style={[styles.modalSendButton, sending && styles.modalSendButtonDisabled]} 
+              style={[styles.modalSendButton, sending && styles.modalSendButtonDisabled, { backgroundColor: theme.primary }]} 
               onPress={() => handleSend('email')}
               disabled={sending}
             >
@@ -266,7 +268,7 @@ const AssistantScreen = () => {
               )}
             </TouchableOpacity>
             <TouchableOpacity 
-              style={styles.modalCloseButton} 
+              style={[styles.modalCloseButton, { backgroundColor: theme.muted }]} 
               onPress={() => setSelectedMessage(null)}
               disabled={sending}
             >
@@ -277,18 +279,18 @@ const AssistantScreen = () => {
       </Modal>
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' && { tintColor: '#00278C' }]} />
+          <Image source={home} style={[styles.navIcon, route.name === 'Dashboard' ? { tintColor: theme.primary } : { tintColor: theme.navIcon || theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Assistant')}>
-          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' && { tintColor: '#00278C' }]} />
+          <Image source={chat} style={[styles.navIcon, route.name === 'Assistant' ? { tintColor: theme.primary } : { tintColor: theme.navIcon || theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.navIcon || theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.navIcon || theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>

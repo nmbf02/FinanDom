@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, A
 import { useNavigation } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const backIcon = require('../assets/icons/back.png');
 const home = require('../assets/icons/home.png');
@@ -14,6 +15,7 @@ const checkmark = require('../assets/icons/checkmark.png');
 const CommunicationHistoryScreen = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { theme, mode } = useTheme();
   const [filter, setFilter] = useState<'reminder' | 'thanks' | 'all'>('all');
   const [search, setSearch] = useState('');
   const [history, setHistory] = useState<any[]>([]);
@@ -51,33 +53,34 @@ const CommunicationHistoryScreen = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: mode === 'light' ? '#fff' : theme.card }]}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.clientName}>{item.client_name}</Text>
-        <Text style={styles.dateText}>{item.sent_at ? item.sent_at.replace('T', ' ').slice(0, 16) : ''}</Text>
-        <Text style={styles.methodText}>{t('communicationHistory.medium')}: {item.method === 'email' ? t('communicationHistory.email') : item.method === 'whatsapp' ? t('communicationHistory.whatsapp') : item.method}</Text>
-        <Text style={styles.messageText}>{item.message}</Text>
+        <Text style={[styles.clientName, { color: theme.text }]}>{item.client_name}</Text>
+        <Text style={[styles.dateText, { color: theme.muted }]}>{item.sent_at ? item.sent_at.replace('T', ' ').slice(0, 16) : ''}</Text>
+        <Text style={[styles.methodText, { color: theme.muted }]}>{t('communicationHistory.medium')}: {item.method === 'email' ? t('communicationHistory.email') : item.method === 'whatsapp' ? t('communicationHistory.whatsapp') : item.method}</Text>
+        <Text style={[styles.messageText, { color: theme.text }]}>{item.message}</Text>
       </View>
-      <Image source={checkmark} style={styles.checkIcon} />
+      <Image source={checkmark} style={[styles.checkIcon, { tintColor: theme.primary }]} />
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('communicationHistory.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('communicationHistory.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       {/* Search */}
       <View style={styles.searchBox}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: theme.card, color: theme.text }]}
           placeholder={t('communicationHistory.search')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
@@ -86,24 +89,24 @@ const CommunicationHistoryScreen = () => {
       {/* Filtros */}
       <View style={styles.filterRow}>
         <TouchableOpacity
-          style={[styles.filterButton, filter === 'reminder' && styles.filterButtonActive]}
+          style={[styles.filterButton, { backgroundColor: theme.card }, filter === 'reminder' && { backgroundColor: theme.primary }]}
           onPress={() => setFilter('reminder')}
         >
-          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>{t('communicationHistory.reminder')}</Text>
+          <Text style={[styles.filterText, { color: filter === 'reminder' ? '#fff' : theme.muted }]}>{t('communicationHistory.reminder')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterButton, filter === 'thanks' && styles.filterButtonActiveBlue]}
+          style={[styles.filterButton, { backgroundColor: theme.card }, filter === 'thanks' && { backgroundColor: theme.accent || theme.primary }]}
           onPress={() => setFilter('thanks')}
         >
-          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>{t('communicationHistory.thanks')}</Text>
+          <Text style={[styles.filterText, { color: filter === 'thanks' ? '#fff' : theme.muted }]}>{t('communicationHistory.thanks')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Lista de historial */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>{t('communicationHistory.loadingHistory')}</Text>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.muted }]}>{t('communicationHistory.loadingHistory')}</Text>
         </View>
       ) : (
         <FlatList
@@ -113,25 +116,25 @@ const CommunicationHistoryScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('communicationHistory.noCommunications')}</Text>
+              <Text style={[styles.emptyText, { color: theme.muted }]}>{t('communicationHistory.noCommunications')}</Text>
             </View>
           }
         />
       )}
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Assistant')}>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
