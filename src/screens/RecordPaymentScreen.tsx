@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const backIcon = require('../assets/icons/back.png');
 const home = require('../assets/icons/home.png');
@@ -29,6 +30,7 @@ const RecordPaymentScreen = () => {
   const route = useRoute<any>();
   const { t } = useTranslation();
   const loan = route.params?.loan || {};
+  const { theme } = useTheme();
 
   // Datos generales del préstamo
   const totalInstallments = Number(loan.num_installments) || 0;
@@ -293,42 +295,42 @@ const RecordPaymentScreen = () => {
   const filteredPaymentMethods = paymentMethods.filter(m => m.name.toLowerCase().includes(searchPayment.toLowerCase()));
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={backIcon} style={styles.backIcon} />
+          <Image source={backIcon} style={[styles.backIcon, { tintColor: theme.muted }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('payment.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('payment.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Información del Préstamo */}
-        <Text style={styles.sectionTitle}>{t('payment.loanInfo')}</Text>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.client')}</Text><Text style={styles.infoValue}>{loan.client_name || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.loanNumber')}</Text><Text style={styles.infoValue}>{loan.id || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.status')}</Text><Text style={styles.infoValue}>{loan.status || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.startDate')}</Text><Text style={styles.infoValue}>{loan.start_date || '-'}</Text></View>
+        <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('payment.loanInfo')}</Text>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.client')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{loan.client_name || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.loanNumber')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{loan.id || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.status')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{loan.status || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.startDate')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{loan.start_date || '-'}</Text></View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.loanAmount')}</Text>
-          <Text style={styles.infoValue}>{formatCurrency(totalLoanAmount)}</Text>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.loanAmount')}</Text>
+          <Text style={[styles.infoValue, { color: theme.text }]}>{formatCurrency(totalLoanAmount)}</Text>
         </View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.paidAmount')}</Text><Text style={styles.infoValue}>{formatCurrency(paidAmount)}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.totalInstallments')}</Text><Text style={styles.infoValue}>{totalInstallments}</Text></View>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.paidAmount')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{formatCurrency(paidAmount)}</Text></View>
+        <View style={styles.infoRow}><Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.totalInstallments')}</Text><Text style={[styles.infoValue, { color: theme.text }]}>{totalInstallments}</Text></View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.missingInstallments')}</Text>
-          <Text style={styles.infoValue}>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.missingInstallments')}</Text>
+          <Text style={[styles.infoValue, { color: theme.text }]}>
             {totalInstallments - loanPayments.length}
           </Text>
         </View>
 
         {/* Abono a Préstamo */}
-        <Text style={styles.sectionTitle}>{t('payment.paymentSection')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('payment.paymentSection')}</Text>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.paymentDate')}</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-            <Text>{paymentDate.toLocaleDateString()}</Text>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.paymentDate')}</Text>
+          <TouchableOpacity style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setShowDatePicker(true)}>
+            <Text style={{ color: theme.text }}>{paymentDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
           {showDatePicker && (
             <DateTimePicker
@@ -343,9 +345,9 @@ const RecordPaymentScreen = () => {
           )}
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.selectInstallments')}</Text>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.selectInstallments')}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
             value={selectedInstallments}
             onChangeText={text => {
               // Permitir cualquier valor mientras escribe, pero solo números
@@ -364,30 +366,33 @@ const RecordPaymentScreen = () => {
             }}
             keyboardType="numeric"
             placeholder={`1 - ${pendingInstallments.length}`}
+            placeholderTextColor={theme.muted}
           />
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.amountToPay')}</Text>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.amountToPay')}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
             value={paymentAmount}
             onChangeText={setPaymentAmount}
             keyboardType="numeric"
             placeholder="0.00"
+            placeholderTextColor={theme.muted}
           />
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('payment.paymentMethod')}</Text>
+          <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('payment.paymentMethod')}</Text>
           <View style={styles.paymentRow}>
-            <TouchableOpacity style={styles.paymentInput} onPress={() => setShowPaymentModal(true)}>
-              <Text style={{ color: paymentMethodId ? '#222' : '#888' }}>
+            <TouchableOpacity style={[styles.paymentInput, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setShowPaymentModal(true)}>
+              <Text style={{ color: paymentMethodId ? theme.text : theme.muted }}>
                 {paymentMethods.find(m => m.id === paymentMethodId)?.name || t('payment.selectMethod')}
               </Text>
             </TouchableOpacity>
             {paymentMethods.find(m => m.id === paymentMethodId)?.name === 'Transferencia' && (
               <TextInput
-                style={styles.referenceInput}
+                style={[styles.referenceInput, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
                 placeholder={t('payment.reference')}
+                placeholderTextColor={theme.muted}
                 value={reference}
                 onChangeText={setReference}
               />
@@ -396,27 +401,27 @@ const RecordPaymentScreen = () => {
         </View>
 
         {/* Botones */}
-        <TouchableOpacity style={styles.pdfButton} onPress={handleGeneratePDF}>
-          <Text style={styles.pdfButtonText}>{t('payment.generatePDF')}</Text>
+        <TouchableOpacity style={[styles.pdfButton, { backgroundColor: theme.secondary }]} onPress={handleGeneratePDF}>
+          <Text style={[styles.pdfButtonText, { color: theme.text }]}>{t('payment.generatePDF')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmPayment}>
-          <Text style={styles.confirmButtonText}>{t('payment.confirmPayment')}</Text>
+        <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={handleConfirmPayment}>
+          <Text style={[styles.confirmButtonText, { color: theme.text }]}>{t('payment.confirmPayment')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Navbar */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}> 
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
 
@@ -428,11 +433,12 @@ const RecordPaymentScreen = () => {
         onRequestClose={() => setShowPaymentModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('payment.paymentMethodModal')}</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}> 
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('payment.paymentMethodModal')}</Text>
             <TextInput
-              style={styles.modalSearch}
+              style={[styles.modalSearch, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
               placeholder={t('payment.search')}
+              placeholderTextColor={theme.muted}
               value={searchPayment}
               onChangeText={setSearchPayment}
               autoFocus
@@ -449,14 +455,14 @@ const RecordPaymentScreen = () => {
                     setSearchPayment('');
                   }}
                 >
-                  <Text style={styles.modalItemText}>{item.name}</Text>
+                  <Text style={[styles.modalItemText, { color: theme.text }]}>{item.name}</Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>{t('payment.noResults')}</Text>}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', color: theme.muted, marginTop: 16 }}>{t('payment.noResults')}</Text>}
               style={{ maxHeight: 250 }}
             />
-            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowPaymentModal(false)}>
-              <Text style={styles.modalCloseButtonText}>{t('payment.close')}</Text>
+            <TouchableOpacity style={[styles.modalCloseButton, { backgroundColor: theme.primary }]} onPress={() => setShowPaymentModal(false)}>
+              <Text style={[styles.modalCloseButtonText, { color: theme.card }]}>{t('payment.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
