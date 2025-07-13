@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 // Iconos
 const menuIcon = require('../assets/icons/menu.png');
@@ -45,6 +46,7 @@ const LoanListScreen = () => {
     atrasados: false
   });
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchLoans();
@@ -135,7 +137,7 @@ const LoanListScreen = () => {
   };
 
   const renderLoan = ({ item }: { item: any }) => (
-    <View style={styles.loanCard}>
+    <View style={[styles.loanCard, { backgroundColor: theme.card }]}>
       <View style={styles.avatarContainer}>
         <Image 
           source={avatarDefault} 
@@ -143,44 +145,45 @@ const LoanListScreen = () => {
         />
         <View style={[
           styles.statusIndicator, 
-          { backgroundColor: item.status === 'activo' ? '#10B981' : '#EF4444' }
+          { backgroundColor: item.status === 'activo' ? theme.primary : theme.accent, borderColor: theme.card }
         ]} />
       </View>
       <View style={styles.loanInfo}>
-        <Text style={styles.loanTitle}>{t('loanList.loanNumber', { id: item.id })}</Text>
-        <Text style={styles.loanLabel}>{t('loanList.client')}: <Text style={styles.loanValue}>{item.client_name || t('loanList.clientId', { id: item.client_id })}</Text></Text>
-        <Text style={styles.loanLabel}>{t('loanList.amount')}: <Text style={styles.loanValue}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.loanLabel}>{t('loanList.interest')}: <Text style={styles.loanValue}>{item.interest_rate}%</Text></Text>
-        <Text style={styles.loanLabel}>{t('loanList.installments')}: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
-        <Text style={styles.loanLabel}>{t('loanList.totalToPay')}: <Text style={styles.loanValue}>RD$ {parseFloat(item.total_with_interest || item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.loanLabel}>{t('loanList.status')}: <Text style={styles.loanValue}>{item.status}</Text></Text>
+        <Text style={[styles.loanTitle, { color: theme.primary }]}>{t('loanList.loanNumber', { id: item.id })}</Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.client')}: <Text style={[styles.loanValue, { color: theme.text }]}>{item.client_name || t('loanList.clientId', { id: item.client_id })}</Text></Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.amount')}: <Text style={[styles.loanValue, { color: theme.text }]}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.interest')}: <Text style={[styles.loanValue, { color: theme.text }]}>{item.interest_rate}%</Text></Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.installments')}: <Text style={[styles.loanValue, { color: theme.text }]}>{item.num_installments}</Text></Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.totalToPay')}: <Text style={[styles.loanValue, { color: theme.text }]}>RD$ {parseFloat(item.total_with_interest || item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={[styles.loanLabel, { color: theme.text }]}>{t('loanList.status')}: <Text style={[styles.loanValue, { color: theme.text }]}>{item.status}</Text></Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => handleCancelLoan(item)}>
-          <Image source={cancelIcon} style={styles.actionIcon} />
+          <Image source={cancelIcon} style={[styles.actionIcon, { tintColor: theme.accent }]} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('RecordPaymentScreen', { loan: item })}>
-          <Text style={styles.plusIcon}>➕</Text>
+          <Text style={[styles.plusIcon, { color: theme.primary }]}>➕</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('loanList.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('loanList.title')}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={menuIcon} style={styles.menuIcon} />
+          <Image source={menuIcon} style={[styles.menuIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>{t('loanList.subtitle')}</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('loanList.subtitle')}</Text>
       {/* Buscador con icono de filtros */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder={t('loanList.searchPlaceholder')}
+          placeholderTextColor={theme.muted}
           value={search}
           onChangeText={setSearch}
         />
@@ -188,17 +191,17 @@ const LoanListScreen = () => {
           style={styles.filterIconButton}
           onPress={() => setShowFiltersModal(true)}
         >
-          <Image source={filterIcon} style={styles.filterIconImage} />
+          <Image source={filterIcon} style={[styles.filterIconImage, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
       {/* Lista de préstamos */}
       {loading ? (
-        <ActivityIndicator size="large" color="#1CC88A" style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 32 }} />
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.error}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchLoans}>
-            <Text style={styles.retryButtonText}>{t('loanList.retry')}</Text>
+          <Text style={[styles.error, { color: theme.accent }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.primary }]} onPress={fetchLoans}>
+            <Text style={[styles.retryButtonText, { color: theme.text }]}>{t('loanList.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -217,60 +220,60 @@ const LoanListScreen = () => {
         onRequestClose={() => setShowFiltersModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('loanList.filters')}</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('loanList.filters')}</Text>
             
             <TouchableOpacity
-              style={[styles.modalFilterBtn, filters.activos && styles.modalFilterBtnActive]}
+              style={[styles.modalFilterBtn, filters.activos && { backgroundColor: theme.primary, borderColor: theme.primary }]}
               onPress={() => setFilters(prev => ({ ...prev, activos: !prev.activos }))}
             >
-              <Text style={[styles.modalFilterText, filters.activos && styles.modalFilterTextActive]}>{t('loanList.active')}</Text>
+              <Text style={[styles.modalFilterText, filters.activos && { color: '#fff' }]}>{t('loanList.active')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalFilterBtn, filters.cancelados && styles.modalFilterBtnInactive]}
+              style={[styles.modalFilterBtn, filters.cancelados && { backgroundColor: theme.accent, borderColor: theme.accent }]}
               onPress={() => setFilters(prev => ({ ...prev, cancelados: !prev.cancelados }))}
             >
-              <Text style={[styles.modalFilterText, filters.cancelados && styles.modalFilterTextInactive]}>{t('loanList.cancelled')}</Text>
+              <Text style={[styles.modalFilterText, filters.cancelados && { color: '#fff' }]}>{t('loanList.cancelled')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalFilterBtn, filters.pagados && styles.modalFilterBtnPaid]}
+              style={[styles.modalFilterBtn, filters.pagados && { backgroundColor: theme.secondary, borderColor: theme.secondary }]}
               onPress={() => setFilters(prev => ({ ...prev, pagados: !prev.pagados }))}
             >
-              <Text style={[styles.modalFilterText, filters.pagados && styles.modalFilterTextPaid]}>{t('loanList.paid')}</Text>
+              <Text style={[styles.modalFilterText, filters.pagados && { color: '#fff' }]}>{t('loanList.paid')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalFilterBtn, filters.atrasados && styles.modalFilterBtnLate]}
+              style={[styles.modalFilterBtn, filters.atrasados && { backgroundColor: theme.accent, borderColor: theme.accent }]}
               onPress={() => setFilters(prev => ({ ...prev, atrasados: !prev.atrasados }))}
             >
-              <Text style={[styles.modalFilterText, filters.atrasados && styles.modalFilterTextLate]}>{t('loanList.overdue')}</Text>
+              <Text style={[styles.modalFilterText, filters.atrasados && { color: '#fff' }]}>{t('loanList.overdue')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.modalCloseButton}
+              style={[styles.modalCloseButton, { backgroundColor: theme.muted }]}
               onPress={() => setShowFiltersModal(false)}
             >
-              <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
+              <Text style={[styles.modalCloseButtonText, { color: theme.text }]}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       {/* BOTTOM NAV */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-          <Image source={home} style={styles.navIcon} />
+          <Image source={home} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={chat} style={styles.navIcon} />
+          <Image source={chat} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={calendar} style={styles.navIcon} />
+          <Image source={calendar} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Image source={user} style={styles.navIcon} />
+          <Image source={user} style={[styles.navIcon, { tintColor: theme.primary }]} />
         </TouchableOpacity>
       </View>
     </View>
