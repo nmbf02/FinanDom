@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const BackIcon = require('../assets/icons/back.png');
 
@@ -27,6 +28,7 @@ const SignContractScreen = () => {
   };
   const signatureRef = useRef<any>(null);
   const [_signature, setSignature] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const handleSignature = (signatureData: string) => {
     setSignature(signatureData);
@@ -51,17 +53,17 @@ const SignContractScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={BackIcon} style={styles.iconBack} />
+          <Image source={BackIcon} style={[styles.iconBack, { tintColor: theme.muted }]} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('contract.title')}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('contract.title')}</Text>
         <View style={{ width: 24 }} /> {/* Espacio para alinear */}
       </View>
-      <Text style={styles.subtitle}>{t('contract.subtitle')}</Text>
-      <View style={styles.signatureContainer}>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>{t('contract.subtitle')}</Text>
+      <View style={[styles.signatureContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <Signature
           ref={signatureRef}
           onOK={handleSignature}
@@ -71,8 +73,8 @@ const SignContractScreen = () => {
           webStyle={signaturePadStyle}
         />
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleAccept}>
-        <Text style={styles.buttonText}>{t('contract.acceptButton')}</Text>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleAccept}>
+        <Text style={[styles.buttonText, { color: theme.text }]}>{t('contract.acceptButton')}</Text>
       </TouchableOpacity>
     </View>
   );
