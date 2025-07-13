@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 const BackIcon = require('../assets/icons/back.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -21,6 +22,7 @@ const CheckIcon = require('../assets/icons/checkmark.png');
 
 const RegisterScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [userId, setUserId] = useState('');
   const [name, setName] = useState('');
   const [identification, setIdentification] = useState('');
@@ -71,87 +73,94 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
         <TouchableOpacity style={styles.backIcon} onPress={() => navigation.navigate('Login')}>
-          <Image source={BackIcon} style={styles.iconBack} />
+          <Image source={BackIcon} style={[styles.iconBack, { tintColor: theme.muted }]} />
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <Text style={styles.title}>{t('register.title')}</Text>
-          <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('register.title')}</Text>
+          <Text style={[styles.subtitle, { color: theme.muted }]}>{t('register.subtitle')}</Text>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.text, borderColor: theme.border }]}
             placeholder={t('register.userId')}
+            placeholderTextColor={theme.muted}
             value={userId}
             onChangeText={text => setUserId(text.replace(/[^0-9]/g, ''))}
             keyboardType="numeric"
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.text, borderColor: theme.border }]}
             placeholder={t('register.identification')}
+            placeholderTextColor={theme.muted}
             value={identification}
             onChangeText={setIdentification}
           />
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.text, borderColor: theme.border }]}
             placeholder={t('register.fullName')}
+            placeholderTextColor={theme.muted}
             value={name}
             onChangeText={setName}
           />
 
-          <View style={styles.inputRow}>
+          <View style={[styles.inputRow, { borderColor: theme.border }]}>
             <TextInput
-              style={styles.inputPassword}
+              style={[styles.inputPassword, { color: theme.text }]}
               placeholder={t('register.email')}
+              placeholderTextColor={theme.muted}
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
             />
-            {isEmailValid && <Image source={CheckIcon} style={styles.smallIcon} />}
+            {isEmailValid && <Image source={CheckIcon} style={[styles.smallIcon, { tintColor: theme.primary }]} />}
           </View>
 
-          <View style={styles.inputRow}>
+          <View style={[styles.inputRow, { borderColor: theme.border }]}>
             <TextInput
-              style={styles.inputPassword}
+              style={[styles.inputPassword, { color: theme.text }]}
               placeholder={t('register.password')}
+              placeholderTextColor={theme.muted}
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Image source={showPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
+              <Image source={showPassword ? eyeOffIcon : eyeIcon} style={[styles.smallIcon, { tintColor: theme.muted }]} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.inputRow}>
+          <View style={[styles.inputRow, { borderColor: theme.border }]}>
             <TextInput
-              style={styles.inputPassword}
+              style={[styles.inputPassword, { color: theme.text }]}
               placeholder={t('register.confirmPassword')}
+              placeholderTextColor={theme.muted}
               secureTextEntry={!showConfirmPassword}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
             <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <Image source={showConfirmPassword ? eyeOffIcon : eyeIcon} style={styles.smallIcon} />
+              <Image source={showConfirmPassword ? eyeOffIcon : eyeIcon} style={[styles.smallIcon, { tintColor: theme.muted }]} />
             </TouchableOpacity>
           </View>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.text, borderColor: theme.border }]}
             placeholder={t('register.role')}
+            placeholderTextColor={theme.muted}
             value={role}
             onChangeText={setRole}
             editable={false}
           />
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>{t('register.createAccount')}</Text>
+          <TouchableOpacity style={[styles.registerButton, { backgroundColor: theme.primary }]} onPress={handleRegister}>
+            <Text style={[styles.registerButtonText, { color: theme.text }]}>{t('register.createAccount')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -182,19 +191,16 @@ const styles = StyleSheet.create({
   iconBack: {
     width: 24,
     height: 24,
-    tintColor: '#555',
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#1A1A1A',
     textAlign: 'left',
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 30,
-    color: '#555',
     textAlign: 'left',
   },
   input: {
@@ -220,7 +226,6 @@ const styles = StyleSheet.create({
   smallIcon: {
     width: 20,
     height: 20,
-    tintColor: '#888',
   },
   registerButton: {
     backgroundColor: '#1CC88A',
