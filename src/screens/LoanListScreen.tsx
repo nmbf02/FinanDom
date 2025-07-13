@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, A
 import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 // Iconos
 const menuIcon = require('../assets/icons/menu.png');
@@ -31,6 +32,7 @@ const user = require('../assets/icons/user-setting.png');
 
 const LoanListScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [loans, setLoans] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [filteredLoans, setFilteredLoans] = useState<any[]>([]);
@@ -46,6 +48,7 @@ const LoanListScreen = () => {
 
   useEffect(() => {
     fetchLoans();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -86,7 +89,7 @@ const LoanListScreen = () => {
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Backend error:', res.status, errorText);
-        setError(`Error ${res.status}: ${errorText}`);
+        setError(t('loanList.fetchError', { status: res.status, error: errorText }));
         setLoans([]);
         return;
       }
@@ -97,19 +100,19 @@ const LoanListScreen = () => {
     } catch (err) {
       console.error('Network error:', err);
       setLoans([]);
-      setError(`Error de conexión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      setError(t('loanList.connectionError', { error: err instanceof Error ? err.message : t('common.unknownError') }));
     }
     setLoading(false);
   };
 
   const handleCancelLoan = async (loan: any) => {
     Alert.alert(
-      'Cancelar Préstamo',
-      `¿Estás seguro de que quieres cancelar el préstamo #${loan.id}?`,
+      t('loanList.cancelLoan'),
+      t('loanList.cancelConfirmation', { loanId: loan.id }),
       [
-        { text: 'No', style: 'cancel' },
+        { text: t('common.no'), style: 'cancel' },
         {
-          text: 'Sí, Cancelar',
+          text: t('loanList.yesCancel'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -117,13 +120,13 @@ const LoanListScreen = () => {
                 method: 'DELETE',
               });
               if (response.ok) {
-                Alert.alert('Éxito', 'Préstamo cancelado correctamente.');
+                Alert.alert(t('common.success'), t('loanList.loanCancelled'));
                 fetchLoans();
               } else {
-                Alert.alert('Error', 'No se pudo cancelar el préstamo.');
+                Alert.alert(t('common.error'), t('loanList.cancelError'));
               }
             } catch (error) {
-              Alert.alert('Error', 'No se pudo conectar con el servidor.');
+              Alert.alert(t('common.error'), t('loanList.serverError'));
             }
           },
         },
@@ -144,13 +147,13 @@ const LoanListScreen = () => {
         ]} />
       </View>
       <View style={styles.loanInfo}>
-        <Text style={styles.loanTitle}>Préstamo #{item.id}</Text>
-        <Text style={styles.loanLabel}>Cliente: <Text style={styles.loanValue}>{item.client_name || `ID: ${item.client_id}`}</Text></Text>
-        <Text style={styles.loanLabel}>Monto: <Text style={styles.loanValue}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.loanLabel}>Interés: <Text style={styles.loanValue}>{item.interest_rate}%</Text></Text>
-        <Text style={styles.loanLabel}>Cuotas: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
-        <Text style={styles.loanLabel}>Total a pagar: <Text style={styles.loanValue}>RD$ {parseFloat(item.total_with_interest || item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.loanLabel}>Estado: <Text style={styles.loanValue}>{item.status}</Text></Text>
+        <Text style={styles.loanTitle}>{t('loanList.loanNumber', { id: item.id })}</Text>
+        <Text style={styles.loanLabel}>{t('loanList.client')}: <Text style={styles.loanValue}>{item.client_name || t('loanList.clientId', { id: item.client_id })}</Text></Text>
+        <Text style={styles.loanLabel}>{t('loanList.amount')}: <Text style={styles.loanValue}>RD$ {parseFloat(item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={styles.loanLabel}>{t('loanList.interest')}: <Text style={styles.loanValue}>{item.interest_rate}%</Text></Text>
+        <Text style={styles.loanLabel}>{t('loanList.installments')}: <Text style={styles.loanValue}>{item.num_installments}</Text></Text>
+        <Text style={styles.loanLabel}>{t('loanList.totalToPay')}: <Text style={styles.loanValue}>RD$ {parseFloat(item.total_with_interest || item.amount).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={styles.loanLabel}>{t('loanList.status')}: <Text style={styles.loanValue}>{item.status}</Text></Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => handleCancelLoan(item)}>
@@ -167,17 +170,17 @@ const LoanListScreen = () => {
     <View style={styles.mainContainer}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Lista de Préstamos</Text>
+        <Text style={styles.title}>{t('loanList.title')}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>Cuotas</Text>
+      <Text style={styles.subtitle}>{t('loanList.subtitle')}</Text>
       {/* Buscador con icono de filtros */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por ID, nombre del cliente o estado..."
+          placeholder={t('loanList.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />
@@ -195,7 +198,7 @@ const LoanListScreen = () => {
         <View style={styles.errorContainer}>
           <Text style={styles.error}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchLoans}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>{t('loanList.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -215,41 +218,41 @@ const LoanListScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filtros</Text>
+            <Text style={styles.modalTitle}>{t('loanList.filters')}</Text>
             
             <TouchableOpacity
               style={[styles.modalFilterBtn, filters.activos && styles.modalFilterBtnActive]}
               onPress={() => setFilters(prev => ({ ...prev, activos: !prev.activos }))}
             >
-              <Text style={[styles.modalFilterText, filters.activos && styles.modalFilterTextActive]}>Activos</Text>
+              <Text style={[styles.modalFilterText, filters.activos && styles.modalFilterTextActive]}>{t('loanList.active')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.modalFilterBtn, filters.cancelados && styles.modalFilterBtnInactive]}
               onPress={() => setFilters(prev => ({ ...prev, cancelados: !prev.cancelados }))}
             >
-              <Text style={[styles.modalFilterText, filters.cancelados && styles.modalFilterTextInactive]}>Cancelados</Text>
+              <Text style={[styles.modalFilterText, filters.cancelados && styles.modalFilterTextInactive]}>{t('loanList.cancelled')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.modalFilterBtn, filters.pagados && styles.modalFilterBtnPaid]}
               onPress={() => setFilters(prev => ({ ...prev, pagados: !prev.pagados }))}
             >
-              <Text style={[styles.modalFilterText, filters.pagados && styles.modalFilterTextPaid]}>Pagados</Text>
+              <Text style={[styles.modalFilterText, filters.pagados && styles.modalFilterTextPaid]}>{t('loanList.paid')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.modalFilterBtn, filters.atrasados && styles.modalFilterBtnLate]}
               onPress={() => setFilters(prev => ({ ...prev, atrasados: !prev.atrasados }))}
             >
-              <Text style={[styles.modalFilterText, filters.atrasados && styles.modalFilterTextLate]}>Atrasados</Text>
+              <Text style={[styles.modalFilterText, filters.atrasados && styles.modalFilterTextLate]}>{t('loanList.overdue')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.modalCloseButton}
               onPress={() => setShowFiltersModal(false)}
             >
-              <Text style={styles.modalCloseButtonText}>Cerrar</Text>
+              <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

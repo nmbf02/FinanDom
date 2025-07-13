@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, Alert, ActivityIndicator, Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const home = require('../assets/icons/home.png');
 const chat = require('../assets/icons/chat.png');
@@ -33,6 +34,7 @@ type Suggestion = {
 };
 
 const AssistantScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const [filter, setFilter] = useState<'reminder' | 'thanks'>('reminder');
@@ -62,7 +64,7 @@ const AssistantScreen = () => {
       setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      Alert.alert('Error cargando sugerencias', errorMsg);
+      Alert.alert(t('assistantScreen.loadingError'), errorMsg);
       setMessages([]);
       console.error('Error cargando sugerencias:', error);
     } finally {
@@ -111,10 +113,10 @@ const AssistantScreen = () => {
         return;
       }
       Alert.alert(
-        'Mensaje enviado',
-        `Mensaje enviado exitosamente a ${selectedMessage.clientName}`,
+        t('assistantScreen.messageSent'),
+        t('assistantScreen.messageSentSuccess', { name: selectedMessage.clientName }),
         [
-          { text: 'OK', onPress: () => {
+          { text: t('common.ok'), onPress: () => {
             setSelectedMessage(null);
             fetchSuggestions();
           }}
@@ -122,7 +124,7 @@ const AssistantScreen = () => {
       );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      Alert.alert('Error enviando mensaje', errorMsg);
+      Alert.alert(t('assistantScreen.sendingError'), errorMsg);
       console.error('Error enviando mensaje:', error);
     } finally {
       setSending(false);
@@ -134,15 +136,15 @@ const AssistantScreen = () => {
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
         <Text style={styles.cardName}>{item.clientName}</Text>
-        <Text style={styles.cardField}>Tipo: <Text style={styles.cardValue}>{item.type === 'reminder' ? 'Recordatorio' : 'Agradecimiento'}</Text></Text>
+        <Text style={styles.cardField}>{t('assistantScreen.type')}: <Text style={styles.cardValue}>{item.type === 'reminder' ? t('assistantScreen.reminder') : t('assistantScreen.thanks')}</Text></Text>
         {item.type === 'reminder' && item.daysOverdue && (
-          <Text style={styles.cardField}>Días de atraso: <Text style={[styles.cardValue, { color: '#EF4444' }]}>{item.daysOverdue}</Text></Text>
+          <Text style={styles.cardField}>{t('assistantScreen.daysOverdue')}: <Text style={[styles.cardValue, { color: '#EF4444' }]}>{item.daysOverdue}</Text></Text>
         )}
         {item.type === 'thanks' && item.amountPaid && (
-          <Text style={styles.cardField}>Monto pagado: <Text style={[styles.cardValue, { color: '#10B981' }]}>RD$ {parseFloat(item.amountPaid.toString()).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+          <Text style={styles.cardField}>{t('assistantScreen.amountPaid')}: <Text style={[styles.cardValue, { color: '#10B981' }]}>RD$ {parseFloat(item.amountPaid.toString()).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
         )}
-        <Text style={styles.cardField}>Mensaje: <Text style={styles.cardValue}>{item.text}</Text></Text>
-        <Text style={styles.cardField}>Estado: <Text style={styles.cardValue}>{item.status}</Text></Text>
+        <Text style={styles.cardField}>{t('assistantScreen.message')}: <Text style={styles.cardValue}>{item.text}</Text></Text>
+        <Text style={styles.cardField}>{t('assistantScreen.status')}: <Text style={styles.cardValue}>{item.status}</Text></Text>
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity 
@@ -174,18 +176,18 @@ const AssistantScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Asistente Inteligente</Text>
+        <Text style={styles.title}>{t('assistantScreen.title')}</Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('CommunicationHistory')}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>Gestión de Mensajes</Text>
+      <Text style={styles.subtitle}>{t('assistantScreen.subtitle')}</Text>
       
       {/* Buscador */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar mensajes..."
+          placeholder={t('assistantScreen.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />
@@ -198,13 +200,13 @@ const AssistantScreen = () => {
           style={[styles.filterButton, filter === 'reminder' && styles.filterButtonActive]}
           onPress={() => setFilter('reminder')}
         >
-          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>Recordatorio</Text>
+          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>{t('assistantScreen.reminder')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'thanks' && styles.filterButtonActiveBlue]}
           onPress={() => setFilter('thanks')}
         >
-          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>Agradecimiento</Text>
+          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>{t('assistantScreen.thanks')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -212,7 +214,7 @@ const AssistantScreen = () => {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Cargando sugerencias...</Text>
+          <Text style={styles.loadingText}>{t('assistantScreen.loadingSuggestions')}</Text>
         </View>
       ) : (
         <FlatList
@@ -222,8 +224,8 @@ const AssistantScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No hay mensajes para mostrar</Text>
-              <Text style={styles.emptySubtext}>Intenta cambiar los filtros</Text>
+              <Text style={styles.emptyText}>{t('assistantScreen.noMessages')}</Text>
+              <Text style={styles.emptySubtext}>{t('assistantScreen.tryFilters')}</Text>
             </View>
           }
         />
@@ -233,7 +235,7 @@ const AssistantScreen = () => {
       <Modal visible={!!selectedMessage} transparent animationType="slide" onRequestClose={() => setSelectedMessage(null)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Mensaje sugerido</Text>
+            <Text style={styles.modalTitle}>{t('assistantScreen.suggestedMessage')}</Text>
             <Text style={styles.modalClient}>{selectedMessage?.clientName}</Text>
             <TextInput
               style={styles.modalMsgInput}
@@ -249,7 +251,7 @@ const AssistantScreen = () => {
               {sending ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.modalSendButtonText}>Enviar por Correo</Text>
+                <Text style={styles.modalSendButtonText}>{t('assistantScreen.sendByEmail')}</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity 
@@ -260,7 +262,7 @@ const AssistantScreen = () => {
               {sending ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.modalSendButtonText}>Enviar por WhatsApp</Text>
+                <Text style={styles.modalSendButtonText}>{t('assistantScreen.sendByWhatsApp')}</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity 
@@ -268,7 +270,7 @@ const AssistantScreen = () => {
               onPress={() => setSelectedMessage(null)}
               disabled={sending}
             >
-              <Text style={styles.modalCloseButtonText}>Cerrar</Text>
+              <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

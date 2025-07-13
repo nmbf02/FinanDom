@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../hooks/useLanguage';
 // Puedes usar react-native-vector-icons para los íconos si lo tienes instalado
 // Si no, usa imágenes locales o el componente Text con emojis como fallback
 
@@ -15,13 +17,16 @@ const back = require('../assets/icons/back.png');
 
 const SettingsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-  const [language, setLanguage] = useState<'es' | 'en' | 'other'>('es');
+  const [language, setLanguage] = useState<'es' | 'en' | 'system'>('es');
   const [userName, setUserName] = useState('Usuario');
 
   useEffect(() => {
     loadUserData();
-  }, []);
+    setLanguage(currentLanguage as 'es' | 'en' | 'system');
+  }, [currentLanguage]);
 
   const loadUserData = async () => {
     try {
@@ -35,6 +40,17 @@ const SettingsScreen = () => {
     }
   };
 
+  const handleLanguageChange = async (newLanguage: 'es' | 'en' | 'system') => {
+    setLanguage(newLanguage);
+    if (newLanguage === 'system') {
+      // Usar el idioma del sistema
+      const systemLanguage = 'es'; // Por defecto español
+      await changeLanguage(systemLanguage);
+    } else {
+      await changeLanguage(newLanguage);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header con back */}
@@ -42,7 +58,7 @@ const SettingsScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={back} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configuraciones</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -51,42 +67,42 @@ const SettingsScreen = () => {
           <Image source={avatar} style={styles.avatar} />
           <Text style={styles.userName}>{userName}</Text>
         </View>
-        {/* Indicador de conexión */}
+        {/* Indicador de conexión
         <View style={styles.connectionRow}>
           <Text style={styles.connectionIcon}>↻</Text>
           <Text style={styles.connectionText}>
-            {'Estás trabajando sin conexión'}
+            {t('settings.connectionStatus')}
           </Text>
-        </View>
-        {/* Botón sincronizar */}
-        <TouchableOpacity style={styles.syncButton} onPress={() => Alert.alert('Sincronizar', 'Funcionalidad de sincronización aquí.') }>
+        </View> */}
+        {/* Botón sincronizar
+        <TouchableOpacity style={styles.syncButton} onPress={() => Alert.alert(t('settings.title'), t('settings.syncMessage')) }>
           <Text style={styles.syncButtonIcon}>↻</Text>
-          <Text style={styles.syncButtonText}>SINCRONIZAR CAMBIOS</Text>
-        </TouchableOpacity>
+          <Text style={styles.syncButtonText}>{t('settings.syncButton')}</Text>
+        </TouchableOpacity> */}
         {/* Tema */}
-        <Text style={styles.sectionTitle}>Tema</Text>
+        <Text style={styles.sectionTitle}>{t('settings.theme')}</Text>
         <View style={styles.pillRow}>
           <TouchableOpacity style={[styles.pill, theme === 'light' && styles.pillActive]} onPress={() => setTheme('light')}>
-            <Text style={[styles.pillText, theme === 'light' && styles.pillTextActive]}>Claro</Text>
+            <Text style={[styles.pillText, theme === 'light' && styles.pillTextActive]}>{t('settings.themeOptions.light')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pill, theme === 'dark' && styles.pillActive]} onPress={() => setTheme('dark')}>
-            <Text style={[styles.pillText, theme === 'dark' && styles.pillTextActive]}>Oscuro</Text>
+            <Text style={[styles.pillText, theme === 'dark' && styles.pillTextActive]}>{t('settings.themeOptions.dark')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pill, theme === 'system' && styles.pillActive]} onPress={() => setTheme('system')}>
-            <Text style={[styles.pillText, theme === 'system' && styles.pillTextActive]}>Sistema</Text>
+            <Text style={[styles.pillText, theme === 'system' && styles.pillTextActive]}>{t('settings.themeOptions.system')}</Text>
           </TouchableOpacity>
         </View>
         {/* Idioma */}
-        <Text style={styles.sectionTitle}>Idioma</Text>
+        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
         <View style={styles.pillRow}>
-          <TouchableOpacity style={[styles.pill, language === 'es' && styles.pillActive]} onPress={() => setLanguage('es')}>
-            <Text style={[styles.pillText, language === 'es' && styles.pillTextActive]}>Español</Text>
+          <TouchableOpacity style={[styles.pill, language === 'es' && styles.pillActive]} onPress={() => handleLanguageChange('es')}>
+            <Text style={[styles.pillText, language === 'es' && styles.pillTextActive]}>{t('settings.languageOptions.es')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, language === 'en' && styles.pillActive]} onPress={() => setLanguage('en')}>
-            <Text style={[styles.pillText, language === 'en' && styles.pillTextActive]}>Inglés</Text>
+          <TouchableOpacity style={[styles.pill, language === 'en' && styles.pillActive]} onPress={() => handleLanguageChange('en')}>
+            <Text style={[styles.pillText, language === 'en' && styles.pillTextActive]}>{t('settings.languageOptions.en')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.pill, language === 'other' && styles.pillActive]} onPress={() => setLanguage('other')}>
-            <Text style={[styles.pillText, language === 'other' && styles.pillTextActive]}>Sistema</Text>
+          <TouchableOpacity style={[styles.pill, language === 'system' && styles.pillActive]} onPress={() => handleLanguageChange('system')}>
+            <Text style={[styles.pillText, language === 'system' && styles.pillTextActive]}>{t('settings.languageOptions.system')}</Text>
           </TouchableOpacity>
         </View>
         <View style={{ height: 100 }} />

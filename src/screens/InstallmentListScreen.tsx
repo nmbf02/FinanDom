@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -33,6 +34,7 @@ function getWeekDates(date = new Date()) {
 
 const InstallmentListScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState(getWeekDates(new Date()));
@@ -75,7 +77,7 @@ const InstallmentListScreen = () => {
       setInstallments(Array.isArray(data) ? data : data.installments || []);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      Alert.alert('Error cargando cuotas', errorMsg);
+      Alert.alert(t('installmentList.loadingError'), errorMsg);
       setInstallments([]);
       console.error('Error cargando cuotas:', err);
     }
@@ -86,11 +88,11 @@ const InstallmentListScreen = () => {
     <View style={styles.card}>
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{item.client_name || 'Cliente'}</Text>
-        <Text style={styles.cardField}># Cuota: <Text style={styles.cardValue}>{item.installment_number || '-'}</Text></Text>
-        <Text style={styles.cardField}>Monto: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_due).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.cardField}>Fecha de vencimiento: <Text style={styles.cardValue}>{item.due_date || '-'}</Text></Text>
-        <Text style={styles.cardField}>Estado: <Text style={styles.cardValue}>{item.status || '-'}</Text></Text>
+        <Text style={styles.cardName}>{item.client_name || t('installmentList.client')}</Text>
+        <Text style={styles.cardField}>{t('installmentList.installmentNumber')}: <Text style={styles.cardValue}>{item.installment_number || '-'}</Text></Text>
+        <Text style={styles.cardField}>{t('installmentList.amount')}: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_due).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={styles.cardField}>{t('installmentList.dueDate')}: <Text style={styles.cardValue}>{item.due_date || '-'}</Text></Text>
+        <Text style={styles.cardField}>{t('installmentList.status')}: <Text style={styles.cardValue}>{item.status || '-'}</Text></Text>
       </View>
       <TouchableOpacity style={styles.plusButton} onPress={() => {/* acción para ver detalles o registrar pago */}}>
         <Text style={styles.plusText}>+</Text>
@@ -105,15 +107,15 @@ const InstallmentListScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backArrow}>{'←'}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Listado de prestamos</Text>
+        <Text style={styles.title}>{t('installmentList.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
-      <Text style={styles.subtitle}>Cuotas - Pagos</Text>
+      <Text style={styles.subtitle}>{t('installmentList.subtitle')}</Text>
       {/* Buscador */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search..."
+          placeholder={t('installmentList.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />

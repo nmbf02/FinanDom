@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const BackIcon = require('../assets/icons/back.png');
 const CheckIcon = require('../assets/icons/checkmark.png');
@@ -19,6 +20,7 @@ const eyeIcon = require('../assets/icons/eye.png');
 const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -32,7 +34,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const handleSendCode = async () => {
     if (!email) {
-      Alert.alert('❌ Error', 'Por favor ingresa tu email');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.enterEmail'));
       return;
     }
 
@@ -49,14 +51,14 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('✅ Código enviado', 'Revisa tu email para el código de recuperación');
+        Alert.alert(t('forgotPassword.codeSent'), t('forgotPassword.checkEmail'));
         setStep(2);
       } else {
-        Alert.alert('❌ Error', data.message || 'No se pudo enviar el código');
+        Alert.alert(t('forgotPassword.error'), data.message || t('forgotPassword.sendCodeError'));
       }
     } catch (error) {
       console.error('Error enviando código:', error);
-      Alert.alert('❌ Error', 'Error al conectar con el servidor');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.serverError'));
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +66,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const handleVerifyCode = async () => {
     if (!code) {
-      Alert.alert('❌ Error', 'Por favor ingresa el código');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.enterCode'));
       return;
     }
 
@@ -73,12 +75,12 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const handleResetPassword = async () => {
     if (!newPassword || !confirmPassword) {
-      Alert.alert('❌ Error', 'Por favor completa todos los campos');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.completeFields'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('❌ Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.passwordMismatch'));
       return;
     }
 
@@ -95,15 +97,15 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('✅ Éxito', 'Contraseña actualizada exitosamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Login') }
+        Alert.alert(t('forgotPassword.success'), t('forgotPassword.passwordUpdated'), [
+          { text: t('common.ok'), onPress: () => navigation.navigate('Login') }
         ]);
       } else {
-        Alert.alert('❌ Error', data.message || 'No se pudo actualizar la contraseña');
+        Alert.alert(t('forgotPassword.error'), data.message || t('forgotPassword.updatePasswordError'));
       }
     } catch (error) {
       console.error('Error actualizando contraseña:', error);
-      Alert.alert('❌ Error', 'Error al conectar con el servidor');
+      Alert.alert(t('forgotPassword.error'), t('forgotPassword.serverError'));
     } finally {
       setIsLoading(false);
     }
@@ -111,13 +113,13 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>Recuperar Contraseña</Text>
-      <Text style={styles.subtitle}>Ingresa tu email para recibir un código de recuperación</Text>
+      <Text style={styles.title}>{t('forgotPassword.recoverPassword')}</Text>
+      <Text style={styles.subtitle}>{t('forgotPassword.enterEmailForCode')}</Text>
 
       <View style={styles.inputRow}>
         <TextInput
           style={styles.inputPassword}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
@@ -132,7 +134,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
         disabled={isLoading}
       >
         <Text style={styles.buttonText}>
-          {isLoading ? 'Enviando...' : 'Enviar Código'}
+          {isLoading ? t('forgotPassword.sending') : t('forgotPassword.sendCode')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -140,12 +142,12 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>Verificar Código</Text>
-      <Text style={styles.subtitle}>Ingresa el código que recibiste en tu email</Text>
+      <Text style={styles.title}>{t('forgotPassword.verifyCode')}</Text>
+      <Text style={styles.subtitle}>{t('forgotPassword.enterCodeFromEmail')}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Código de 6 dígitos"
+        placeholder={t('forgotPassword.sixDigitCode')}
         value={code}
         onChangeText={setCode}
         keyboardType="numeric"
@@ -153,24 +155,24 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleVerifyCode}>
-        <Text style={styles.buttonText}>Verificar Código</Text>
+        <Text style={styles.buttonText}>{t('forgotPassword.verifyCode')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.linkButton} onPress={() => setStep(1)}>
-        <Text style={styles.linkText}>Cambiar email</Text>
+        <Text style={styles.linkText}>{t('forgotPassword.changeEmail')}</Text>
       </TouchableOpacity>
     </View>
   );
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.title}>Nueva Contraseña</Text>
-      <Text style={styles.subtitle}>Ingresa tu nueva contraseña</Text>
+      <Text style={styles.title}>{t('forgotPassword.newPassword')}</Text>
+      <Text style={styles.subtitle}>{t('forgotPassword.enterNewPassword')}</Text>
 
       <View style={styles.inputRow}>
         <TextInput
           style={styles.inputPassword}
-          placeholder="Nueva contraseña"
+          placeholder={t('forgotPassword.newPasswordPlaceholder')}
           secureTextEntry={!showPassword}
           value={newPassword}
           onChangeText={setNewPassword}
@@ -183,7 +185,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       <View style={styles.inputRow}>
         <TextInput
           style={styles.inputPassword}
-          placeholder="Confirmar nueva contraseña"
+          placeholder={t('forgotPassword.confirmNewPassword')}
           secureTextEntry={!showConfirmPassword}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
@@ -199,7 +201,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
         disabled={isLoading}
       >
         <Text style={styles.buttonText}>
-          {isLoading ? 'Actualizando...' : 'Actualizar Contraseña'}
+          {isLoading ? t('forgotPassword.updating') : t('forgotPassword.updatePassword')}
         </Text>
       </TouchableOpacity>
     </View>

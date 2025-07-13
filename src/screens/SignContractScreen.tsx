@@ -2,12 +2,14 @@ import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const BackIcon = require('../assets/icons/back.png');
 
 const SignContractScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
   const { amount, numInstallments, /* totalWithInterest, */ clientName, clientIdentification, startDate, frequency, interestRate, client_id, late_fee_type_id, late_days, late_percent, contract_pdf_url } = (route.params || {}) as {
     amount?: number | string;
     numInstallments?: number | string;
@@ -55,22 +57,22 @@ const SignContractScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={BackIcon} style={styles.iconBack} />
         </TouchableOpacity>
-        <Text style={styles.title}>Firma del contrato</Text>
+        <Text style={styles.title}>{t('contract.title')}</Text>
         <View style={{ width: 24 }} /> {/* Espacio para alinear */}
       </View>
-      <Text style={styles.subtitle}>Campo para firmar con el dedo (canvas)</Text>
+      <Text style={styles.subtitle}>{t('contract.subtitle')}</Text>
       <View style={styles.signatureContainer}>
         <Signature
           ref={signatureRef}
           onOK={handleSignature}
-          descriptionText="Firma Aquí"
-          clearText="Limpiar"
-          confirmText="Aceptar"
+          descriptionText={t('contract.signaturePlaceholder')}
+          clearText={t('contract.clearText')}
+          confirmText={t('contract.confirmText')}
           webStyle={signaturePadStyle}
         />
       </View>
       <TouchableOpacity style={styles.button} onPress={handleAccept}>
-        <Text style={styles.buttonText}>ACEPTAR FIRMA</Text>
+        <Text style={styles.buttonText}>{t('contract.acceptButton')}</Text>
       </TouchableOpacity>
     </View>
   );

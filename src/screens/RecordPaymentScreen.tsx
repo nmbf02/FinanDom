@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 const backIcon = require('../assets/icons/back.png');
 const home = require('../assets/icons/home.png');
@@ -26,6 +27,7 @@ function formatCurrency(num: string | number) {
 const RecordPaymentScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<any>();
+  const { t } = useTranslation();
   const loan = route.params?.loan || {};
 
   // Datos generales del préstamo
@@ -121,7 +123,7 @@ const RecordPaymentScreen = () => {
         })
         .catch(error => {
           const errorMsg = error instanceof Error ? error.message : String(error);
-          Alert.alert('Error cargando cuotas', errorMsg);
+          Alert.alert(t('payment.loadingInstallments'), errorMsg);
           setPendingInstallments([]);
           console.error('Error cargando cuotas:', error);
         });
@@ -141,7 +143,7 @@ const RecordPaymentScreen = () => {
         })
         .catch(error => {
           const errorMsg = error instanceof Error ? error.message : String(error);
-          Alert.alert('Error cargando pagos', errorMsg);
+          Alert.alert(t('payment.loadingPayments'), errorMsg);
           setLoanPayments([]);
           console.error('Error cargando pagos:', error);
         });
@@ -202,7 +204,7 @@ const RecordPaymentScreen = () => {
       .then(data => setPaymentMethods(data))
       .catch(error => {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        Alert.alert('Error cargando métodos de pago', errorMsg);
+        Alert.alert(t('payment.loadingPaymentMethods'), errorMsg);
         setPaymentMethods([
           { id: 1, name: 'Efectivo' },
           { id: 2, name: 'Cheque' },
@@ -212,17 +214,17 @@ const RecordPaymentScreen = () => {
         ]);
         console.error('Error cargando métodos de pago:', error);
       });
-  }, []);
+  }, [t]);
 
   const handleGeneratePDF = () => {
-    Alert.alert('PDF', 'Funcionalidad para generar recibo PDF (pendiente)');
+    Alert.alert('PDF', t('payment.pdfMessage'));
   };
 
   const handleConfirmPayment = async () => {
     try {
       // Validar campos obligatorios
       if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
-        Alert.alert('Error', 'El monto a pagar debe ser mayor a 0');
+        Alert.alert(t('payment.error'), t('payment.amountError'));
         return;
       }
 
@@ -258,7 +260,7 @@ const RecordPaymentScreen = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error del backend:', errorText);
-        Alert.alert('Error', 'No se pudo registrar el pago. Inténtalo de nuevo.');
+        Alert.alert(t('payment.error'), t('payment.paymentError'));
         return;
       }
 
@@ -283,7 +285,7 @@ const RecordPaymentScreen = () => {
       
     } catch (error) {
       console.error('Error al registrar pago:', error);
-      Alert.alert('Error', 'No se pudo registrar el pago. Verifica tu conexión e inténtalo de nuevo.');
+      Alert.alert(t('payment.error'), t('payment.connectionError'));
     }
   };
 
@@ -297,34 +299,34 @@ const RecordPaymentScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Registrar Pago</Text>
+        <Text style={styles.title}>{t('payment.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Información del Préstamo */}
-        <Text style={styles.sectionTitle}>Información del Préstamo</Text>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Cliente</Text><Text style={styles.infoValue}>{loan.client_name || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Préstamo #</Text><Text style={styles.infoValue}>{loan.id || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Estado</Text><Text style={styles.infoValue}>{loan.status || '-'}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Fecha de inicio</Text><Text style={styles.infoValue}>{loan.start_date || '-'}</Text></View>
+        <Text style={styles.sectionTitle}>{t('payment.loanInfo')}</Text>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.client')}</Text><Text style={styles.infoValue}>{loan.client_name || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.loanNumber')}</Text><Text style={styles.infoValue}>{loan.id || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.status')}</Text><Text style={styles.infoValue}>{loan.status || '-'}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.startDate')}</Text><Text style={styles.infoValue}>{loan.start_date || '-'}</Text></View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Monto Del Préstamo</Text>
+          <Text style={styles.infoLabel}>{t('payment.loanAmount')}</Text>
           <Text style={styles.infoValue}>{formatCurrency(totalLoanAmount)}</Text>
         </View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Monto Pagado</Text><Text style={styles.infoValue}>{formatCurrency(paidAmount)}</Text></View>
-        <View style={styles.infoRow}><Text style={styles.infoLabel}>Cantidad De Cuotas Total</Text><Text style={styles.infoValue}>{totalInstallments}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.paidAmount')}</Text><Text style={styles.infoValue}>{formatCurrency(paidAmount)}</Text></View>
+        <View style={styles.infoRow}><Text style={styles.infoLabel}>{t('payment.totalInstallments')}</Text><Text style={styles.infoValue}>{totalInstallments}</Text></View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Cuotas Faltantes</Text>
+          <Text style={styles.infoLabel}>{t('payment.missingInstallments')}</Text>
           <Text style={styles.infoValue}>
             {totalInstallments - loanPayments.length}
           </Text>
         </View>
 
         {/* Abono a Préstamo */}
-        <Text style={styles.sectionTitle}>Abono a Préstamo</Text>
+        <Text style={styles.sectionTitle}>{t('payment.paymentSection')}</Text>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Fecha de Pago</Text>
+          <Text style={styles.infoLabel}>{t('payment.paymentDate')}</Text>
           <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
             <Text>{paymentDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
@@ -341,7 +343,7 @@ const RecordPaymentScreen = () => {
           )}
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Seleccionar Cuotas a Pagar</Text>
+          <Text style={styles.infoLabel}>{t('payment.selectInstallments')}</Text>
           <TextInput
             style={styles.input}
             value={selectedInstallments}
@@ -365,7 +367,7 @@ const RecordPaymentScreen = () => {
           />
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Monto A Abonar</Text>
+          <Text style={styles.infoLabel}>{t('payment.amountToPay')}</Text>
           <TextInput
             style={styles.input}
             value={paymentAmount}
@@ -375,17 +377,17 @@ const RecordPaymentScreen = () => {
           />
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Método de Pago</Text>
+          <Text style={styles.infoLabel}>{t('payment.paymentMethod')}</Text>
           <View style={styles.paymentRow}>
             <TouchableOpacity style={styles.paymentInput} onPress={() => setShowPaymentModal(true)}>
               <Text style={{ color: paymentMethodId ? '#222' : '#888' }}>
-                {paymentMethods.find(m => m.id === paymentMethodId)?.name || 'Selecciona método'}
+                {paymentMethods.find(m => m.id === paymentMethodId)?.name || t('payment.selectMethod')}
               </Text>
             </TouchableOpacity>
             {paymentMethods.find(m => m.id === paymentMethodId)?.name === 'Transferencia' && (
               <TextInput
                 style={styles.referenceInput}
-                placeholder="Referencia"
+                placeholder={t('payment.reference')}
                 value={reference}
                 onChangeText={setReference}
               />
@@ -395,10 +397,10 @@ const RecordPaymentScreen = () => {
 
         {/* Botones */}
         <TouchableOpacity style={styles.pdfButton} onPress={handleGeneratePDF}>
-          <Text style={styles.pdfButtonText}>GENERAR RECIBO PDF</Text>
+          <Text style={styles.pdfButtonText}>{t('payment.generatePDF')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmPayment}>
-          <Text style={styles.confirmButtonText}>CONFIRMAR PAGO</Text>
+          <Text style={styles.confirmButtonText}>{t('payment.confirmPayment')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -427,10 +429,10 @@ const RecordPaymentScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Selecciona método de pago</Text>
+            <Text style={styles.modalTitle}>{t('payment.paymentMethodModal')}</Text>
             <TextInput
               style={styles.modalSearch}
-              placeholder="Buscar..."
+              placeholder={t('payment.search')}
               value={searchPayment}
               onChangeText={setSearchPayment}
               autoFocus
@@ -450,11 +452,11 @@ const RecordPaymentScreen = () => {
                   <Text style={styles.modalItemText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No hay resultados</Text>}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>{t('payment.noResults')}</Text>}
               style={{ maxHeight: 250 }}
             />
             <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowPaymentModal(false)}>
-              <Text style={styles.modalCloseButtonText}>Cerrar</Text>
+              <Text style={styles.modalCloseButtonText}>{t('payment.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const avatar = require('../assets/icons/avatar.png');
 const edit = require('../assets/icons/edit.png');
@@ -14,6 +15,7 @@ const user = require('../assets/icons/user-setting.png');
 
 const EditProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t } = useTranslation();
   const [userId, setUserId] = useState<number|null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -74,11 +76,11 @@ const EditProfileScreen = () => {
 
   const handleUpdate = async () => {
     if (!name || !email) {
-      Alert.alert('Error', 'Nombre y email son obligatorios.');
+      Alert.alert(t('common.error'), t('editProfile.requiredFields'));
       return;
     }
     if (password && password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      Alert.alert(t('common.error'), t('editProfile.passwordMismatch'));
       return;
     }
     try {
@@ -93,18 +95,18 @@ const EditProfileScreen = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        Alert.alert('Éxito', 'Perfil actualizado correctamente.', [
+        Alert.alert(t('common.success'), t('editProfile.updateSuccess'), [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => navigation.navigate('Profile'),
           },
         ]);
         await AsyncStorage.setItem('userData', JSON.stringify({ id: userId, name, phone, email, role, photo_url: photoUrl }));
       } else {
-        Alert.alert('Error', data.message || 'No se pudo actualizar el perfil.');
+        Alert.alert(t('common.error'), data.message || t('editProfile.updateError'));
       }
     } catch (err) {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('editProfile.serverError'));
     }
   };
 
@@ -114,47 +116,47 @@ const EditProfileScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={require('../assets/icons/back.png')} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar Perfil</Text>
+        <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarContainer}>
           <Image source={photoUrl ? { uri: photoUrl } : avatar} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert('Info', 'La selección de imagen de perfil no está disponible en este momento.')}>
+          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert(t('common.info'), t('editProfile.photoEdit'))}>
             <Image source={edit} style={styles.editIcon} />
           </TouchableOpacity>
         </View>
         <View style={styles.formContainer}>
-          <TextInput style={styles.input} placeholder="Nombre Completo" value={name} onChangeText={setName} />
-          <TextInput style={styles.input} placeholder="Telefono" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-          <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <TextInput style={styles.input} placeholder={t('editProfile.fullName')} value={name} onChangeText={setName} />
+          <TextInput style={styles.input} placeholder={t('editProfile.phone')} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <TextInput style={styles.input} placeholder={t('editProfile.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
           <View style={styles.passwordRow}>
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Contraseña" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" />
+            <TextInput style={[styles.input, { flex: 1 }]} placeholder={t('editProfile.password')} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" />
             <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
               <Image source={showPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={styles.eyeIcon} />
             </TouchableOpacity>
           </View>
           <View style={styles.passwordRow}>
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Confirmar contraseña" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showConfirmPassword} autoCapitalize="none" />
+            <TextInput style={[styles.input, { flex: 1 }]} placeholder={t('editProfile.confirmPassword')} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showConfirmPassword} autoCapitalize="none" />
             <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)}>
               <Image source={showConfirmPassword ? require('../assets/icons/eye-off.png') : require('../assets/icons/eye.png')} style={styles.eyeIcon} />
             </TouchableOpacity>
           </View>
           {/* Selector de tipo de documento */}
           <View style={styles.input}>
-            <Text style={{ color: '#888', marginBottom: 4 }}>Tipo de documento</Text>
+            <Text style={{ color: '#888', marginBottom: 4 }}>{t('editProfile.documentType')}</Text>
             <TouchableOpacity 
               style={{ paddingVertical: 12 }}
               onPress={() => setShowDocumentTypeModal(true)}
             >
               <Text style={{ fontSize: 16, color: '#222' }}>
-                {documentTypes.find(dt => dt.id === documentTypeId)?.name || 'Selecciona tipo de documento'}
+                {documentTypes.find(dt => dt.id === documentTypeId)?.name || t('editProfile.selectDocumentType')}
               </Text>
             </TouchableOpacity>
           </View>
           <TextInput
             style={styles.input}
-            placeholder="Número de documento"
+            placeholder={t('editProfile.documentNumber')}
             value={identification}
             onChangeText={setIdentification}
           />
@@ -167,7 +169,7 @@ const EditProfileScreen = () => {
           >
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
               <View style={{ backgroundColor: '#FFF', borderRadius: 12, padding: 24, width: '80%', maxWidth: 300 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#1F2937' }}>Seleccionar tipo de documento</Text>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#1F2937' }}>{t('editProfile.selectDocumentType')}</Text>
                 {documentTypes.map((docType) => (
                   <TouchableOpacity 
                     key={docType.id}
@@ -184,7 +186,7 @@ const EditProfileScreen = () => {
                   style={{ marginTop: 16, paddingVertical: 12, backgroundColor: '#EF4444', borderRadius: 8 }}
                   onPress={() => setShowDocumentTypeModal(false)}
                 >
-                  <Text style={{ fontSize: 16, color: '#FFF', textAlign: 'center', fontWeight: '600' }}>Cancelar</Text>
+                  <Text style={{ fontSize: 16, color: '#FFF', textAlign: 'center', fontWeight: '600' }}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -193,7 +195,7 @@ const EditProfileScreen = () => {
             <Text style={{ fontSize: 16, color: '#888' }}>{role}</Text>
           </View>
           <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
-            <Text style={styles.updateButtonText}>ACTUALIZAR DATOS</Text>
+            <Text style={styles.updateButtonText}>{t('editProfile.updateData')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

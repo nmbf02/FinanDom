@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -36,48 +37,49 @@ const contactIcons = {
 const FAQ_DATA = [
   {
     id: '1',
-    question: '¿Cómo solicito un préstamo?',
-    answer: 'Puedes solicitar un préstamo desde la sección de Préstamos en la app.',
+    questionKey: 'helpCenter.faqData.loanRequest.question',
+    answerKey: 'helpCenter.faqData.loanRequest.answer',
     category: 'Popular Topic',
   },
   {
     id: '2',
-    question: '¿Cuáles son los requisitos?',
-    answer: 'Debes ser mayor de edad y tener documentos válidos.',
+    questionKey: 'helpCenter.faqData.requirements.question',
+    answerKey: 'helpCenter.faqData.requirements.answer',
     category: 'General',
   },
   {
     id: '3',
-    question: '¿Cómo pago una cuota?',
-    answer: 'Puedes pagar desde la sección de Pagos o en nuestras oficinas.',
+    questionKey: 'helpCenter.faqData.payment.question',
+    answerKey: 'helpCenter.faqData.payment.answer',
     category: 'Services',
   },
   {
     id: '4',
-    question: '¿Puedo pagar por adelantado?',
-    answer: 'Sí, puedes adelantar pagos sin penalidad.',
+    questionKey: 'helpCenter.faqData.advancePayment.question',
+    answerKey: 'helpCenter.faqData.advancePayment.answer',
     category: 'Popular Topic',
   },
   {
     id: '5',
-    question: '¿Qué pasa si me atraso?',
-    answer: 'Se aplicarán intereses por mora según el contrato.',
+    questionKey: 'helpCenter.faqData.latePayment.question',
+    answerKey: 'helpCenter.faqData.latePayment.answer',
     category: 'General',
   },
 ];
 
 const CONTACT_DATA = [
-  { id: '1', label: 'Customer Service', value: '809-000-0000' },
-  { id: '2', label: 'Website', value: 'www.finandom.com' },
-  { id: '3', label: 'Whatsapp', value: '+1 809-000-0000' },
-  { id: '4', label: 'Facebook', value: 'facebook.com/finandom' },
-  { id: '5', label: 'Instagram', value: '@finandom' },
+  { id: '1', labelKey: 'helpCenter.contact.customerService', value: '809-000-0000' },
+  { id: '2', labelKey: 'helpCenter.contact.website', value: 'www.finandom.com' },
+  { id: '3', labelKey: 'helpCenter.contact.whatsapp', value: '+1 809-000-0000' },
+  { id: '4', labelKey: 'helpCenter.contact.facebook', value: 'facebook.com/finandom' },
+  { id: '5', labelKey: 'helpCenter.contact.instagram', value: '@finandom' },
 ];
 
 const FAQ_CATEGORIES = ['Popular Topic', 'General', 'Services'];
 
 const HelpCenterScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<'FAQ' | 'Contact'>('FAQ');
   const [faqCategory, setFaqCategory] = useState('Popular Topic');
   const [search, setSearch] = useState('');
@@ -87,13 +89,13 @@ const HelpCenterScreen = () => {
   const filteredFaq = FAQ_DATA.filter(
     f =>
       (faqCategory === '' || f.category === faqCategory) &&
-      (f.question.toLowerCase().includes(search.toLowerCase()) ||
-        f.answer.toLowerCase().includes(search.toLowerCase()))
+      (t(f.questionKey).toLowerCase().includes(search.toLowerCase()) ||
+        t(f.answerKey).toLowerCase().includes(search.toLowerCase()))
   );
   // Filtro Contact
   const filteredContact = CONTACT_DATA.filter(
     c =>
-      c.label.toLowerCase().includes(search.toLowerCase()) ||
+      t(c.labelKey).toLowerCase().includes(search.toLowerCase()) ||
       c.value.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -104,15 +106,15 @@ const HelpCenterScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Help Center</Text>
+        <Text style={styles.headerTitle}>{t('helpCenter.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>How Can We Help You?</Text>
+      <Text style={styles.subtitle}>{t('helpCenter.subtitle')}</Text>
       {/* Search */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar..."
+          placeholder={t('helpCenter.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />
@@ -124,13 +126,13 @@ const HelpCenterScreen = () => {
           style={[styles.tabButton, tab === 'FAQ' && styles.tabButtonActive]}
           onPress={() => setTab('FAQ')}
         >
-          <Text style={[styles.tabText, tab === 'FAQ' && styles.tabTextActive]}>FAQ</Text>
+          <Text style={[styles.tabText, tab === 'FAQ' && styles.tabTextActive]}>{t('helpCenter.faq')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, tab === 'Contact' && styles.tabButtonActiveBlue]}
           onPress={() => setTab('Contact')}
         >
-          <Text style={[styles.tabText, tab === 'Contact' && styles.tabTextActive]}>Contact Us</Text>
+          <Text style={[styles.tabText, tab === 'Contact' && styles.tabTextActive]}>{t('helpCenter.contactUs')}</Text>
         </TouchableOpacity>
       </View>
       {/* FAQ Content */}
@@ -143,7 +145,7 @@ const HelpCenterScreen = () => {
                 style={[styles.faqCategoryButton, faqCategory === cat && styles.faqCategoryButtonActive]}
                 onPress={() => setFaqCategory(cat)}
               >
-                <Text style={[styles.faqCategoryText, faqCategory === cat && styles.faqCategoryTextActive]}>{cat}</Text>
+                <Text style={[styles.faqCategoryText, faqCategory === cat && styles.faqCategoryTextActive]}>{t(`helpCenter.categories.${cat.toLowerCase().replace(' ', '')}`)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -151,14 +153,14 @@ const HelpCenterScreen = () => {
             {filteredFaq.map(faq => (
               <View key={faq.id} style={styles.faqCard}>
                 <TouchableOpacity style={styles.faqQuestionRow} onPress={() => setExpanded(expanded === faq.id ? null : faq.id)}>
-                  <Text style={styles.faqQuestion}>{faq.question}</Text>
+                  <Text style={styles.faqQuestion}>{t(faq.questionKey)}</Text>
                   <Text style={styles.faqCheck}>{expanded === faq.id ? '˄' : '˅'}</Text>
                 </TouchableOpacity>
-                {expanded === faq.id && <Text style={styles.faqAnswer}>{faq.answer}</Text>}
+                {expanded === faq.id && <Text style={styles.faqAnswer}>{t(faq.answerKey)}</Text>}
               </View>
             ))}
             {filteredFaq.length === 0 && (
-              <Text style={styles.emptyText}>No results found.</Text>
+              <Text style={styles.emptyText}>{t('helpCenter.noResults')}</Text>
             )}
           </ScrollView>
         </>
@@ -169,15 +171,15 @@ const HelpCenterScreen = () => {
           {filteredContact.map(contact => (
             <View key={contact.id} style={styles.contactRow}>
               <View style={styles.contactIconContainer}>
-                <Image source={contactIcons[contact.label as keyof typeof contactIcons]} style={styles.contactIcon} />
+                <Image source={contactIcons[t(contact.labelKey) as keyof typeof contactIcons]} style={styles.contactIcon} />
               </View>
-              <Text style={styles.contactLabel}>{contact.label}</Text>
+              <Text style={styles.contactLabel}>{t(contact.labelKey)}</Text>
               <Text style={styles.contactValue}>{contact.value}</Text>
               <Image source={checkmark} style={styles.contactCheck} />
             </View>
           ))}
           {filteredContact.length === 0 && (
-            <Text style={styles.emptyText}>No results found.</Text>
+            <Text style={styles.emptyText}>{t('helpCenter.noResults')}</Text>
           )}
         </ScrollView>
       )}

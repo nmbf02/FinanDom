@@ -12,12 +12,14 @@ import {
 import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const checkmarkIcon = require('../assets/icons/checkmark.png');
 const eyeIcon = require('../assets/icons/eye.png');
 const eyeOffIcon = require('../assets/icons/eye-off.png');
 
 const LoginScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +64,7 @@ const LoginScreen = ({ navigation }: any) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Por favor completa todos los campos');
+      Alert.alert(t('common.error'), t('auth.requiredFields'));
       return;
     }
 
@@ -85,26 +87,26 @@ const LoginScreen = ({ navigation }: any) => {
         await AsyncStorage.setItem('userData', JSON.stringify(data.user));
         navigation.navigate('Dashboard');
       } else {
-        Alert.alert('Error', data.message || 'Credenciales incorrectas');
+        Alert.alert(t('common.error'), data.message || t('auth.invalidCredentials'));
       }
     } catch (err) {
       console.error('❌ Error de conexión:', err);
-      Alert.alert('Error', 'No se pudo conectar con el servidor');
+      Alert.alert(t('common.error'), t('errors.networkError'));
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Hola</Text>
-      <Text style={styles.subheader}>Seguro, claro y a tu medida</Text>
+      <Text style={styles.header}>{t('auth.greeting')}</Text>
+      <Text style={styles.subheader}>{t('auth.subtitle')}</Text>
 
-      <Text style={styles.label}>Email</Text>
+      <Text style={styles.label}>{t('auth.email')}</Text>
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
           value={email}
           onChangeText={setEmail}
-          placeholder="Correo electrónico"
+          placeholder={t('auth.email')}
           keyboardType="email-address"
           autoCapitalize="none"
         />
@@ -113,14 +115,14 @@ const LoginScreen = ({ navigation }: any) => {
         )}
       </View>
 
-      <Text style={styles.passwordLabel}>Contraseña</Text>
+      <Text style={styles.passwordLabel}>{t('auth.password')}</Text>
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
-          placeholder="Contraseña"
+          placeholder={t('auth.password')}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Image
@@ -145,22 +147,22 @@ const LoginScreen = ({ navigation }: any) => {
           }}
             tintColors={{ true: '#1CC88A', false: '#ccc' }}
           />
-          <Text style={styles.rememberText}>Remember me</Text>
+          <Text style={styles.rememberText}>{t('auth.rememberMe')}</Text>
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+          <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>LOGIN</Text>
+        <Text style={styles.loginButtonText}>{t('auth.login').toUpperCase()}</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>¿No tienes cuenta?</Text>
+        <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}> Regístrate</Text>
+          <Text style={styles.registerLink}> {t('auth.register')}</Text>
         </TouchableOpacity>
       </View>
     </View>

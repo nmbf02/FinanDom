@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 type RootStackParamList = {
   LoanList: undefined;
@@ -14,6 +15,7 @@ const checkIcon = require('../assets/icons/checkmark.png');
 
 const PaymentSuccessScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -27,8 +29,8 @@ const PaymentSuccessScreen = () => {
       <View style={styles.checkCircle}>
         <Image source={checkIcon} style={styles.checkIcon} />
       </View>
-      <Text style={styles.title}>¡Felicidades!</Text>
-      <Text style={styles.subtitle}>El pago se registró exitosamente</Text>
+      <Text style={styles.title}>{t('paymentSuccess.congratulations')}</Text>
+      <Text style={styles.subtitle}>{t('paymentSuccess.paymentRegistered')}</Text>
       {/* Puedes agregar más detalles aquí si lo deseas */}
     </View>
   );

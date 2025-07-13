@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, A
 import { API_BASE_URL } from '../api/config';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 // Iconos (debes agregar los archivos reales en src/assets/icons/)
 const menuIcon = require('../assets/icons/menu.png');
@@ -42,6 +43,7 @@ interface Client {
 }
 
 const ClientListScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
@@ -106,15 +108,15 @@ const ClientListScreen = () => {
   const handleCancelClient = async (client: Client) => {
     // Mostrar confirmación
     Alert.alert(
-      'Cancelar Cliente',
-      `¿Estás seguro de que quieres cancelar a ${client.name}?`,
+      t('clientListScreen.cancelClient'),
+      t('clientListScreen.cancelClientConfirm', { name: client.name }),
       [
         {
-          text: 'No',
+          text: t('common.no'),
           style: 'cancel',
         },
         {
-          text: 'Sí, Cancelar',
+          text: t('clientListScreen.yesCancel'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -125,21 +127,21 @@ const ClientListScreen = () => {
               const data = await response.json();
 
               if (response.ok) {
-                Alert.alert('Éxito', 'Cliente cancelado correctamente.');
+                Alert.alert(t('common.success'), t('clientListScreen.clientCancelled'));
                 // Recargar la lista de clientes
                 fetchClients();
               } else {
                 if (response.status === 400 && data.active_loans > 0) {
                   Alert.alert(
-                    'No se puede cancelar',
-                    `No se puede cancelar el cliente porque tiene ${data.active_loans} préstamo(s) activo(s). Debe liquidar todos los préstamos antes de cancelar al cliente.`
+                    t('clientListScreen.cannotCancel'),
+                    t('clientListScreen.cannotCancelWithLoans', { count: data.active_loans })
                   );
                 } else {
-                  Alert.alert('Error', data.message || 'No se pudo cancelar el cliente.');
+                  Alert.alert(t('common.error'), data.message || t('clientListScreen.cancelError'));
                 }
               }
             } catch (error) {
-              Alert.alert('Error', 'No se pudo conectar con el servidor.');
+              Alert.alert(t('common.error'), t('clientListScreen.connectionError'));
             }
           },
         },
@@ -171,10 +173,10 @@ const ClientListScreen = () => {
           )
         );
       } else {
-        Alert.alert('Error', data.message || 'No se pudo actualizar el favorito.');
+        Alert.alert(t('common.error'), data.message || t('clientListScreen.favoriteUpdateError'));
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('clientListScreen.connectionError'));
     }
   };
 
@@ -194,13 +196,13 @@ const ClientListScreen = () => {
         <Text style={styles.clientName}>{item.name}</Text>
         <View style={styles.documentInfo}>
           <Text style={styles.documentType}>
-            {item.document_type_name || 'Cédula'}
+            {item.document_type_name || t('clientListScreen.cedula')}
           </Text>
-          <Text style={styles.clientDoc}>{item.identification || 'Sin documento'}</Text>
+          <Text style={styles.clientDoc}>{item.identification || t('clientListScreen.noDocument')}</Text>
         </View>
-        <Text style={styles.clientPhone}>{item.phone || 'Sin teléfono'}</Text>
+        <Text style={styles.clientPhone}>{item.phone || t('clientListScreen.noPhone')}</Text>
         <View style={styles.loansRow}>
-          <Text style={styles.activeLoans}>Préstamos activos</Text>
+          <Text style={styles.activeLoans}>{t('clientListScreen.activeLoans')}</Text>
           <Image source={checkIcon} style={styles.starIcon} />
           <Text style={styles.activeLoansNum}>{item.active_loans ?? 0}</Text>
         </View>
@@ -238,7 +240,7 @@ const ClientListScreen = () => {
     <View style={styles.mainContainer}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Lista de Clientes</Text>
+        <Text style={styles.title}>{t('clientListScreen.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
@@ -248,7 +250,7 @@ const ClientListScreen = () => {
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search..."
+          placeholder={t('clientListScreen.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />
@@ -260,13 +262,13 @@ const ClientListScreen = () => {
           style={[styles.filterBtn, filters.activo && styles.filterBtnActive]}
           onPress={() => setFilters(prev => ({ ...prev, activo: !prev.activo }))}
         >
-          <Text style={[styles.filterText, filters.activo && styles.filterTextActive]}>Activos</Text>
+          <Text style={[styles.filterText, filters.activo && styles.filterTextActive]}>{t('clientListScreen.active')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterBtn, filters.inactivo && styles.filterBtnInactive]}
           onPress={() => setFilters(prev => ({ ...prev, inactivo: !prev.inactivo }))}
         >
-          <Text style={[styles.filterText, filters.inactivo && styles.filterTextInactive]}>Inactivos</Text>
+          <Text style={[styles.filterText, filters.inactivo && styles.filterTextInactive]}>{t('clientListScreen.inactive')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterBtn, filters.favoritos && styles.filterBtnFavorites]}

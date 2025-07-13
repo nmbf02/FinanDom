@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Ale
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -34,6 +35,7 @@ const calendar = require('../assets/icons/calendar.png');
 
 const ProfileScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const userName = 'Nathaly Berroa'; // Aquí puedes traer el nombre real del usuario
   const [logoutVisible, setLogoutVisible] = React.useState(false);
   const handleLogout = async () => {
@@ -48,39 +50,39 @@ const ProfileScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={logout} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Foto de perfil */}
         <View style={styles.avatarContainer}>
           <Image source={avatar} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert('Info', 'La selección de imagen de perfil no está disponible en este momento.') }>
+          <TouchableOpacity style={styles.editIconContainer} onPress={() => Alert.alert('Info', t('profile.photoEdit')) }>
             <Image source={edit} style={styles.editIcon} />
           </TouchableOpacity>
         </View>
         <Text style={styles.userName}>{userName}</Text>
         {/* Opciones */}
         <View style={styles.optionsList}>
-          <Option icon={user} label="Perfil" onPress={() => navigation.navigate('EditProfile')} />
-          <Option icon={currency} label="Moneda Predeterminada" onPress={() => navigation.navigate('Currency')} />
-          <Option icon={setting} label="Configuraciones" onPress={() => navigation.navigate('Settings')} />
-          <Option icon={help} label="Ayuda" onPress={() => navigation.navigate('HelpCenter')} />
-          <Option icon={logout} label="Salir" onPress={() => setLogoutVisible(true)} />
+          <Option icon={user} label={t('profile.editProfile')} onPress={() => navigation.navigate('EditProfile')} />
+          <Option icon={currency} label={t('profile.currency')} onPress={() => navigation.navigate('Currency')} />
+          <Option icon={setting} label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} />
+          <Option icon={help} label={t('profile.help')} onPress={() => navigation.navigate('HelpCenter')} />
+          <Option icon={logout} label={t('profile.logout')} onPress={() => setLogoutVisible(true)} />
         </View>
       </ScrollView>
       {/* Modal de logout */}
       <Modal visible={logoutVisible} transparent animationType="slide" onRequestClose={() => setLogoutVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.logoutModal}>
-            <Text style={styles.logoutTitle}>Cerrar Sesion</Text>
-            <Text style={styles.logoutText}>¿Estás seguro que deseas salir?</Text>
+            <Text style={styles.logoutTitle}>{t('profile.logout')}</Text>
+            <Text style={styles.logoutText}>{t('profile.logoutConfirm')}</Text>
             <View style={styles.logoutButtonsRow}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setLogoutVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Text style={styles.logoutButtonText}>Sí, Salir</Text>
+                <Text style={styles.logoutButtonText}>{t('common.yes')}, {t('profile.logout')}</Text>
               </TouchableOpacity>
             </View>
           </View>

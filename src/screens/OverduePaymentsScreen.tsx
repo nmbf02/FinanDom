@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -39,6 +40,7 @@ function getWeekDates(date = new Date()) {
 const OverduePaymentsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState(getWeekDates(new Date()));
@@ -110,7 +112,7 @@ const OverduePaymentsScreen = () => {
       setPayments(Array.isArray(data) ? data : []);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      Alert.alert('Error cargando pagos', errorMsg);
+      Alert.alert(t('overduePayments.loadingError'), errorMsg);
       setPayments([]);
       console.error('Error cargando pagos:', err);
     }
@@ -119,12 +121,14 @@ const OverduePaymentsScreen = () => {
 
   const handleCancelPayment = async (payment: any) => {
     Alert.alert(
-      'Cancelar Pago',
-      `¿Estás seguro de que quieres cancelar el pago de RD$ ${parseFloat(payment.amount_paid || payment.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}?`,
+      t('overduePayments.cancelPayment'),
+      t('overduePayments.cancelConfirmation', { 
+        amount: parseFloat(payment.amount_paid || payment.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 }) 
+      }),
       [
-        { text: 'No', style: 'cancel' },
+        { text: t('common.no'), style: 'cancel' },
         { 
-          text: 'Sí, Cancelar', 
+          text: t('overduePayments.yesCancel'), 
           style: 'destructive',
           onPress: async () => {
             try {
@@ -134,7 +138,7 @@ const OverduePaymentsScreen = () => {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  reason: 'Cancelado por el usuario'
+                  reason: t('overduePayments.cancelReason')
                 })
               });
               
@@ -144,13 +148,13 @@ const OverduePaymentsScreen = () => {
               }
               
               const result = await response.json();
-              Alert.alert('Pago Cancelado', result.message);
+              Alert.alert(t('overduePayments.paymentCancelled'), result.message);
               
               // Recargar la lista de pagos
               fetchPayments();
             } catch (error) {
               const errorMsg = error instanceof Error ? error.message : String(error);
-              Alert.alert('Error', `No se pudo cancelar el pago: ${errorMsg}`);
+              Alert.alert(t('common.error'), t('overduePayments.cancelError', { error: errorMsg }));
               console.error('Error cancelando pago:', error);
             }
           }
@@ -161,12 +165,14 @@ const OverduePaymentsScreen = () => {
 
   const handlePrintReceipt = async (payment: any) => {
     Alert.alert(
-      'Generar Recibo',
-      `¿Deseas generar el recibo del pago de RD$ ${parseFloat(payment.amount_paid || payment.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}?`,
+      t('overduePayments.generateReceipt'),
+      t('overduePayments.receiptConfirmation', { 
+        amount: parseFloat(payment.amount_paid || payment.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 }) 
+      }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Generar', 
+          text: t('overduePayments.generate'), 
           onPress: async () => {
             try {
               const response = await fetch(`${API_BASE_URL}/api/payments/${payment.id}/receipt`);
@@ -179,22 +185,27 @@ const OverduePaymentsScreen = () => {
               const result = await response.json();
               
               Alert.alert(
-                'Recibo Generado', 
-                `Recibo #${result.receipt.receipt_number} generado exitosamente.\n\nCliente: ${result.receipt.client_name}\nMonto: RD$ ${parseFloat(result.receipt.amount_paid).toLocaleString('es-DO', { minimumFractionDigits: 2 })}\nMétodo: ${result.receipt.method}`,
+                t('overduePayments.receiptGenerated'), 
+                t('overduePayments.receiptDetails', {
+                  receiptNumber: result.receipt.receipt_number,
+                  clientName: result.receipt.client_name,
+                  amount: parseFloat(result.receipt.amount_paid).toLocaleString('es-DO', { minimumFractionDigits: 2 }),
+                  method: result.receipt.method
+                }),
                 [
-                  { text: 'OK' },
+                  { text: t('common.ok') },
                   { 
-                    text: 'Descargar PDF', 
+                    text: t('overduePayments.downloadPDF'), 
                     onPress: () => {
                       // Aquí se podría implementar la descarga del PDF
-                      Alert.alert('Descarga', 'Funcionalidad de descarga PDF en desarrollo.');
+                      Alert.alert(t('overduePayments.download'), t('overduePayments.downloadPending'));
                     }
                   }
                 ]
               );
             } catch (error) {
               const errorMsg = error instanceof Error ? error.message : String(error);
-              Alert.alert('Error', `No se pudo generar el recibo: ${errorMsg}`);
+              Alert.alert(t('common.error'), t('overduePayments.receiptError', { error: errorMsg }));
               console.error('Error generando recibo:', error);
             }
           }
@@ -207,12 +218,12 @@ const OverduePaymentsScreen = () => {
     <View style={styles.card}>
       <Image source={avatarDefault} style={styles.avatar} />
       <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{item.client_name || 'Cliente'}</Text>
-        <Text style={styles.cardField}>Préstamo #: <Text style={styles.cardValue}>{item.loan_id || '-'}</Text></Text>
-        <Text style={styles.cardField}>Monto: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_paid || item.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
-        <Text style={styles.cardField}>Fecha: <Text style={styles.cardValue}>{item.payment_date || item.due_date || '-'}</Text></Text>
-        <Text style={styles.cardField}>Método: <Text style={styles.cardValue}>{item.method || '-'}</Text></Text>
-        <Text style={styles.cardField}>Estado: <Text style={[styles.cardValue, { color: item.status === 'vencida' ? '#EF4444' : '#10B981' }]}>{item.status || '-'}</Text></Text>
+        <Text style={styles.cardName}>{item.client_name || t('overduePayments.client')}</Text>
+        <Text style={styles.cardField}>{t('overduePayments.loanNumber')}: <Text style={styles.cardValue}>{item.loan_id || '-'}</Text></Text>
+        <Text style={styles.cardField}>{t('overduePayments.amount')}: <Text style={styles.cardValue}>RD$ {parseFloat(item.amount_paid || item.amount_due || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text></Text>
+        <Text style={styles.cardField}>{t('overduePayments.date')}: <Text style={styles.cardValue}>{item.payment_date || item.due_date || '-'}</Text></Text>
+        <Text style={styles.cardField}>{t('overduePayments.method')}: <Text style={styles.cardValue}>{item.method || '-'}</Text></Text>
+        <Text style={styles.cardField}>{t('overduePayments.status')}: <Text style={[styles.cardValue, { color: item.status === 'vencida' ? '#EF4444' : '#10B981' }]}>{item.status || '-'}</Text></Text>
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity 
@@ -238,16 +249,16 @@ const OverduePaymentsScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Pagos Realizados</Text>
+        <Text style={styles.title}>{t('overduePayments.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>Gestión de Pagos</Text>
+      <Text style={styles.subtitle}>{t('overduePayments.subtitle')}</Text>
       
       {/* Buscador */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar pagos..."
+          placeholder={t('overduePayments.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
         />
@@ -297,8 +308,8 @@ const OverduePaymentsScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No hay pagos para mostrar</Text>
-              <Text style={styles.emptySubtext}>Intenta cambiar los filtros o la fecha</Text>
+              <Text style={styles.emptyText}>{t('overduePayments.noPayments')}</Text>
+              <Text style={styles.emptySubtext}>{t('overduePayments.tryFilters')}</Text>
             </View>
           }
         />
@@ -313,49 +324,49 @@ const OverduePaymentsScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filtros</Text>
+            <Text style={styles.modalTitle}>{t('overduePayments.filters')}</Text>
             
-            <Text style={styles.filterLabel}>Estado del Pago:</Text>
+            <Text style={styles.filterLabel}>{t('overduePayments.paymentStatus')}:</Text>
             <View style={styles.filterOptions}>
               <TouchableOpacity
                 style={[styles.filterOption, selectedFilter === 'all' && styles.filterOptionActive]}
                 onPress={() => setSelectedFilter('all')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'all' && styles.filterOptionTextActive]}>Todos</Text>
+                <Text style={[styles.filterOptionText, selectedFilter === 'all' && styles.filterOptionTextActive]}>{t('overduePayments.all')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.filterOption, selectedFilter === 'overdue' && styles.filterOptionActive]}
                 onPress={() => setSelectedFilter('overdue')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'overdue' && styles.filterOptionTextActive]}>En Mora</Text>
+                <Text style={[styles.filterOptionText, selectedFilter === 'overdue' && styles.filterOptionTextActive]}>{t('overduePayments.overdue')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.filterOption, selectedFilter === 'paid' && styles.filterOptionActive]}
                 onPress={() => setSelectedFilter('paid')}
               >
-                <Text style={[styles.filterOptionText, selectedFilter === 'paid' && styles.filterOptionTextActive]}>Pagados</Text>
+                <Text style={[styles.filterOptionText, selectedFilter === 'paid' && styles.filterOptionTextActive]}>{t('overduePayments.paid')}</Text>
               </TouchableOpacity>
             </View>
             
-            <Text style={styles.filterLabel}>Método de Pago:</Text>
+            <Text style={styles.filterLabel}>{t('overduePayments.paymentMethod')}:</Text>
             <View style={styles.filterOptions}>
               <TouchableOpacity
                 style={[styles.filterOption, selectedPaymentMethod === 'all' && styles.filterOptionActive]}
                 onPress={() => setSelectedPaymentMethod('all')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'all' && styles.filterOptionTextActive]}>Todos</Text>
+                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'all' && styles.filterOptionTextActive]}>{t('overduePayments.all')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.filterOption, selectedPaymentMethod === 'efectivo' && styles.filterOptionActive]}
                 onPress={() => setSelectedPaymentMethod('efectivo')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'efectivo' && styles.filterOptionTextActive]}>Efectivo</Text>
+                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'efectivo' && styles.filterOptionTextActive]}>{t('overduePayments.cash')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.filterOption, selectedPaymentMethod === 'transferencia' && styles.filterOptionActive]}
                 onPress={() => setSelectedPaymentMethod('transferencia')}
               >
-                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'transferencia' && styles.filterOptionTextActive]}>Transferencia</Text>
+                <Text style={[styles.filterOptionText, selectedPaymentMethod === 'transferencia' && styles.filterOptionTextActive]}>{t('overduePayments.transfer')}</Text>
               </TouchableOpacity>
             </View>
             
@@ -363,7 +374,7 @@ const OverduePaymentsScreen = () => {
               style={styles.modalCloseButton} 
               onPress={() => setShowFilterModal(false)}
             >
-              <Text style={styles.modalCloseButtonText}>Aplicar Filtros</Text>
+              <Text style={styles.modalCloseButtonText}>{t('overduePayments.applyFilters')}</Text>
             </TouchableOpacity>
           </View>
         </View>

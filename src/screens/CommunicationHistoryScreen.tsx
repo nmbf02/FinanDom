@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const backIcon = require('../assets/icons/back.png');
 const home = require('../assets/icons/home.png');
@@ -12,12 +13,12 @@ const checkmark = require('../assets/icons/checkmark.png');
 
 const CommunicationHistoryScreen = () => {
   const navigation = useNavigation();
-  const route = useRoute();
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<'reminder' | 'thanks' | 'all'>('all');
   const [search, setSearch] = useState('');
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [_error, setError] = useState('');
 
   useEffect(() => {
     fetchHistory();
@@ -43,7 +44,7 @@ const CommunicationHistoryScreen = () => {
       const errorMsg = err instanceof Error ? err.message : String(err);
       setError(errorMsg);
       setHistory([]);
-      Alert.alert('Error cargando historial', errorMsg);
+      Alert.alert(t('communicationHistory.loadingError'), errorMsg);
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ const CommunicationHistoryScreen = () => {
       <View style={{ flex: 1 }}>
         <Text style={styles.clientName}>{item.client_name}</Text>
         <Text style={styles.dateText}>{item.sent_at ? item.sent_at.replace('T', ' ').slice(0, 16) : ''}</Text>
-        <Text style={styles.methodText}>Medio: {item.method === 'email' ? 'Email' : item.method === 'whatsapp' ? 'WhatsApp' : item.method}</Text>
+        <Text style={styles.methodText}>{t('communicationHistory.medium')}: {item.method === 'email' ? t('communicationHistory.email') : item.method === 'whatsapp' ? t('communicationHistory.whatsapp') : item.method}</Text>
         <Text style={styles.messageText}>{item.message}</Text>
       </View>
       <Image source={checkmark} style={styles.checkIcon} />
@@ -68,7 +69,7 @@ const CommunicationHistoryScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.title}>Historial De Comunicaciones</Text>
+        <Text style={styles.title}>{t('communicationHistory.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -76,7 +77,7 @@ const CommunicationHistoryScreen = () => {
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search..."
+          placeholder={t('communicationHistory.search')}
           value={search}
           onChangeText={setSearch}
         />
@@ -88,13 +89,13 @@ const CommunicationHistoryScreen = () => {
           style={[styles.filterButton, filter === 'reminder' && styles.filterButtonActive]}
           onPress={() => setFilter('reminder')}
         >
-          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>Recordatorio</Text>
+          <Text style={[styles.filterText, filter === 'reminder' && styles.filterTextActive]}>{t('communicationHistory.reminder')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'thanks' && styles.filterButtonActiveBlue]}
           onPress={() => setFilter('thanks')}
         >
-          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>Agradecimiento</Text>
+          <Text style={[styles.filterText, filter === 'thanks' && styles.filterTextActive]}>{t('communicationHistory.thanks')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -102,7 +103,7 @@ const CommunicationHistoryScreen = () => {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Cargando historial...</Text>
+          <Text style={styles.loadingText}>{t('communicationHistory.loadingHistory')}</Text>
         </View>
       ) : (
         <FlatList
@@ -112,7 +113,7 @@ const CommunicationHistoryScreen = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No hay comunicaciones para mostrar</Text>
+              <Text style={styles.emptyText}>{t('communicationHistory.noCommunications')}</Text>
             </View>
           }
         />

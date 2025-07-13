@@ -14,6 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 // ICONOS
 const avatar = require('../assets/icons/avatar.png');
@@ -59,8 +60,9 @@ type AgendaItem = {
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
-  const [userName, setUserName] = useState('Usuario');
-  const [greeting, setGreeting] = useState('Buenos días');
+  const { t } = useTranslation();
+  const [userName, setUserName] = useState(t('dashboard.defaultUserName'));
+  const [greeting, setGreeting] = useState(t('dashboard.greeting.morning'));
   const [metrics, setMetrics] = useState({
     total_prestado: 0,
     total_recuperado: 0,
@@ -76,6 +78,31 @@ const DashboardScreen = () => {
   const [customRange, setCustomRange] = useState<{start: Date|null, end: Date|null}>({start: null, end: null});
   const [currency, setCurrency] = useState('DOP');
 
+  const loadUserData = React.useCallback(async () => {
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const userDataParsed = JSON.parse(userData);
+        setUserName(userDataParsed.name || t('dashboard.defaultUserName'));
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }, [t]);
+
+  const updateGreeting = React.useCallback(() => {
+    const hour = new Date().getHours();
+    let greetingText = t('dashboard.greeting.morning');
+    
+    if (hour >= 12 && hour < 18) {
+      greetingText = t('dashboard.greeting.afternoon');
+    } else if (hour >= 18 || hour < 6) {
+      greetingText = t('dashboard.greeting.evening');
+    }
+    
+    setGreeting(greetingText);
+  }, [t]);
+
   useEffect(() => {
     loadUserData();
     updateGreeting();
@@ -84,7 +111,7 @@ const DashboardScreen = () => {
       const saved = await AsyncStorage.getItem('currency');
       if (saved) setCurrency(saved);
     })();
-  }, []);
+  }, [loadUserData, updateGreeting]);
 
   useEffect(() => {
     fetchAgenda();
@@ -96,31 +123,6 @@ const DashboardScreen = () => {
       fetchMetrics();
     }, [])
   );
-
-  const loadUserData = async () => {
-    try {
-      const userData = await AsyncStorage.getItem('userData');
-      if (userData) {
-        const userDataParsed = JSON.parse(userData);
-        setUserName(userDataParsed.name || 'Usuario');
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-  };
-
-  const updateGreeting = () => {
-    const hour = new Date().getHours();
-    let greetingText = 'Buenos días';
-    
-    if (hour >= 12 && hour < 18) {
-      greetingText = 'Buenas tardes';
-    } else if (hour >= 18 || hour < 6) {
-      greetingText = 'Buenas noches';
-    }
-    
-    setGreeting(greetingText);
-  };
 
   const fetchMetrics = async () => {
     try {
@@ -216,7 +218,11 @@ const DashboardScreen = () => {
                   styles.rangeButtonText,
                   agendaView === v && styles.rangeButtonTextActive
                 ]}>
-                  {v === 'dia' ? 'Día' : v === 'semana' ? 'Semana' : v === 'mes' ? 'Mes' : v === 'ano' ? 'Año' : 'Personalizado'}
+                  {v === 'dia' ? t('dashboard.range.day') : 
+                   v === 'semana' ? t('dashboard.range.week') : 
+                   v === 'mes' ? t('dashboard.range.month') : 
+                   v === 'ano' ? t('dashboard.range.year') : 
+                   t('dashboard.range.custom')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -232,10 +238,10 @@ const DashboardScreen = () => {
             {agendaView === 'personalizado' && (
               <View style={styles.customRangeContainer}>
                 <TouchableOpacity onPress={() => setShowDatePicker('start')} style={styles.dateButton}>
-                  <Text style={styles.dateButtonText}>Inicio: {customRange.start ? formatDate(customRange.start) : 'Elegir'}</Text>
+                  <Text style={styles.dateButtonText}>{t('dashboard.dateRange.start')}: {customRange.start ? formatDate(customRange.start) : t('dashboard.dateRange.choose')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setShowDatePicker('end')} style={styles.dateButton}>
-                  <Text style={styles.dateButtonText}>Fin: {customRange.end ? formatDate(customRange.end) : 'Elegir'}</Text>
+                  <Text style={styles.dateButtonText}>{t('dashboard.dateRange.end')}: {customRange.end ? formatDate(customRange.end) : t('dashboard.dateRange.choose')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -266,10 +272,14 @@ const DashboardScreen = () => {
         {/* AGENDA DEL DÍA */}
         <View style={styles.agendaContainer}>
           <Text style={styles.agendaDayLabel}>
-            {agendaView === 'dia' ? 'Pagos del día' : agendaView === 'semana' ? 'Pagos de la semana' : agendaView === 'mes' ? 'Pagos del mes' : agendaView === 'ano' ? 'Pagos del año' : 'Pagos personalizados'}
+            {agendaView === 'dia' ? t('dashboard.agenda.dayPayments') : 
+             agendaView === 'semana' ? t('dashboard.agenda.weekPayments') : 
+             agendaView === 'mes' ? t('dashboard.agenda.monthPayments') : 
+             agendaView === 'ano' ? t('dashboard.agenda.yearPayments') : 
+             t('dashboard.agenda.customPayments')}
           </Text>
           {agenda.length === 0 ? (
-            <Text style={styles.emptyAgendaText}>No hay pagos programados en este rango.</Text>
+            <Text style={styles.emptyAgendaText}>{t('dashboard.agenda.noPayments')}</Text>
           ) : (
             agenda.map((item: AgendaItem) => (
               <View key={item.installment_id} style={styles.agendaItem}>
@@ -279,8 +289,8 @@ const DashboardScreen = () => {
                     <Text style={styles.agendaTitle}>{item.client_name}</Text>
                     <Text style={styles.agendaCheck}>{item.status === 'pendiente' ? '⏳' : item.status === 'vencida' ? '⚠️' : '✔️'}</Text>
                   </View>
-                  <Text style={styles.agendaDesc}>Monto: RD$ {Number(item.amount_due).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
-                  <Text style={styles.agendaDesc}>Préstamo #{item.loan_id}</Text>
+                  <Text style={styles.agendaDesc}>{t('dashboard.agenda.amount')}: RD$ {Number(item.amount_due).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
+                  <Text style={styles.agendaDesc}>{t('dashboard.agenda.loan')} #{item.loan_id}</Text>
                 </View>
               </View>
             ))
@@ -295,16 +305,16 @@ const DashboardScreen = () => {
             contentContainerStyle={styles.tabs}
           >
             <TouchableOpacity onPress={() => navigation.navigate('Client', {})}>
-              <Tab icon={users} label="CLIENTES" active />
+              <Tab icon={users} label={t('dashboard.tabs.clients')} active />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('CreateLoan')}>
-              <Tab icon={loan} label="PRÉSTAMOS" active />
+              <Tab icon={loan} label={t('dashboard.tabs.loans')} active />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('OverduePayments')}>
-              <Tab icon={overdue} label="PAGOS" active />
+              <Tab icon={overdue} label={t('dashboard.tabs.payments')} active />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
-              <Tab icon={payment} label="CUOTAS" active />
+              <Tab icon={payment} label={t('dashboard.tabs.installments')} active />
             </TouchableOpacity>
             
           </ScrollView>
@@ -312,11 +322,11 @@ const DashboardScreen = () => {
 
         {/* MÉTRICAS */}
         <View style={styles.statsContainer}>
-          <StatCard icon={wallet} title="Total Prestado" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={barChart} title="Total Recuperado" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
-          <StatCard icon={dollarCross} title="Total en Mora" amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
-          <StatCard icon={pieChart} title="Cantidad de Préstamos Activos" amount={metrics.prestamos_activos.toString()} />
-          <StatCard icon={users} title="Clientes Activos" amount={metrics.clientes_activos.toString()} />
+          <StatCard icon={wallet} title={t('dashboard.metrics.totalLent')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_prestado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={barChart} title={t('dashboard.metrics.totalRecovered')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_recuperado).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} />
+          <StatCard icon={dollarCross} title={t('dashboard.metrics.totalOverdue')} amount={`${getCurrencySymbol(currency)} ${Number(metrics.total_mora).toLocaleString('es-DO', {minimumFractionDigits: 2})}`} badge={metrics.prestamos_en_mora > 0 ? metrics.prestamos_en_mora.toString() : undefined} />
+          <StatCard icon={pieChart} title={t('dashboard.metrics.activeLoans')} amount={metrics.prestamos_activos.toString()} />
+          <StatCard icon={users} title={t('dashboard.metrics.activeClients')} amount={metrics.clientes_activos.toString()} />
         </View>
       </ScrollView>
 

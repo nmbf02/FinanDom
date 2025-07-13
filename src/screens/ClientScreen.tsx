@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../api/config';
 import { pick, keepLocalCopy, types } from '@react-native-documents/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 // Iconos del navbar
 const home = require('../assets/icons/home.png');
@@ -44,6 +45,7 @@ interface DocumentType {
 }
 
 const ClientScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const clientId = (route.params as any)?.clientId;
@@ -136,7 +138,7 @@ const ClientScreen = () => {
     } catch (err) {
       if ((err as any).code !== 'DOCUMENT_PICKER_CANCELED') {
         console.error('Error al seleccionar foto:', err);
-        Alert.alert('Error', 'No se pudo seleccionar la foto.');
+        Alert.alert(t('common.error'), t('clientScreen.photoSelectionError'));
       }
     }
   };
@@ -168,7 +170,7 @@ const ClientScreen = () => {
     } catch (err) {
       if ((err as any).code !== 'DOCUMENT_PICKER_CANCELED') {
         console.error('Error al seleccionar documento:', err);
-        Alert.alert('Error', 'No se pudo seleccionar el documento.');
+        Alert.alert(t('common.error'), t('clientScreen.documentSelectionError'));
       }
     }
   };
@@ -240,7 +242,7 @@ const ClientScreen = () => {
 
   const handleSave = async () => {
     if (!client.name || !client.identification || !client.email || !client.phone || !client.address) {
-      Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios.');
+      Alert.alert(t('clientScreen.requiredFields'), t('clientScreen.completeRequiredFields'));
       return;
     }
 
@@ -277,17 +279,17 @@ const ClientScreen = () => {
       
       if (response.ok) {
         Alert.alert(
-          'Cliente guardado', 
-          clientId ? 'El cliente se actualizó correctamente.' : 'El cliente se creó correctamente.',
+          t('clientScreen.clientSaved'), 
+          clientId ? t('clientScreen.clientUpdated') : t('clientScreen.clientCreated'),
           [
-            { text: 'OK', onPress: () => navigation.navigate('Dashboard') },
+            { text: t('common.ok'), onPress: () => navigation.navigate('Dashboard') },
           ]
         );
       } else {
-        Alert.alert('Error', data.message || 'No se pudo guardar el cliente.');
+        Alert.alert(t('common.error'), data.message || t('clientScreen.saveError'));
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('clientScreen.connectionError'));
     } finally {
       setIsLoading(false);
     }
@@ -297,7 +299,7 @@ const ClientScreen = () => {
     <View style={styles.mainContainer}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Clientes</Text>
+        <Text style={styles.title}>{t('clientScreen.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('ClientList')}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
@@ -310,31 +312,31 @@ const ClientScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.subtitle}>
-          {clientId ? 'Editar' : 'Crear'} - Clientes
+          {clientId ? t('clientScreen.edit') : t('clientScreen.create')} - {t('clientScreen.clients')}
         </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Nombre completo"
+          placeholder={t('clientScreen.fullNamePlaceholder')}
           value={client.name}
           onChangeText={(text) => setClient({...client, name: text})}
         />
 
         <View style={styles.documentTypeContainer}>
-          <Text style={styles.label}>Tipo de documento</Text>
+          <Text style={styles.label}>{t('clientScreen.documentType')}</Text>
           <TouchableOpacity 
             style={styles.documentTypeButton}
             onPress={() => setShowDocumentTypeModal(true)}
           >
             <Text style={styles.documentTypeText}>
-              {documentTypes.find(dt => dt.id === client.document_type_id)?.name || 'Cédula'}
+              {documentTypes.find(dt => dt.id === client.document_type_id)?.name || t('clientScreen.cedula')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <TextInput
           style={styles.input}
-          placeholder="Número de documento"
+          placeholder={t('clientScreen.documentNumberPlaceholder')}
           value={client.identification}
           onChangeText={(text) => setClient({...client, identification: text})}
           keyboardType="numeric"
@@ -342,7 +344,7 @@ const ClientScreen = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="Correo electrónico"
+          placeholder={t('clientScreen.emailPlaceholder')}
           value={client.email}
           onChangeText={(text) => setClient({...client, email: text})}
           keyboardType="email-address"
@@ -351,7 +353,7 @@ const ClientScreen = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="Teléfono"
+          placeholder={t('clientScreen.phonePlaceholder')}
           value={client.phone}
           onChangeText={(text) => setClient({...client, phone: text})}
           keyboardType="phone-pad"
@@ -359,7 +361,7 @@ const ClientScreen = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="Dirección"
+          placeholder={t('clientScreen.addressPlaceholder')}
           value={client.address}
           onChangeText={(text) => setClient({...client, address: text})}
           multiline
@@ -368,22 +370,22 @@ const ClientScreen = () => {
         />
 
         <View style={styles.photoSection}>
-          <Text style={styles.sectionLabel}>Foto del cliente</Text>
+          <Text style={styles.sectionLabel}>{t('clientScreen.clientPhoto')}</Text>
           
           <TouchableOpacity style={styles.addPhotoButton} onPress={handlePickPhoto}>
             {clientPhoto ? (
               <Image source={{ uri: clientPhoto.uri }} style={styles.clientPhoto} />
             ) : (
-              <Text style={styles.addPhotoText}>+ Agregar foto</Text>
+              <Text style={styles.addPhotoText}>{t('clientScreen.addPhoto')}</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.documentsSection}>
-          <Text style={styles.sectionLabel}>Documentos del cliente</Text>
+          <Text style={styles.sectionLabel}>{t('clientScreen.clientDocuments')}</Text>
           
           <TouchableOpacity style={styles.addDocumentButton} onPress={handlePickDocument}>
-            <Text style={styles.addDocumentText}>+ Agregar documento</Text>
+            <Text style={styles.addDocumentText}>{t('clientScreen.addDocument')}</Text>
           </TouchableOpacity>
 
           {documents.map((doc, _index) => (
@@ -407,7 +409,7 @@ const ClientScreen = () => {
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>
-            {isLoading ? 'Guardando...' : 'GUARDAR'}
+            {isLoading ? t('clientScreen.saving') : t('clientScreen.save')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -421,7 +423,7 @@ const ClientScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Seleccionar tipo de documento</Text>
+            <Text style={styles.modalTitle}>{t('clientScreen.selectDocumentType')}</Text>
             
             {documentTypes.map((docType) => (
               <TouchableOpacity 
@@ -440,7 +442,7 @@ const ClientScreen = () => {
               style={styles.modalCancelButton}
               onPress={() => setShowDocumentTypeModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancelar</Text>
+              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

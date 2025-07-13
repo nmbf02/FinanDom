@@ -1,8 +1,11 @@
 // src/screens/Splash/SplashScreen.tsx
 import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const SplashScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     // Espera 3 segundos y navega a Login (a definir luego)
     const timer = setTimeout(() => {
@@ -19,9 +22,9 @@ const SplashScreen = ({ navigation }: any) => {
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>FinanDom</Text>
-      <Text style={styles.subtitle}>Tu préstamo fácil, claro y al día.</Text>
-      <Text style={styles.author}>By <Text style={styles.authorBold}>NMBF</Text></Text>
+      <Text style={styles.title}>{t('splash.title')}</Text>
+      <Text style={styles.subtitle}>{t('splash.subtitle')}</Text>
+      <Text style={styles.author}>{t('splash.author')} <Text style={styles.authorBold}>{t('splash.authorName')}</Text></Text>
     </View>
   );
 };

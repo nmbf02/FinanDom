@@ -2,6 +2,7 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
+import './src/i18n'; // Importar configuración de i18n
 
 /**
  * App principal de FinanDom

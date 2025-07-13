@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import FileViewer from 'react-native-file-viewer';
 import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const BackIcon = require('../assets/icons/back.png');
 const PencilIcon = require('../assets/icons/edit.png'); // Usa tu icono de lápiz aquí
@@ -15,6 +16,7 @@ const user = require('../assets/icons/user-setting.png');
 const LoanDetailsScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
   const { amount, numInstallments, totalWithInterest, clientName, clientIdentification, startDate, frequency, interestRate } = (route.params || {}) as {
     amount?: number | string;
     numInstallments?: number | string;
@@ -29,25 +31,25 @@ const LoanDetailsScreen = () => {
   const handleGenerateAndOpenPDF = async () => {
     try {
       const htmlContent = `
-        <h2 style="text-align:center;">CONTRATO DE PRÉSTAMO</h2>
-        <p><b>Monto Prestado:</b> RD$${parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</p>
-        <p><b>Cuotas:</b> ${numInstallments}</p>
-        <p><b>Monto Total:</b> RD$${parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</p>
-        <p style="margin-top:24px;">Este es un ejemplo de contrato generado dinámicamente. Aquí puedes incluir todas las cláusulas y datos relevantes del préstamo, así como las firmas digitalizadas.</p>
+        <h2 style="text-align:center;">${t('loanDetails.contractTitle')}</h2>
+        <p><b>${t('loanDetails.loanAmount')}:</b> RD$${parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</p>
+        <p><b>${t('loanDetails.installments')}:</b> ${numInstallments}</p>
+        <p><b>${t('loanDetails.totalAmount')}:</b> RD$${parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</p>
+        <p style="margin-top:24px;">${t('loanDetails.contractDescription')}</p>
       `;
       const options = {
         html: htmlContent,
-        fileName: `ContratoPrestamo_${Date.now()}`,
+        fileName: `${t('loanDetails.contractFileName')}_${Date.now()}`,
         directory: Platform.OS === 'ios' ? 'Documents' : 'Download',
       };
       const file = await RNHTMLtoPDF.convert(options);
       if (file.filePath) {
         await FileViewer.open(file.filePath, { showOpenWithDialog: true });
       } else {
-        Alert.alert('Error', 'No se pudo generar el PDF.');
+        Alert.alert(t('common.error'), t('loanDetails.pdfGenerationError'));
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo abrir el PDF.');
+      Alert.alert(t('common.error'), t('loanDetails.pdfOpenError'));
       console.error('PDF error:', error);
     }
   };
@@ -59,59 +61,59 @@ const LoanDetailsScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={BackIcon} style={styles.iconBack} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Loan Details</Text>
+        <Text style={styles.headerTitle}>{t('loanDetails.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.successTitle}>Registro exitoso!</Text>
-        <Text style={styles.subtitle}>Resumen del Préstamo</Text>
+        <Text style={styles.successTitle}>{t('loanDetails.successTitle')}</Text>
+        <Text style={styles.subtitle}>{t('loanDetails.subtitle')}</Text>
 
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Monto Prestado:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.loanAmount')}:</Text>
           <Text style={styles.dataValue}>RD$ {parseFloat(String(amount || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Cuotas:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.installments')}:</Text>
           <Text style={styles.dataValue}>{numInstallments}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Monto Total:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.totalAmount')}:</Text>
           <Text style={styles.dataValue}>RD$ {parseFloat(String(totalWithInterest || 0)).toLocaleString('es-DO', { minimumFractionDigits: 2 })}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Cliente:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.client')}:</Text>
           <Text style={styles.dataValue}>{clientName || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Cédula:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.identification')}:</Text>
           <Text style={styles.dataValue}>{clientIdentification || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Fecha inicio:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.startDate')}:</Text>
           <Text style={styles.dataValue}>{startDate || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Frecuencia:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.frequency')}:</Text>
           <Text style={styles.dataValue}>{frequency || '-'}</Text>
         </View>
         <View style={styles.dataRow}>
-          <Text style={styles.dataLabel}>Interés:</Text>
+          <Text style={styles.dataLabel}>{t('loanDetails.interest')}:</Text>
           <Text style={styles.dataValue}>{interestRate ? `${interestRate}%` : '-'}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Contrato Firmado</Text>
+        <Text style={styles.sectionTitle}>{t('loanDetails.signedContract')}</Text>
 
         <TouchableOpacity style={styles.contractButton} onPress={handleGenerateAndOpenPDF}>
           <Image source={PencilIcon} style={styles.pencilIcon} />
-          <Text style={styles.contractButtonText}>VER CONTRATO</Text>
+          <Text style={styles.contractButtonText}>{t('loanDetails.viewContract')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.greenButtonText}>REGISTRAR PAGO</Text>
+          <Text style={styles.greenButtonText}>{t('loanDetails.recordPayment')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.greenButtonText}>VER CALENDARIO DE PAGOS</Text>
+          <Text style={styles.greenButtonText}>{t('loanDetails.viewPaymentCalendar')}</Text>
         </TouchableOpacity>
       </View>
 

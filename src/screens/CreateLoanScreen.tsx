@@ -7,6 +7,7 @@ import { pick, keepLocalCopy, types } from '@react-native-documents/picker';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 
 const home = require('../assets/icons/home.png');
@@ -75,6 +76,7 @@ type LateFeeType = {
 
 const CreateLoanScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [clients, setClients] = useState<any[]>([]);
   const [lateFeeTypes, setLateFeeTypes] = useState<LateFeeType[]>([]);
   const [clientId, setClientId] = useState('');
@@ -131,7 +133,7 @@ const CreateLoanScreen = () => {
     } catch (err) {
       if ((err as any).code !== 'DOCUMENT_PICKER_CANCELED') {
         console.error('Error al seleccionar PDF:', err);
-        Alert.alert('Error', 'No se pudo seleccionar el documento.');
+        Alert.alert(t('common.error'), t('createLoan.pdfSelectionError'));
       }
     }
   };
@@ -144,7 +146,7 @@ const CreateLoanScreen = () => {
 
   const handleCalculateInstallments = () => {
     if (!amount || !interestRate || !numInstallments || !startDate || !frequency) {
-      Alert.alert('Campos requeridos', 'Completa los campos para calcular las cuotas.');
+      Alert.alert(t('createLoan.requiredFields'), t('createLoan.completeFieldsToCalculate'));
       return;
     }
 
@@ -197,7 +199,7 @@ const CreateLoanScreen = () => {
 
   const handleGoToContractPreview = async () => {
     if (!clientId || !amount || !interestRate || !numInstallments || !startDate || !frequency) {
-      Alert.alert('Campos requeridos', 'Por favor completa todos los campos obligatorios.');
+      Alert.alert(t('createLoan.requiredFields'), t('createLoan.completeAllRequiredFields'));
       return;
     }
     const selectedClient = clients.find((c: any) => c.id == clientId);
@@ -226,7 +228,7 @@ const CreateLoanScreen = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.log('Backend error:', errorText);
-        Alert.alert('Error', errorText);
+        Alert.alert(t('common.error'), errorText);
         return;
       }
       const data = await response.json();
@@ -236,7 +238,7 @@ const CreateLoanScreen = () => {
         clientIdentification: selectedClient?.identification || '',
       });
     } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar el préstamo.');
+      Alert.alert(t('common.error'), t('createLoan.couldNotSaveLoan'));
     }
   };
 
@@ -244,7 +246,7 @@ const CreateLoanScreen = () => {
     <View style={styles.mainContainer}>
       {/* Header con título y menú hamburguesa */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Préstamos</Text>
+        <Text style={styles.title}>{t('createLoan.title')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('LoanList')}>
           <Image source={menuIcon} style={styles.menuIcon} />
         </TouchableOpacity>
@@ -256,42 +258,42 @@ const CreateLoanScreen = () => {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.subtitle}>Crear - Préstamo</Text>
+        <Text style={styles.subtitle}>{t('createLoan.subtitle')}</Text>
 
       <Picker
         selectedValue={clientId}
         onValueChange={(value: string) => setClientId(value)}
         style={styles.input}
       >
-        <Picker.Item label="Selecciona un cliente" value="" />
+        <Picker.Item label={t('createLoan.selectClient')} value="" />
         {clients.map((client: any) => (
           <Picker.Item key={client.id} label={client.name} value={client.id} />
         ))}
       </Picker>
       <TextInput
         style={styles.input}
-        placeholder="Monto del préstamo"
+        placeholder={t('createLoan.loanAmount')}
         value={amount}
         onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
       <TextInput
         style={styles.input}
-        placeholder="Interés (%)"
+        placeholder={t('createLoan.interestRate')}
         value={interestRate}
         onChangeText={text => setInterestRate(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
       <TextInput
         style={styles.input}
-        placeholder="# de Cuotas"
+        placeholder={t('createLoan.numInstallments')}
         value={numInstallments}
         onChangeText={text => setNumInstallments(text.replace(/[^0-9]/g, ''))}
         keyboardType="numeric"
       />
 
       <TouchableOpacity style={styles.input} onPress={() => setShowStartPicker(true)}>
-        <Text style={{ color: '#555' }}>{`Fecha de inicio: ${formatDateLocal(startDate)}`}</Text>
+        <Text style={{ color: '#555' }}>{`${t('createLoan.startDate')}: ${formatDateLocal(startDate)}`}</Text>
       </TouchableOpacity>
 
       {showStartPicker && (
@@ -304,7 +306,7 @@ const CreateLoanScreen = () => {
       )}
 
       <View style={styles.frequencySection}>
-        <Text style={styles.sectionLabel}>Frecuencia de pago:</Text>
+        <Text style={styles.sectionLabel}>{t('createLoan.paymentFrequency')}:</Text>
         <View style={styles.frequencyButtons}>
           {frequencies.map(f => (
             <TouchableOpacity
@@ -313,7 +315,7 @@ const CreateLoanScreen = () => {
               onPress={() => setFrequency(f.value)}
             >
               <Text style={[styles.freqButtonText, frequency === f.value && styles.freqButtonTextActive]}>
-                {f.label}
+                {t(`createLoan.frequencies.${f.value}`)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -321,7 +323,7 @@ const CreateLoanScreen = () => {
       </View>
 
       <View style={styles.frequencySection}>
-        <Text style={styles.sectionLabel}>Tipo de mora:</Text>
+        <Text style={styles.sectionLabel}>{t('createLoan.lateFeeType')}:</Text>
         <Picker
           selectedValue={lateFeeTypeId}
           onValueChange={(value: string) => setLateFeeTypeId(value)}
@@ -335,7 +337,7 @@ const CreateLoanScreen = () => {
 
       <TextInput
         style={styles.input}
-        placeholder="Días de gracia para mora"
+        placeholder={t('createLoan.graceDays')}
         value={lateDays}
         onChangeText={text => setLateDays(text.replace(/[^0-9]/g, ''))}
         keyboardType="numeric"
@@ -343,27 +345,27 @@ const CreateLoanScreen = () => {
 
       <TextInput
         style={styles.input}
-        placeholder="% de recargo por mora"
+        placeholder={t('createLoan.lateFeePercentage')}
         value={latePercent}
         onChangeText={text => setLatePercent(text.replace(/[^0-9.]/g, ''))}
         keyboardType="numeric"
       />
 
       <TouchableOpacity style={styles.input} onPress={handlePickPdf}>
-        <Text style={{ color: '#555' }}>{pdf ? `PDF seleccionado: ${pdf.name}` : 'Agregar documento PDF'}</Text>
+        <Text style={{ color: '#555' }}>{pdf ? `${t('createLoan.pdfSelected')}: ${pdf.name}` : t('createLoan.addPdfDocument')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.calcButton} onPress={handleCalculateInstallments}>
-        <Text style={styles.calcButtonText}>Calcular Cuota</Text>
+        <Text style={styles.calcButtonText}>{t('createLoan.calculateInstallment')}</Text>
       </TouchableOpacity>
 
       {installments.length > 0 && (
         <View style={styles.tableContainer}>
           <View style={styles.tableHeader}>
-            <Text style={styles.tableCell}>Cuota</Text>
-            <Text style={styles.tableCell}>Fecha</Text>
-            <Text style={styles.tableCell}>Monto</Text>
-            <Text style={styles.tableCell}>Con Atraso</Text>
+            <Text style={styles.tableCell}>{t('createLoan.installment')}</Text>
+            <Text style={styles.tableCell}>{t('createLoan.date')}</Text>
+            <Text style={styles.tableCell}>{t('createLoan.amount')}</Text>
+            <Text style={styles.tableCell}>{t('createLoan.withLateFee')}</Text>
           </View>
           {installments.map((row, idx) => (
             <View key={idx} style={[styles.tableRow, idx % 2 === 0 && { backgroundColor: '#f9f9f9' }]}>
@@ -377,29 +379,29 @@ const CreateLoanScreen = () => {
           {/* Información adicional sobre el tipo de mora */}
           <View style={styles.moraInfoContainer}>
             <Text style={styles.moraInfoTitle}>
-              Tipo de mora: {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.name}
+              {t('createLoan.lateFeeType')}: {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.name}
             </Text>
             <Text style={styles.moraInfoText}>
               {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.description}
             </Text>
             {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'fixed_interval' && (
               <Text style={styles.moraInfoText}>
-                Ejemplo: RD$4,620 + (RD$4,620 × {(parseFloat(latePercent || '0') / 100).toFixed(3)}) = RD$4,620 + RD${(4620 * parseFloat(latePercent || '0') / 100).toFixed(2)} = RD${(4620 * (1 + parseFloat(latePercent || '0') / 100)).toFixed(2)}
+                {t('createLoan.fixedIntervalExample')}: RD$4,620 + (RD$4,620 × {(parseFloat(latePercent || '0') / 100).toFixed(3)}) = RD$4,620 + RD${(4620 * parseFloat(latePercent || '0') / 100).toFixed(2)} = RD${(4620 * (1 + parseFloat(latePercent || '0') / 100)).toFixed(2)}
               </Text>
             )}
             {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && (
               <View>
                 <Text style={styles.moraInfoText}>
-                  Ejemplo de mora por arrastre:
+                  {t('createLoan.carryOverExample')}:
                 </Text>
                 <Text style={styles.moraInfoText}>
-                  • Cuota 1 con mora: RD$2,300 + RD$46 = RD$2,346
+                  • {t('createLoan.installment')} 1 {t('createLoan.withLateFee')}: RD$2,300 + RD$46 = RD$2,346
                 </Text>
                 <Text style={styles.moraInfoText}>
-                  • Cuota 2 con mora: RD$2,300 + RD$46 = RD$2,346
+                  • {t('createLoan.installment')} 2 {t('createLoan.withLateFee')}: RD$2,300 + RD$46 = RD$2,346
                 </Text>
                 <Text style={styles.moraInfoText}>
-                  • Total acumulado: RD$4,646 + 2% = RD$4,738.92
+                  • {t('createLoan.totalAccumulated')}: RD$4,646 + 2% = RD$4,738.92
                 </Text>
               </View>
             )}
@@ -408,12 +410,12 @@ const CreateLoanScreen = () => {
           {/* Tabla de cálculo acumulado para mora por arrastre */}
           {lateFeeTypes.find((type: LateFeeType) => type.id.toString() === lateFeeTypeId)?.calculation_type === 'carry_over' && installments.length > 0 && (
             <View style={styles.carryOverTableContainer}>
-              <Text style={styles.carryOverTableTitle}>Cálculo de Mora por Arrastre (Acumulado)</Text>
+              <Text style={styles.carryOverTableTitle}>{t('createLoan.carryOverCalculation')}</Text>
               <View style={styles.carryOverTableHeader}>
-                <Text style={styles.carryOverTableCell}>Cuota</Text>
-                <Text style={styles.carryOverTableCell}>Monto Base</Text>
-                <Text style={styles.carryOverTableCell}>Mora Individual</Text>
-                <Text style={styles.carryOverTableCell}>Total Acumulado</Text>
+                <Text style={styles.carryOverTableCell}>{t('createLoan.installment')}</Text>
+                <Text style={styles.carryOverTableCell}>{t('createLoan.baseAmount')}</Text>
+                <Text style={styles.carryOverTableCell}>{t('createLoan.individualLateFee')}</Text>
+                <Text style={styles.carryOverTableCell}>{t('createLoan.totalAccumulated')}</Text>
               </View>
               {(() => {
                 const lateFeeRate = parseFloat(latePercent || '2') / 100;
@@ -446,25 +448,25 @@ const CreateLoanScreen = () => {
 
           {/* Resumen del préstamo */}
           <View style={styles.loanSummaryContainer}>
-            <Text style={styles.loanSummaryTitle}>Resumen del Préstamo</Text>
+            <Text style={styles.loanSummaryTitle}>{t('createLoan.loanSummary')}</Text>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Monto prestado:</Text>
+              <Text style={styles.summaryLabel}>{t('createLoan.loanAmount')}:</Text>
               <Text style={styles.summaryValue}>RD$ {parseFloat(amount || '0').toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Interés ({interestRate}%):</Text>
+              <Text style={styles.summaryLabel}>{t('createLoan.interest')} ({interestRate}%):</Text>
               <Text style={styles.summaryValue}>RD$ {(parseFloat(amount || '0') * parseFloat(interestRate || '0') / 100).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total a pagar:</Text>
+              <Text style={styles.totalLabel}>{t('createLoan.totalToPay')}:</Text>
               <Text style={styles.totalValue}>RD$ {(parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Número de cuotas:</Text>
+              <Text style={styles.summaryLabel}>{t('createLoan.numInstallments')}:</Text>
               <Text style={styles.summaryValue}>{numInstallments}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Monto por cuota:</Text>
+              <Text style={styles.summaryLabel}>{t('createLoan.amountPerInstallment')}:</Text>
               <Text style={styles.summaryValue}>RD$ {((parseFloat(amount || '0') * (1 + parseFloat(interestRate || '0') / 100)) / parseInt(numInstallments || '1')).toLocaleString('es-DO', {minimumFractionDigits: 2})}</Text>
             </View>
           </View>
@@ -472,7 +474,7 @@ const CreateLoanScreen = () => {
       )}
 
       <TouchableOpacity style={styles.button} onPress={handleGoToContractPreview}>
-        <Text style={styles.buttonText}>GENERAR CONTRATO</Text>
+        <Text style={styles.buttonText}>{t('createLoan.generateContract')}</Text>
       </TouchableOpacity>
       </ScrollView>
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from 'react
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 const backIcon = require('../assets/icons/back.png');
 const checkIcon = require('../assets/icons/checkmark.png');
@@ -19,6 +20,7 @@ type RootStackParamList = {
 
 const CurrencyScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [selected, setSelected] = useState('DOP');
 
   useEffect(() => {
@@ -34,6 +36,11 @@ const CurrencyScreen = () => {
     navigation.goBack();
   };
 
+  // Get currency names from translations
+  const getCurrencyName = (code: string) => {
+    return t(`currency.${code}`);
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -41,17 +48,17 @@ const CurrencyScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={backIcon} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Moneda Predeterminada</Text>
+        <Text style={styles.headerTitle}>{t('currency.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      <Text style={styles.subtitle}>Selecciona tu moneda preferida</Text>
+      <Text style={styles.subtitle}>{t('currency.subtitle')}</Text>
       <FlatList
         data={CURRENCIES}
         keyExtractor={item => item.code}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.currencyRow} onPress={() => handleSelect(item.code)}>
             <Text style={styles.currencyCode}>{item.code}</Text>
-            <Text style={styles.currencyName}>{item.name}</Text>
+            <Text style={styles.currencyName}>{getCurrencyName(item.code)}</Text>
             {selected === item.code && <Image source={checkIcon} style={styles.checkIcon} />}
           </TouchableOpacity>
         )}

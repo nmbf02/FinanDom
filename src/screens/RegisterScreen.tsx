@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { API_BASE_URL } from '../api/config';
+import { useTranslation } from 'react-i18next';
 
 const BackIcon = require('../assets/icons/back.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -19,6 +20,7 @@ const eyeOffIcon = require('../assets/icons/eye-off.png');
 const CheckIcon = require('../assets/icons/checkmark.png');
 
 const RegisterScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [userId, setUserId] = useState('');
   const [name, setName] = useState('');
   const [identification, setIdentification] = useState('');
@@ -33,12 +35,12 @@ const RegisterScreen = ({ navigation }: any) => {
 
   const handleRegister = async () => {
     if (!userId || !name || !identification || !email || !password || !confirmPassword || !role) {
-      Alert.alert('❌ Campos incompletos', 'Por favor, completa todos los campos');
+      Alert.alert(t('register.incompleteFields'), t('register.incompleteFieldsMessage'));
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('❌ Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('register.passwordMismatch'), t('register.passwordMismatchMessage'));
       return;
     }
   
@@ -54,15 +56,15 @@ const RegisterScreen = ({ navigation }: any) => {
       const data = await response.json();
   
       if (response.ok) {
-        Alert.alert('✅ Éxito', 'Cuenta creada exitosamente', [
+        Alert.alert(t('register.success'), t('register.successMessage'), [
           { text: 'OK', onPress: () => navigation.navigate('Dashboard') }
         ]);
       } else {
-        Alert.alert('❌ Error', data.message || 'No se pudo crear la cuenta');
+        Alert.alert(t('register.error'), data.message || t('register.errorMessage'));
       }
     } catch (error) {
       console.error('Error de registro:', error);
-      Alert.alert('❌ Error', 'Error al conectar con el servidor');
+      Alert.alert(t('register.error'), t('register.serverError'));
     }
   };
   
@@ -78,26 +80,26 @@ const RegisterScreen = ({ navigation }: any) => {
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <Text style={styles.title}>Únete</Text>
-          <Text style={styles.subtitle}>Se parte de una gran comunidad</Text>
+          <Text style={styles.title}>{t('register.title')}</Text>
+          <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="ID de usuario"
+            placeholder={t('register.userId')}
             value={userId}
             onChangeText={text => setUserId(text.replace(/[^0-9]/g, ''))}
             keyboardType="numeric"
           />
           <TextInput
             style={styles.input}
-            placeholder="Documento de identidad"
+            placeholder={t('register.identification')}
             value={identification}
             onChangeText={setIdentification}
           />
 
           <TextInput
             style={styles.input}
-            placeholder="Nombre Completo"
+            placeholder={t('register.fullName')}
             value={name}
             onChangeText={setName}
           />
@@ -105,7 +107,7 @@ const RegisterScreen = ({ navigation }: any) => {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputPassword}
-              placeholder="Email"
+              placeholder={t('register.email')}
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
@@ -117,7 +119,7 @@ const RegisterScreen = ({ navigation }: any) => {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputPassword}
-              placeholder="Contraseña"
+              placeholder={t('register.password')}
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
@@ -130,7 +132,7 @@ const RegisterScreen = ({ navigation }: any) => {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputPassword}
-              placeholder="Confirmar contraseña"
+              placeholder={t('register.confirmPassword')}
               secureTextEntry={!showConfirmPassword}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -142,14 +144,14 @@ const RegisterScreen = ({ navigation }: any) => {
 
           <TextInput
             style={styles.input}
-            placeholder="Rol (prestamista)"
+            placeholder={t('register.role')}
             value={role}
             onChangeText={setRole}
             editable={false}
           />
 
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>CREAR CUENTA</Text>
+            <Text style={styles.registerButtonText}>{t('register.createAccount')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
