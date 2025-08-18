@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "655121357366",
+    "project_id": "finandom",
+    "storage_bucket": "finandom.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655121357366:android:4541eb2fcd24766616d697",
+        "android_client_info": {
+          "package_name": "com.finandom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "655121357366-9kgcdn41v3g53d1v2at2v04i3aqpmkkc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.finandom",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg-tOgl6LITCXjQ3M_40nXGCgwzA1RR4Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

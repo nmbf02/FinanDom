@@ -43,7 +43,9 @@
     "registerSuccess": "Registration successful",
     "invalidCredentials": "Invalid credentials",
     "passwordMismatch": "Passwords don't match",
-    "requiredFields": "All fields are required"
+    "requiredFields": "All fields are required",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google"
   },
   "dashboard": {
     "defaultUserName": "User",

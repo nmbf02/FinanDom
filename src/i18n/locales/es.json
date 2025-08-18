@@ -43,7 +43,9 @@
     "registerSuccess": "Registro exitoso",
     "invalidCredentials": "Credenciales inválidas",
     "passwordMismatch": "Las contraseñas no coinciden",
-    "requiredFields": "Todos los campos son obligatorios"
+    "requiredFields": "Todos los campos son obligatorios",
+    "or": "o",
+    "continueWithGoogle": "Continuar con Google"
   },
   "dashboard": {
     "range": {

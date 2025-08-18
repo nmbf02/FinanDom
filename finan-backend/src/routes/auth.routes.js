@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const { sendPasswordResetEmail } = require('../config/email');
+const { verifyGoogleToken } = require('../config/google');
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_secreta_finanDom';
 
 router.post('/register', (req, res) => {
@@ -87,6 +88,95 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Error en login:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Login con Google
+router.post('/google-login', async (req, res) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return res.status(400).json({ message: 'Token de Google es requerido' });
+  }
+
+  try {
+    // Verificar token de Google
+    const googleResult = await verifyGoogleToken(idToken);
+    
+    if (!googleResult.success) {
+      return res.status(401).json({ message: 'Token de Google inválido' });
+    }
+
+    const { email, name, googleId, picture } = googleResult.user;
+
+    // Buscar usuario por email
+    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+      if (err) {
+        console.error('Error en consulta:', err);
+        return res.status(500).json({ message: 'Error interno del servidor' });
+      }
+
+      let userId;
+      let userRole = 'prestamista';
+
+      if (!user) {
+        // Crear nuevo usuario si no existe
+        const insertQuery = `
+          INSERT INTO users (name, email, google_id, photo_url, role)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+        
+        db.run(insertQuery, [name, email, googleId, picture, userRole], function (insertErr) {
+          if (insertErr) {
+            console.error('Error creando usuario:', insertErr);
+            return res.status(500).json({ message: 'Error al crear usuario' });
+          }
+          
+          userId = this.lastID;
+          completeLogin();
+        });
+      } else {
+        // Usuario existe, verificar si tiene google_id
+        if (!user.google_id) {
+          // Actualizar usuario existente con google_id
+          const updateQuery = 'UPDATE users SET google_id = ?, photo_url = ? WHERE id = ?';
+          db.run(updateQuery, [googleId, picture, user.id], function (updateErr) {
+            if (updateErr) {
+              console.error('Error actualizando usuario:', updateErr);
+            }
+            userId = user.id;
+            completeLogin();
+          });
+        } else {
+          userId = user.id;
+          completeLogin();
+        }
+      }
+
+      function completeLogin() {
+        // Generar token JWT
+        const token = jwt.sign(
+          { id: userId, email: email, role: userRole },
+          JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+
+        res.json({
+          message: 'Login con Google exitoso',
+          user: {
+            id: userId,
+            name: name,
+            email: email,
+            role: userRole,
+            photo_url: picture,
+          },
+          token,
+        });
+      }
+    });
+  } catch (err) {
+    console.error('Error en login con Google:', err);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });

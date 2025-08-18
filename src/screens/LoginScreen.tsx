@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../api/config';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/ThemeContext';
+import { loginUser, loginWithGoogle } from '../api/auth';
+import { configureGoogleSignIn, signInWithGoogle } from '../config/google';
 
 const checkmarkIcon = require('../assets/icons/checkmark.png');
 const eyeIcon = require('../assets/icons/eye.png');
@@ -27,9 +28,10 @@ const LoginScreen = ({ navigation }: any) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Cargar credenciales guardadas al iniciar
+  // Cargar credenciales guardadas al iniciar y configurar Google Sign-In
   useEffect(() => {
     loadSavedCredentials();
+    configureGoogleSignIn();
   }, []);
 
   const loadSavedCredentials = async () => {
@@ -71,29 +73,38 @@ const LoginScreen = ({ navigation }: any) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('✅ Login exitoso:', data);
-        // Guardar credenciales si "Remember me" está activado
-        await saveCredentials();
-        // Guardar datos del usuario
-        await AsyncStorage.setItem('userData', JSON.stringify(data.user));
-        navigation.navigate('Dashboard');
-      } else {
-        Alert.alert(t('common.error'), data.message || t('auth.invalidCredentials'));
-      }
-    } catch (err) {
+      const data = await loginUser(email, password);
+      console.log('✅ Login exitoso:', data);
+      // Guardar credenciales si "Remember me" está activado
+      await saveCredentials();
+      // Guardar datos del usuario
+      await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+      navigation.navigate('Dashboard');
+    } catch (err: any) {
       console.error('❌ Error de conexión:', err);
-      Alert.alert(t('common.error'), t('errors.networkError'));
+      Alert.alert(t('common.error'), err.message || t('errors.networkError'));
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const googleResult = await signInWithGoogle();
+      
+      if (!googleResult.success) {
+        Alert.alert(t('common.error'), googleResult.error);
+        return;
+      }
+
+      const { idToken } = googleResult;
+      const data = await loginWithGoogle(idToken);
+      
+      console.log('✅ Login con Google exitoso:', data);
+      // Guardar datos del usuario
+      await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+      navigation.navigate('Dashboard');
+    } catch (err: any) {
+      console.error('❌ Error en login con Google:', err);
+      Alert.alert(t('common.error'), err.message || t('errors.networkError'));
     }
   };
 
@@ -160,6 +171,17 @@ const LoginScreen = ({ navigation }: any) => {
 
       <TouchableOpacity style={[styles.loginButton, { backgroundColor: theme.primary }]} onPress={handleLogin}>
         <Text style={[styles.loginButtonText, { color: theme.text }]}>{t('auth.login').toUpperCase()}</Text>
+      </TouchableOpacity>
+
+      <View style={styles.dividerContainer}>
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <Text style={[styles.dividerText, { color: theme.muted }]}>{t('auth.or')}</Text>
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+      </View>
+
+      <TouchableOpacity style={[styles.googleButton, { borderColor: theme.border }]} onPress={handleGoogleLogin}>
+        <Text style={[styles.googleButtonText, { color: theme.text }]}>G</Text>
+        <Text style={[styles.googleButtonText, { color: theme.text }]}>{t('auth.continueWithGoogle')}</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
@@ -259,5 +281,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 20,
     marginBottom: 4,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    marginHorizontal: 15,
+    fontSize: 14,
+    color: '#888',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
   },
 });

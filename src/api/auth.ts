@@ -1,21 +1,59 @@
-import { API_BASE_URL } from '../../finan-backend/src/config/api';
+import { API_BASE_URL } from './config';
 
-export const registerUser = async (name: string, email: string, password: string, role: string) => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role }),
-    });
+export interface LoginResponse {
+  message: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    photo_url?: string;
+  };
+  token: string;
+}
 
-    const data = await res.json();
+export interface GoogleLoginResponse {
+  message: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    photo_url?: string;
+  };
+  token: string;
+}
 
-    if (!res.ok) {
-      throw new Error(data.message || 'Error al registrar');
-    }
+export const loginUser = async (email: string, password: string): Promise<LoginResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
 
-    return data;
-  } catch (error) {
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error en el login');
   }
+
+  return response.json();
+};
+
+export const loginWithGoogle = async (idToken: string): Promise<GoogleLoginResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/auth/google-login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error en el login con Google');
+  }
+
+  return response.json();
 };
